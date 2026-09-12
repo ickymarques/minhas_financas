@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Meu Financeiro" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <title>Meu Financeiro V3</title>
+  <style>
+    :root{
+      --bg:#f4f6f8;--surface:#fff;--surface2:#f8fafc;--text:#111827;--muted:#64748b;--line:#e5e7eb;
+      --accent:#111827;--accent2:#334155;--good:#047857;--bad:#b91c1c;--warn:#b45309;--radius:18px;
+      --shadow:0 8px 28px rgba(15,23,42,.08)
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    button,input,select{font:inherit}.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+    aside{background:#0f172a;color:#fff;padding:24px 18px;position:sticky;top:0;height:100vh}.brand{font-weight:800;font-size:22px;margin:0 0 28px}.brand small{display:block;font-size:12px;font-weight:500;color:#94a3b8;margin-top:3px}
+    .nav{display:grid;gap:7px}.nav button{border:0;background:transparent;color:#cbd5e1;text-align:left;padding:12px 14px;border-radius:12px;cursor:pointer}.nav button.active,.nav button:hover{background:#1e293b;color:#fff}
+    .aside-bottom{position:absolute;left:18px;right:18px;bottom:22px;font-size:12px;color:#94a3b8;line-height:1.45}
+    main{padding:28px;max-width:1500px;width:100%;margin:0 auto}.topbar{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:24px}.topbar h1{margin:0;font-size:30px}.topbar p{margin:6px 0 0;color:var(--muted)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#fff;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:650}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.danger{color:#991b1b}.btn:hover{transform:translateY(-1px)}
+    .grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.kpi{padding:20px}.kpi .label{color:var(--muted);font-size:13px}.kpi .value{font-size:27px;font-weight:800;margin-top:8px}.kpi .sub{font-size:12px;margin-top:6px;color:var(--muted)}
+    .two{grid-template-columns:1.25fr .75fr}.section{padding:20px}.section h2{margin:0 0 16px;font-size:17px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.section-head h2{margin:0}
+    table{width:100%;border-collapse:collapse}.table-wrap{overflow:auto}.table-wrap th,.table-wrap td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;white-space:nowrap}.table-wrap th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.03em}.amount.income{color:var(--good);font-weight:700}.amount.expense{color:var(--bad);font-weight:700}
+    .empty{padding:30px;text-align:center;color:var(--muted);background:var(--surface2);border-radius:14px;border:1px dashed #cbd5e1}
+    .bars{display:grid;gap:12px}.bar-row{display:grid;grid-template-columns:120px 1fr 90px;gap:10px;align-items:center;font-size:13px}.bar-track{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar-fill{height:100%;background:#475569;border-radius:999px}
+    .projection{display:flex;gap:12px;overflow:auto;padding-bottom:4px}.month-card{min-width:150px;background:var(--surface2);border:1px solid var(--line);padding:14px;border-radius:14px}.month-card strong{display:block;font-size:12px;color:var(--muted);text-transform:uppercase}.month-card .balance{font-size:18px;font-weight:800;margin-top:6px}
+    .filters{display:flex;gap:8px;flex-wrap:wrap}.filters input,.filters select{border:1px solid var(--line);padding:10px 12px;border-radius:11px;background:#fff}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:6px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field input,.field select{border:1px solid var(--line);padding:11px 12px;border-radius:10px;background:#fff;width:100%}.full{grid-column:1/-1}
+    dialog{border:0;border-radius:20px;padding:0;max-width:620px;width:calc(100% - 28px);box-shadow:0 30px 80px rgba(15,23,42,.3)}dialog::backdrop{background:rgba(15,23,42,.45)}.modal{padding:22px}.modal h3{margin:0 0 18px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.pill{font-size:12px;padding:5px 8px;border-radius:999px;background:#e2e8f0;color:#334155;font-weight:700}.good{color:var(--good)}.bad{color:var(--bad)}
+    .uber-kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}.uber-kpi{padding:16px}.uber-kpi .label{font-size:12px;color:var(--muted)}.uber-kpi .value{font-size:22px;font-weight:800;margin-top:6px}.checkline{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}.checkline input{width:17px;height:17px}.mobile-nav{display:none}.view{display:none}.view.active{display:block}.note{font-size:13px;color:var(--muted);line-height:1.5}.budget-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.budget-card{padding:16px}.budget-card .row{display:flex;justify-content:space-between;gap:10px}.progress{height:9px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:10px 0 5px}.progress>span{display:block;height:100%;background:#334155}
+    @media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.budget-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:760px){.uber-kpis{grid-template-columns:1fr 1fr}.app{display:block}aside{display:none}main{padding:18px 14px 86px}.topbar{align-items:center}.topbar h1{font-size:24px}.topbar p{font-size:13px}.actions .btn:not(.primary){display:none}.kpis{grid-template-columns:1fr 1fr;gap:10px}.kpi{padding:15px}.kpi .value{font-size:21px}.section{padding:15px}.form-grid{grid-template-columns:1fr}.budget-grid{grid-template-columns:1fr}.mobile-nav{display:grid;grid-template-columns:repeat(6,1fr);position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:20;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}.mobile-nav button{border:0;background:transparent;padding:9px 4px;font-size:11px;color:#64748b}.mobile-nav button.active{color:#0f172a;font-weight:800}.bar-row{grid-template-columns:90px 1fr 70px}.hide-mobile{display:none}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">Meu Financeiro<small>Controle e projeção pessoal</small></div>
+    <div class="nav" id="sideNav">
+      <button data-view="dashboard" class="active">⌂ Dashboard</button>
+      <button data-view="transactions">↕ Transações</button>
+      <button data-view="cards">▣ Cartões</button>
+      <button data-view="budget">◎ Orçamento</button>
+      <button data-view="projection">↗ Projeção</button>
+      <button data-view="uber">🚗 Uber</button>
+      <button data-view="settings">⚙ Configurações</button>
+    </div>
+    <div class="aside-bottom">Seus dados ficam neste navegador.<br>Faça backup regularmente.</div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div><h1 id="viewTitle">Dashboard</h1><p id="viewSubtitle">Visão geral das suas finanças.</p></div>
+      <div class="actions"><button class="btn" id="backupTop">Backup</button><button class="btn primary" id="addTxTop">+ Transação</button></div>
+    </div>
+
+    <section class="view active" id="dashboard">
+      <div class="grid kpis">
+        <div class="card kpi"><div class="label">Saldo atual</div><div class="value" id="kpiBalance">R$ 0,00</div><div class="sub">Receitas menos despesas registradas</div></div>
+        <div class="card kpi"><div class="label">Receitas do mês</div><div class="value good" id="kpiIncome">R$ 0,00</div><div class="sub">Entradas neste mês</div></div>
+        <div class="card kpi"><div class="label">Despesas do mês</div><div class="value bad" id="kpiExpense">R$ 0,00</div><div class="sub">Saídas neste mês</div></div>
+        <div class="card kpi"><div class="label">Sobra do mês</div><div class="value" id="kpiNet">R$ 0,00</div><div class="sub">Resultado mensal</div></div>
+      </div>
+
+      <div class="grid two">
+        <div class="card section"><div class="section-head"><h2>Últimas transações</h2><button class="btn" data-go="transactions">Ver todas</button></div><div id="recentTx"></div></div>
+        <div class="card section"><h2>Gastos por categoria</h2><div class="bars" id="categoryBars"></div></div>
+      </div>
+
+      <div class="card section" style="margin-top:16px"><div class="section-head"><h2>Projeção rápida</h2><button class="btn" data-go="projection">Detalhar</button></div><div class="projection" id="quickProjection"></div></div>
+    </section>
+
+    <section class="view" id="transactions">
+      <div class="card section">
+        <div class="section-head"><h2>Transações</h2><button class="btn primary" id="addTx2">+ Nova</button></div>
+        <div class="filters" style="margin-bottom:12px"><input id="searchTx" placeholder="Buscar descrição"><select id="filterType"><option value="all">Todos os tipos</option><option value="income">Receitas</option><option value="expense">Despesas</option></select><select id="filterMonth"></select></div>
+        <div id="allTx"></div>
+      </div>
+    </section>
+
+    <section class="view" id="cards">
+      <div class="grid two">
+        <div class="card section"><div class="section-head"><h2>Cartões</h2><button class="btn primary" id="addCard">+ Cartão</button></div><div id="cardsList"></div></div>
+        <div class="card section"><h2>Resumo das faturas</h2><div id="cardSummary"></div></div>
+      </div>
+    </section>
+
+    <section class="view" id="budget">
+      <div class="card section"><div class="section-head"><h2>Limites por categoria</h2><button class="btn primary" id="addBudget">+ Limite</button></div><p class="note">Defina quanto pretende gastar por mês em cada categoria e acompanhe o percentual utilizado.</p><div class="budget-grid" id="budgetGrid"></div></div>
+    </section>
+
+    <section class="view" id="projection">
+      <div class="grid two">
+        <div class="card section"><h2>Projeção dos próximos 12 meses</h2><p class="note">A projeção considera recorrências cadastradas e parcelas futuras de cartão.</p><div class="projection" id="projection12"></div></div>
+        <div class="card section"><div class="section-head"><h2>Recorrências</h2><button class="btn primary" id="addRecurring">+ Recorrência</button></div><div id="recurringList"></div></div>
+      </div>
+    </section>
+
+
+    <section class="view" id="uber">
+      <div class="grid uber-kpis">
+        <div class="card uber-kpi"><div class="label">Receita bruta</div><div class="value good" id="uberGross">R$ 0,00</div></div>
+        <div class="card uber-kpi"><div class="label">Combustível estimado</div><div class="value bad" id="uberFuel">R$ 0,00</div></div>
+        <div class="card uber-kpi"><div class="label">Reserva manutenção</div><div class="value" id="uberMaintenance">R$ 0,00</div></div>
+        <div class="card uber-kpi"><div class="label">Lucro líquido</div><div class="value good" id="uberNet">R$ 0,00</div></div>
+      </div>
+      <div class="grid two">
+        <div class="card section">
+          <div class="section-head"><h2>Lançar corridas</h2><span class="pill">Uber</span></div>
+          <form id="uberForm" class="form-grid">
+            <div class="field"><label>Data</label><input name="date" type="date" required></div>
+            <div class="field"><label>Nº de viagens</label><input name="trips" type="number" min="0" step="1" value="0"></div>
+            <div class="field"><label>Horas online</label><input name="hours" type="number" min="0" step="1" value="0"></div>
+            <div class="field"><label>Minutos</label><input name="minutes" type="number" min="0" max="59" step="1" value="0"></div>
+            <div class="field"><label>Receita bruta</label><input name="gross" type="number" min="0" step="0.01" required placeholder="0,00"></div>
+            <div class="field"><label>Gorjetas / extra</label><input name="extra" type="number" min="0" step="0.01" value="0"></div>
+            <div class="field"><label>KM rodados</label><input name="km" type="number" min="0" step="0.1" value="0"></div>
+            <div class="field"><label>Consumo médio (km/L)</label><input name="consumption" type="number" min="0" step="0.1" placeholder="Ex.: 10,5"></div>
+            <div class="field"><label>Combustível (R$/L)</label><input name="fuelPrice" type="number" min="0" step="0.01" placeholder="Ex.: 5,89"></div>
+            <div class="field"><label>Outros custos</label><input name="otherCosts" type="number" min="0" step="0.01" value="0"></div>
+            <div class="field"><label>Reserva manutenção (%)</label><input name="maintenancePct" type="number" min="0" max="100" step="0.1" value="12"></div>
+            <div class="field"><label>Destino da renda</label><select name="linkIncome"><option value="yes">Lançar líquido no financeiro</option><option value="no">Somente registrar no Uber</option></select></div>
+            <div class="field full"><label class="checkline"><input name="piggy" type="checkbox"> Marcar que parte do valor foi guardada em caixinha/reserva</label></div>
+            <div class="full"><button type="submit" class="btn primary" style="width:100%">Registrar dia</button></div>
+          </form>
+        </div>
+        <div class="card section"><div class="section-head"><h2>Desempenho</h2><select id="uberMonthFilter"></select></div><div id="uberPerformance"></div></div>
+      </div>
+      <div class="card section" style="margin-top:16px"><div class="section-head"><h2>Histórico de corridas</h2><button class="btn" id="exportUberCsv">Exportar CSV</button></div><div id="uberHistory"></div></div>
+    </section>
+
+    <section class="view" id="settings">
+      <div class="grid two">
+        <div class="card section"><h2>Backup e restauração</h2><p class="note">Exporte um arquivo JSON e guarde-o em um local seguro. Para usar os mesmos dados em outro aparelho, importe esse arquivo nele.</p><div class="actions"><button class="btn primary" id="exportJson">Exportar backup</button><label class="btn" for="importFile">Importar backup</label><button class="btn" id="restoreImported">Restaurar 70 lançamentos importados</button><input id="importFile" type="file" accept="application/json" hidden></div><p class="note" style="margin-top:12px">“Restaurar” substitui a base atual pelos dados que importamos do seu CSV. Faça backup antes se já tiver novos lançamentos.</p></div>
+        <div class="card section"><h2>Exportar planilha</h2><p class="note">Baixe suas transações em CSV para abrir no Excel, Google Sheets ou LibreOffice.</p><button class="btn" id="exportCsv">Exportar CSV</button></div>
+      </div>
+      <div class="card section" style="margin-top:16px"><h2>Dados locais</h2><p class="note">Esta versão salva tudo no navegador usando armazenamento local. Limpar os dados do site pode apagar o histórico.</p><button class="btn danger" id="clearData">Apagar todos os dados</button></div>
+    </section>
+  </main>
+</div>
+
+<nav class="mobile-nav" id="mobileNav">
+  <button data-view="dashboard" class="active">⌂<br>Início</button><button data-view="transactions">↕<br>Mov.</button><button data-view="cards">▣<br>Cartões</button><button data-view="projection">↗<br>Proj.</button><button data-view="uber">🚗<br>Uber</button><button data-view="settings">⚙<br>Ajustes</button>
+</nav>
+
+<dialog id="txDialog"><form method="dialog" class="modal" id="txForm"><h3>Nova transação</h3><div class="form-grid">
+  <div class="field"><label>Tipo</label><select name="type" required><option value="expense">Despesa</option><option value="income">Receita</option></select></div>
+  <div class="field"><label>Valor</label><input name="amount" type="number" step="0.01" min="0.01" required placeholder="0,00"></div>
+  <div class="field full"><label>Descrição</label><input name="description" required placeholder="Ex.: Supermercado"></div>
+  <div class="field"><label>Categoria</label><select name="category" id="txCategory" required></select></div>
+  <div class="field"><label>Subcategoria</label><select name="subcategory" id="txSubcategory"></select></div>
+  <div class="field"><label>Tipo do gasto</label><select name="expenseKind"><option>Variável</option><option>Fixo</option></select></div>
+  <div class="field"><label>Data</label><input name="date" type="date" required></div>
+  <div class="field"><label>Conta / banco</label><input name="account" placeholder="Ex.: Nubank"></div>
+  <div class="field"><label>Meio de pagamento</label><select name="payment" id="txPayment"></select></div>
+  <div class="field"><label>Cartão (opcional)</label><select name="cardId" id="txCardSelect"><option value="">Nenhum</option></select></div>
+  <div class="field"><label>Nº de parcelas</label><input name="installments" type="number" min="1" max="60" value="1"></div>
+  <div class="field full"><label>Tags</label><input name="tags" placeholder="Ex.: trabalho, viagem, reembolsável"></div>
+</div><div class="modal-actions"><button class="btn" value="cancel">Cancelar</button><button class="btn primary" value="default" id="saveTx">Salvar</button></div></form></dialog>
+
+<dialog id="cardDialog"><form method="dialog" class="modal" id="cardForm"><h3>Novo cartão</h3><div class="form-grid"><div class="field full"><label>Nome</label><input name="name" required placeholder="Ex.: Nubank"></div><div class="field"><label>Limite</label><input name="limit" type="number" step="0.01" required></div><div class="field"><label>Dia de fechamento</label><input name="closingDay" type="number" min="1" max="31" value="25"></div><div class="field"><label>Dia de vencimento</label><input name="dueDay" type="number" min="1" max="31" value="5"></div></div><div class="modal-actions"><button class="btn" value="cancel">Cancelar</button><button class="btn primary" value="default" id="saveCard">Salvar</button></div></form></dialog>
+
+<dialog id="budgetDialog"><form method="dialog" class="modal" id="budgetForm"><h3>Novo limite mensal</h3><div class="form-grid"><div class="field full"><label>Categoria</label><input name="category" list="categories" required></div><div class="field full"><label>Limite mensal</label><input name="limit" type="number" step="0.01" min="0" required></div></div><div class="modal-actions"><button class="btn" value="cancel">Cancelar</button><button class="btn primary" value="default" id="saveBudget">Salvar</button></div></form></dialog>
+
+<dialog id="recDialog"><form method="dialog" class="modal" id="recForm"><h3>Nova recorrência</h3><div class="form-grid"><div class="field"><label>Tipo</label><select name="type"><option value="expense">Despesa</option><option value="income">Receita</option></select></div><div class="field"><label>Valor mensal</label><input name="amount" type="number" step="0.01" min="0.01" required></div><div class="field full"><label>Descrição</label><input name="description" required placeholder="Ex.: Salário / Aluguel"></div><div class="field"><label>Categoria</label><input name="category" list="categories" required></div><div class="field"><label>Dia do mês</label><input name="day" type="number" min="1" max="31" value="5"></div></div><div class="modal-actions"><button class="btn" value="cancel">Cancelar</button><button class="btn primary" value="default" id="saveRec">Salvar</button></div></form></dialog>
+
+<datalist id="categories"><option>Moradia</option><option>Carro</option><option>Alimentação</option><option>Eletrônicos</option><option>Saúde</option><option>Lazer</option><option>Assinaturas</option><option>Transporte</option><option>Investimentos</option><option>Outros</option></datalist>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const CATS = {
+  "Moradia": {
+    "🔒 Condomínio":"Fixo",
+    "💡 Energia elétrica":"Fixo",
+    "💦 Água e esgoto":"Fixo",
+    "🔥 Gás":"Fixo",
+    "🌐 Internet e telefone":"Fixo",
+    "🔧 Manutenção e reparos":"Variável",
+    "🛠️ Pequenas reformas":"Variável",
+    "🍽️ Utensílios de cozinha":"Variável",
+    "🛋️ Móveis e decoração":"Variável",
+    "🛏️ Enxoval de casa":"Variável",
+    "🚿 Hidráulica":"Variável",
+    "🏗️ Evolução de obra":"Variável",
+    "🏦 Financiamento":"Fixo",
+    "🏦 Seguro residencial":"Fixo"
+  },
+  "Carro": {
+    "⛽ Combustível":"Variável",
+    "🔧 Manutenção corretiva":"Variável",
+    "🧽 Limpeza e hienização":"Variável",
+    "🛠️ Manutenção preventiva":"Variável",
+    "🛡️ Seguro auto":"Fixo",
+    "📄 IPVA / Licenciamento":"Variável"
+  },
+  "Transporte": {
+    "🚕 Transporte por aplicativo":"Variável",
+    "🚌 Transporte público":"Fixo",
+    "🅿️ Estacionamento e pedágio":"Variável"
+  },
+  "Alimentação": {
+    "🛒 Supermercado":"Fixo",
+    "🍫 Doces":"Variável",
+    "🥦 Hortifruti / Feira":"Variável",
+    "🥖 Padaria":"Fixo",
+    "🍔 Restaurantes / Lanches":"Variável",
+    "📦 Delivery":"Variável"
+  },
+  "Eletrônicos": {
+    "📱 Celular":"Variável",
+    "💻 Informática":"Variável",
+    "📺 Televisão":"Variável",
+    "🎧 Acessórios":"Variável",
+    "🍳 Eletroportáteis":"Variável",
+    "🧊 Eletrodomésticos":"Variável"
+  },
+  "Serviços": {
+    "🔗 Assinaturas":"Fixo",
+    "☁️ Serviços de nuvem":"Fixo",
+    "🚰 Encanador":"Variável",
+    "💡 Eletricista":"Variável",
+    "🧱 Pedreiro":"Variável",
+    "🧹 Serviços gerais":"Variável"
+  },
+  "Saúde": {
+    "🏥 Plano de saúde":"Fixo",
+    "🩺 Consultas médicas":"Variável",
+    "🧪 Exames / Laboratórios":"Variável",
+    "💊 Medicamentos":"Variável",
+    "😁 Odontologia":"Variável",
+    "🧠 Terapias":"Fixo"
+  },
+  "Educação": {
+    "🎓 Faculdade":"Fixo",
+    "📚 Cursos livres / online":"Variável",
+    "📖 Material escolar / livros":"Variável"
+  },
+  "Pessoais": {
+    "👕 Vestuário":"Variável",
+    "👟 Calçados":"Variável",
+    "⌚ Acessórios":"Variável",
+    "💇 Cabeleireiro":"Fixo",
+    "💄 Cosméticos":"Variável",
+    "🌸 Perfumes":"Variável",
+    "🧴 Cuidados pessoais":"Variável",
+    "🏋️ Academia":"Fixo"
+  },
+  "Lazer": {
+    "🍻 Bebidas / drinks":"Variável",
+    "✈️ Viagens":"Variável",
+    "🏨 Hospedagem":"Variável",
+    "🍽️ Confraternização":"Variável",
+    "🌳 Passeios":"Variável",
+    "🎬 Cinema / Teatro / Shows":"Variável",
+    "📺 Streaming":"Fixo",
+    "🎮 Jogos / hobbies":"Variável"
+  },
+  "Financeiro": {
+    "💰 Empréstimos":"Variável",
+    "🏦 Financiamentos":"Variável",
+    "🧾 Parcelamentos":"Variável",
+    "📈 Investimentos":"Variável",
+    "💸 Tarifas bancárias":"Fixo"
+  },
+  "Pets": {
+    "🐶 Ração":"Fixo",
+    "🐾 Veterinário":"Variável",
+    "💊 Medicamentos":"Variável",
+    "🦴 Acessórios":"Variável"
+  },
+  "Família": {
+    "🎁 Presentes":"Variável",
+    "🤝 Doações":"Variável",
+    "🧠 Terapia":"Fixo"
+  },
+  "Crédito": {
+    "💳 Empréstimo de limite":"Variável",
+    "📲 Pix crédito":"Variável"
+  },
+  "Presentes": {
+    "🎁 Amigos":"Variável"
+  },
+  "Documentação": {
+    "📄 Documentos pessoais":"Variável",
+    "🗂️ Outros":"Variável"
+  },
+  "Outros": {
+    "📦 Geral":"Variável"
+  }
+};
+const PAYMENTS = [
+  "C6 Bank - Crédito","C6 Bank - Débito","C6 Bank - Pix","C6 Bank - Boleto",
+  "Itaú - Crédito","Itaú - Débito","Itaú - Pix","Itaú - Boleto bancário",
+  "Nubank - Crédito","Nubank - Débito","Nubank - Pix","Nubank - Boleto",
+  "PicPay - Crédito","PicPay - Débito","PicPay - Pix","PicPay - Boleto",
+  "Mercado Pago - Crédito","Mercado Pago - Débito","Mercado Pago - Pix","Mercado Pago - Boleto",
+  "Caixa - Crédito","Caixa - Débito","Caixa - Pix","Caixa - Boleto",
+  "Amazon - Crédito","Dinheiro","Outro"
+];
+
+const fmt=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const today=()=>new Date().toISOString().slice(0,10);
+const monthKey=d=>{const x=new Date(d+'T12:00:00');return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`};
+const IMPORTED_SEED={"transactions":[{"id":"import-tx-001","type":"expense","amount":76.76,"description":"Fogão Dako","establishment":"Itaú Shop","category":"Eletrônicos","subcategory":"Eletrodomésticos","expenseKind":"Variável","date":"2025-09-06","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"14/18","tags":["Parcela 14/18"]},{"id":"import-tx-002","type":"expense","amount":76.76,"description":"Fogão Dako","establishment":"Itaú Shop","category":"Eletrônicos","subcategory":"Eletrodomésticos","expenseKind":"Variável","date":"2025-10-06","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"15/18","tags":["Parcela 15/18"]},{"id":"import-tx-003","type":"expense","amount":76.76,"description":"Fogão Dako","establishment":"Itaú Shop","category":"Eletrônicos","subcategory":"Eletrodomésticos","expenseKind":"Variável","date":"2025-11-06","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"16/18","tags":["Parcela 16/18"]},{"id":"import-tx-004","type":"expense","amount":76.76,"description":"Fogão Dako","establishment":"Itaú Shop","category":"Eletrônicos","subcategory":"Eletrodomésticos","expenseKind":"Variável","date":"2025-12-06","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"17/18","tags":["Parcela 17/18"]},{"id":"import-tx-005","type":"expense","amount":76.76,"description":"Fogão Dako","establishment":"Itaú Shop","category":"Eletrônicos","subcategory":"Eletrodomésticos","expenseKind":"Variável","date":"2026-01-06","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"18/18","tags":["Parcela 18/18"]},{"id":"import-tx-006","type":"expense","amount":1.99,"description":"Folha de EVA","establishment":"Papelaria Rei Arthur","category":"Outros","subcategory":"Não categorizado","expenseKind":"Variável","date":"2026-08-25","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-007","type":"expense","amount":16.16,"description":"Carolinas (200g)","establishment":"Mercado Vitória","category":"Alimentação","subcategory":"Doces","expenseKind":"Variável","date":"2026-08-26","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-008","type":"expense","amount":15.8,"description":"Bebidas","establishment":"Yokonno","category":"Alimentação","subcategory":"Restaurantes / Lanches","expenseKind":"Variável","date":"2026-08-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-009","type":"income","amount":1480.0,"description":"PIS","establishment":"","category":"Outros","subcategory":"","expenseKind":"","date":"2026-08-28","account":"Transferência bancária","payment":"Transferência bancária","cardId":"","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-010","type":"expense","amount":50.0,"description":"Etanol 3,29 l","establishment":"Posto bandeira","category":"Carro","subcategory":"Combustível","expenseKind":"Fixo","date":"2026-08-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-011","type":"expense","amount":11.99,"description":"Barra de chocolate","establishment":"Supermercado extra","category":"Alimentação","subcategory":"Doces","expenseKind":"Variável","date":"2026-08-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-012","type":"income","amount":380.0,"description":"Rendimento Uber","establishment":"","category":"Renda extra","subcategory":"","expenseKind":"","date":"2026-08-28","account":"Pix","payment":"Pix","cardId":"","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-013","type":"expense","amount":76.76,"description":"Fogão 4 bocas","establishment":"Itaú Shop","category":"Eletrônicos","subcategory":"Eletrodomésticos","expenseKind":"Variável","date":"2026-08-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"13/18","tags":["Parcela 13/18"]},{"id":"import-tx-014","type":"expense","amount":52.63,"description":"Tenis Adidas (2 uni)","establishment":"Itaú Shop","category":"Pessoais","subcategory":"Vestuário","expenseKind":"Variável","date":"2026-08-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"10/10","tags":["Parcela 10/10"]},{"id":"import-tx-015","type":"expense","amount":53.33,"description":"Calça","establishment":"C&A","category":"Pessoais","subcategory":"Vestuário","expenseKind":"Variável","date":"2026-08-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"2/3","tags":["Parcela 2/3"]},{"id":"import-tx-016","type":"expense","amount":23.15,"description":"Manopla do Cambio","establishment":"Shoppe","category":"Carro","subcategory":"Manutenção corretiva","expenseKind":"Variável","date":"2026-08-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"1/2","tags":["Parcela 1/2"]},{"id":"import-tx-017","type":"expense","amount":10.0,"description":"Spotify","establishment":"Miga Dre","category":"Serviços","subcategory":"Assinaturas","expenseKind":"Fixo","date":"2026-08-28","account":"Itaú - Pix","payment":"Itaú - Pix","cardId":"","installments":1,"installmentLabel":"","tags":["Não pago"]},{"id":"import-tx-018","type":"expense","amount":250.39,"description":"Freio, bico e troca de manopla","establishment":"Mecânica Tusillo","category":"Carro","subcategory":"Manutenção preventiva","expenseKind":"Variável","date":"2026-08-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"1/4","tags":["Parcela 1/4"]},{"id":"import-tx-019","type":"expense","amount":236.56,"description":"Parcelamento de fatura","establishment":"C6 Bank","category":"Financeiro","subcategory":"Parcelamentos","expenseKind":"Variável","date":"2026-08-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"2/4","tags":["Parcela 2/4"]},{"id":"import-tx-020","type":"expense","amount":151.28,"description":"IPVA e licenciamento","establishment":"Zul","category":"Carro","subcategory":"IPVA / Licenciamento","expenseKind":"Variável","date":"2026-08-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"8/10","tags":["Parcela 8/10"]},{"id":"import-tx-021","type":"expense","amount":38.36,"description":"Taxa parcelamento Zul","establishment":"Zul","category":"Financeiro","subcategory":"Tarifas bancárias","expenseKind":"Fixo","date":"2026-08-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"8/10","tags":["Parcela 8/10"]},{"id":"import-tx-022","type":"expense","amount":34.7,"description":"Fone de ouvido","establishment":"Amazon","category":"Eletrônicos","subcategory":"Acessórios","expenseKind":"Variável","date":"2026-08-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"5/6","tags":["Parcela 5/6"]},{"id":"import-tx-023","type":"expense","amount":47.47,"description":"Kit de perfume","establishment":"Natura","category":"Família","subcategory":"Presentes","expenseKind":"Variável","date":"2026-08-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"3/4","tags":["Parcela 3/4"]},{"id":"import-tx-024","type":"expense","amount":74.59,"description":"Ração das dogs","establishment":"Pet Love","category":"Pets","subcategory":"Ração","expenseKind":"Fixo","date":"2026-08-28","account":"Nubank","payment":"Nubank - Crédito","cardId":"","installments":1,"installmentLabel":"2/2","tags":["Parcela 2/2"]},{"id":"import-tx-025","type":"expense","amount":90.24,"description":"Pix crédito","establishment":"Nu Bank","category":"Financeiro","subcategory":"Financiamentos","expenseKind":"Variável","date":"2026-08-28","account":"Nubank","payment":"Nubank - Crédito","cardId":"","installments":1,"installmentLabel":"3/3","tags":["Rever","Parcela 3/3"]},{"id":"import-tx-026","type":"income","amount":682.0,"description":"Vale alimentação","establishment":"","category":"Outros","subcategory":"","expenseKind":"","date":"2026-08-28","account":"Transferência bancária","payment":"Transferência bancária","cardId":"","installments":1,"installmentLabel":"","tags":["Não recebido"]},{"id":"import-tx-027","type":"expense","amount":7.0,"description":"Sorvete no cascão","establishment":"Sorveteria","category":"Alimentação","subcategory":"Doces","expenseKind":"Variável","date":"2026-08-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-028","type":"expense","amount":36.0,"description":"Mini pizza","establishment":"Garrido","category":"Alimentação","subcategory":"Restaurantes / Lanches","expenseKind":"Variável","date":"2026-08-29","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-029","type":"expense","amount":7.0,"description":"Sorvete","establishment":"Sorveteria","category":"Alimentação","subcategory":"Doces","expenseKind":"Variável","date":"2026-08-29","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-030","type":"expense","amount":48.98,"description":"Massa com frango crocante","establishment":"Jadim","category":"Alimentação","subcategory":"Restaurantes / Lanches","expenseKind":"Variável","date":"2026-08-29","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-031","type":"expense","amount":22.0,"description":"Pedaço de bolo - ninho com avelã","establishment":"Bom bocado","category":"Alimentação","subcategory":"Doces","expenseKind":"Variável","date":"2026-08-30","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-032","type":"expense","amount":40.0,"description":"Tobogã","establishment":"Kartodromo","category":"Lazer","subcategory":"Passeios","expenseKind":"Variável","date":"2026-08-30","account":"Itaú - Pix","payment":"Itaú - Pix","cardId":"","installments":1,"installmentLabel":"","tags":["10 reais p/pessoa"]},{"id":"import-tx-033","type":"income","amount":10.0,"description":"Reembolso - tobogã","establishment":"","category":"Reembolso","subcategory":"","expenseKind":"","date":"2026-08-30","account":"Pix","payment":"Pix","cardId":"","installments":1,"installmentLabel":"","tags":["Ivan"]},{"id":"import-tx-034","type":"income","amount":44.0,"description":"Pag. Minoxidil (Ivan)","establishment":"","category":"Reembolso","subcategory":"","expenseKind":"","date":"2026-08-31","account":"Pix","payment":"Pix","cardId":"","installments":1,"installmentLabel":"","tags":["Ivan"]},{"id":"import-tx-035","type":"income","amount":20.0,"description":"Tobogã (mãe e gata)","establishment":"","category":"Reembolso","subcategory":"","expenseKind":"","date":"2026-08-31","account":"Pix","payment":"Pix","cardId":"","installments":1,"installmentLabel":"","tags":["Mãe"]},{"id":"import-tx-036","type":"income","amount":2500.0,"description":"Salário 09/2026","establishment":"","category":"Salário","subcategory":"","expenseKind":"","date":"2026-09-01","account":"Transferência bancária","payment":"Transferência bancária","cardId":"","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-037","type":"expense","amount":4.59,"description":"Snickers","establishment":"Cogeb","category":"Alimentação","subcategory":"Doces","expenseKind":"Variável","date":"2026-09-01","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-038","type":"expense","amount":3.01,"description":"Pão","establishment":"Posto nacional","category":"Alimentação","subcategory":"Padaria","expenseKind":"Fixo","date":"2026-09-01","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-039","type":"expense","amount":48.98,"description":"Almoço","establishment":"Jardim","category":"Alimentação","subcategory":"Restaurantes / Lanches","expenseKind":"Variável","date":"2026-09-02","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-040","type":"expense","amount":124.63,"description":"Etanol - 3,29","establishment":"Posto bandeira","category":"Carro","subcategory":"Combustível","expenseKind":"Variável","date":"2026-09-02","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-041","type":"income","amount":51.25,"description":"Uber - corrida do dia","establishment":"","category":"Renda extra","subcategory":"","expenseKind":"","date":"2026-09-03","account":"Pix","payment":"Pix","cardId":"","installments":1,"installmentLabel":"","tags":["uber"]},{"id":"import-tx-042","type":"expense","amount":10.99,"description":"Sorvete","establishment":"Cacau Brasil","category":"Alimentação","subcategory":"Doces","expenseKind":"Variável","date":"2026-09-04","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-043","type":"expense","amount":27.45,"description":"Combo de lanche","establishment":"KFC","category":"Alimentação","subcategory":"Restaurantes / Lanches","expenseKind":"Variável","date":"2026-09-04","account":"Itaú - Pix","payment":"Itaú - Pix","cardId":"","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-044","type":"expense","amount":32.0,"description":"Parmegiana de frango","establishment":"Sabores da natureza","category":"Alimentação","subcategory":"Restaurantes / Lanches","expenseKind":"Variável","date":"2026-09-04","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-045","type":"expense","amount":50.9,"description":"Combo de lanche","establishment":"Sanduwish","category":"Alimentação","subcategory":"Restaurantes / Lanches","expenseKind":"Variável","date":"2026-09-05","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-046","type":"expense","amount":33.0,"description":"Lanche","establishment":"Rock burguer","category":"Alimentação","subcategory":"Restaurantes / Lanches","expenseKind":"Variável","date":"2026-09-06","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-047","type":"expense","amount":773.85,"description":"Apê","establishment":"Caixa econômica","category":"Moradia","subcategory":"Financiamento","expenseKind":"Fixo","date":"2026-09-07","account":"Itaú - Pix","payment":"Itaú - Pix","cardId":"","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-048","type":"expense","amount":298.12,"description":"Taxa condominial","establishment":"Condomob","category":"Moradia","subcategory":"Condomínio","expenseKind":"Fixo","date":"2026-09-07","account":"Itaú - Pix","payment":"Itaú - Pix","cardId":"","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-049","type":"expense","amount":60.16,"description":"Consumo de gás","establishment":"Condomob","category":"Moradia","subcategory":"Gás","expenseKind":"Fixo","date":"2026-09-07","account":"Itaú - Pix","payment":"Itaú - Pix","cardId":"","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-050","type":"income","amount":39.75,"description":"Uber - corrida do dia","establishment":"","category":"Renda extra","subcategory":"","expenseKind":"","date":"2026-09-08","account":"Pix","payment":"Pix","cardId":"","installments":1,"installmentLabel":"","tags":["uber"]},{"id":"import-tx-051","type":"expense","amount":430.0,"description":"Dispesa mensal","establishment":"Savenagno","category":"Alimentação","subcategory":"Supermercado","expenseKind":"Fixo","date":"2026-09-10","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"","tags":[]},{"id":"import-tx-052","type":"income","amount":51.35,"description":"Uber - corrida do dia","establishment":"","category":"Renda extra","subcategory":"","expenseKind":"","date":"2026-09-11","account":"Pix","payment":"Pix","cardId":"","installments":1,"installmentLabel":"","tags":["uber"]},{"id":"import-tx-053","type":"expense","amount":76.76,"description":"Fogão 4 bocas","establishment":"Itaú Shop","category":"Eletrônicos","subcategory":"Eletrodomésticos","expenseKind":"Variável","date":"2026-09-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"14/18","tags":["Parcela 14/18"]},{"id":"import-tx-054","type":"expense","amount":53.33,"description":"Calça","establishment":"C&A","category":"Pessoais","subcategory":"Vestuário","expenseKind":"Variável","date":"2026-09-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"3/3","tags":["Parcela 3/3"]},{"id":"import-tx-055","type":"expense","amount":23.15,"description":"Manopla do Cambio","establishment":"Shoppe","category":"Carro","subcategory":"Manutenção preventiva","expenseKind":"Variável","date":"2026-09-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"2/2","tags":["Parcela 2/2"]},{"id":"import-tx-056","type":"expense","amount":250.39,"description":"Freio, bico e troca de manopla","establishment":"Mecânica Tusillo","category":"Carro","subcategory":"Manutenção preventiva","expenseKind":"Variável","date":"2026-09-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"2/4","tags":["Parcela 2/4"]},{"id":"import-tx-057","type":"expense","amount":236.56,"description":"Parcelamento de fatura","establishment":"C6 Bank","category":"Financeiro","subcategory":"Parcelamentos","expenseKind":"Variável","date":"2026-09-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"3/4","tags":["Parcela 3/4"]},{"id":"import-tx-058","type":"expense","amount":151.28,"description":"IPVA e licenciamento","establishment":"Zul","category":"Carro","subcategory":"IPVA / Licenciamento","expenseKind":"Variável","date":"2026-09-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"9/10","tags":["Parcela 9/10"]},{"id":"import-tx-059","type":"expense","amount":38.36,"description":"Taxa parcelamento Zul","establishment":"Zul","category":"Financeiro","subcategory":"Tarifas bancárias","expenseKind":"Fixo","date":"2026-09-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"9/10","tags":["Parcela 9/10"]},{"id":"import-tx-060","type":"expense","amount":34.7,"description":"Fone de ouvido","establishment":"Amazon","category":"Eletrônicos","subcategory":"Acessórios","expenseKind":"Variável","date":"2026-09-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"6/6","tags":["Parcela 6/6"]},{"id":"import-tx-061","type":"expense","amount":47.47,"description":"Kit de perfume","establishment":"Natura","category":"Família","subcategory":"Presentes","expenseKind":"Variável","date":"2026-09-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"4/4","tags":["Parcela 4/4"]},{"id":"import-tx-062","type":"expense","amount":76.76,"description":"Fogão 4 bocas","establishment":"Itaú Shop","category":"Eletrônicos","subcategory":"Eletrodomésticos","expenseKind":"Variável","date":"2026-10-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"15/18","tags":["Parcela 15/18"]},{"id":"import-tx-063","type":"expense","amount":250.39,"description":"Freio, bico e troca de manopla","establishment":"Mecânica Tusillo","category":"Carro","subcategory":"Manutenção preventiva","expenseKind":"Variável","date":"2026-10-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"3/4","tags":["Parcela 3/4"]},{"id":"import-tx-064","type":"expense","amount":236.56,"description":"Parcelamento de fatura","establishment":"C6 Bank","category":"Financeiro","subcategory":"Parcelamentos","expenseKind":"Variável","date":"2026-10-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"4/4","tags":["Parcela 4/4"]},{"id":"import-tx-065","type":"expense","amount":151.28,"description":"IPVA e licenciamento","establishment":"Zul","category":"Carro","subcategory":"IPVA / Licenciamento","expenseKind":"Variável","date":"2026-10-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"10/10","tags":["Parcela 10/10"]},{"id":"import-tx-066","type":"expense","amount":38.36,"description":"Taxa parcelamento Zul","establishment":"Zul","category":"Financeiro","subcategory":"Tarifas bancárias","expenseKind":"Fixo","date":"2026-10-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"10/10","tags":["Parcela 10/10"]},{"id":"import-tx-067","type":"expense","amount":76.76,"description":"Fogão 4 bocas","establishment":"Itaú Shop","category":"Eletrônicos","subcategory":"Eletrodomésticos","expenseKind":"Variável","date":"2026-11-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"16/18","tags":["Parcela 16/18"]},{"id":"import-tx-068","type":"expense","amount":250.39,"description":"Freio, bico e troca de manopla","establishment":"Mecânica Tusillo","category":"Carro","subcategory":"Manutenção preventiva","expenseKind":"Variável","date":"2026-11-28","account":"C6 Bank","payment":"C6 Bank - Crédito","cardId":"card-c6-bank","installments":1,"installmentLabel":"4/4","tags":["Parcela 4/4"]},{"id":"import-tx-069","type":"expense","amount":76.76,"description":"Fogão 4 bocas","establishment":"Itaú Shop","category":"Eletrônicos","subcategory":"Eletrodomésticos","expenseKind":"Variável","date":"2026-12-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"17/18","tags":["Parcela 17/18"]},{"id":"import-tx-070","type":"expense","amount":76.76,"description":"Fogão 4 bocas","establishment":"Itaú Shop","category":"Eletrônicos","subcategory":"Eletrodomésticos","expenseKind":"Variável","date":"2027-01-28","account":"Itaú","payment":"Itaú - Crédito","cardId":"card-ita","installments":1,"installmentLabel":"18/18","tags":["Parcela 18/18"]}],"cards":[{"id":"card-c6-bank","name":"C6 Bank","limit":0,"closingDay":3,"dueDay":1},{"id":"card-ita","name":"Itaú","limit":0,"closingDay":30,"dueDay":1}],"budgets":[{"id":"import-budget-1","category":"Carro","limit":500.0},{"id":"import-budget-2","category":"Alimentação","limit":300.0}],"recurring":[],"uber":[]};
+const SEED_VERSION='2026-09-12-v3';
+let storedState=null;
+try{storedState=JSON.parse(localStorage.getItem('meuFinanceiroData')||'null')}catch(e){storedState=null}
+const shouldSeed=!storedState || !Array.isArray(storedState.transactions) || storedState.transactions.length===0;
+const state=shouldSeed ? JSON.parse(JSON.stringify(IMPORTED_SEED)) : storedState;
+if(shouldSeed){localStorage.setItem('meuFinanceiroData',JSON.stringify(state));localStorage.setItem('meuFinanceiroSeedVersion',SEED_VERSION)}
+state.transactions=state.transactions||[];state.cards=state.cards||[];state.budgets=state.budgets||[];state.recurring=state.recurring||[];state.uber=state.uber||[];
+const save=()=>{localStorage.setItem('meuFinanceiroData',JSON.stringify(state));renderAll()};
+
+const meta={dashboard:['Dashboard','Visão geral das suas finanças.'],transactions:['Transações','Entradas, saídas e histórico.'],cards:['Cartões','Limites, faturas e compras parceladas.'],budget:['Orçamento','Acompanhe limites mensais por categoria.'],projection:['Projeção','Veja como seu caixa pode evoluir.'],uber:['Uber','Receita, custos e rentabilidade das corridas.'],settings:['Configurações','Backup, exportação e dados locais.']};
+function go(view){$$('.view').forEach(v=>v.classList.toggle('active',v.id===view));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));$('#viewTitle').textContent=meta[view][0];$('#viewSubtitle').textContent=meta[view][1];window.scrollTo({top:0,behavior:'smooth'})}
+$$('[data-view]').forEach(b=>b.onclick=()=>go(b.dataset.view));$$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+
+function currentMonth(){return new Date().toISOString().slice(0,7)}
+function totals(){let income=0,expense=0,mi=0,me=0;const cm=currentMonth();state.transactions.forEach(t=>{const a=+t.amount;if(t.type==='income'){income+=a;if(monthKey(t.date)===cm)mi+=a}else{expense+=a;if(monthKey(t.date)===cm)me+=a}});return{income,expense,mi,me,balance:income-expense,net:mi-me}}
+function renderDashboard(){const t=totals();$('#kpiBalance').textContent=fmt(t.balance);$('#kpiIncome').textContent=fmt(t.mi);$('#kpiExpense').textContent=fmt(t.me);$('#kpiNet').textContent=fmt(t.net);$('#kpiNet').className='value '+(t.net>=0?'good':'bad');
+ const recent=[...state.transactions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);$('#recentTx').innerHTML=recent.length?tableTx(recent,false):empty('Nenhuma transação ainda.');
+ const cm=currentMonth(),cats={};state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===cm).forEach(x=>cats[x.category]=(cats[x.category]||0)+(+x.amount));const arr=Object.entries(cats).sort((a,b)=>b[1]-a[1]);const max=arr[0]?.[1]||1;$('#categoryBars').innerHTML=arr.length?arr.slice(0,6).map(([c,v])=>`<div class="bar-row"><span>${esc(c)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,v/max*100)}%"></div></div><strong>${fmt(v)}</strong></div>`).join(''):empty('Sem despesas neste mês.');
+ $('#quickProjection').innerHTML=projectionData(6).map(m=>monthCard(m)).join('');}
+function empty(txt){return `<div class="empty">${txt}</div>`}
+function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function tableTx(rows,actions=true){return `<div class="table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Conta</th><th>Valor</th>${actions?'<th></th>':''}</tr></thead><tbody>${rows.map(t=>`<tr><td>${new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR')}</td><td>${esc(t.description)}${t.establishment?`<div class="note">${esc(t.establishment)}</div>`:''}${t.installmentLabel?`<div class="note">${esc(t.installmentLabel)}</div>`:''}</td><td><span class="pill">${esc(t.category)}</span></td><td>${esc(t.account||'-')}</td><td class="amount ${t.type}">${t.type==='income'?'+':'-'} ${fmt(t.amount)}</td>${actions?`<td><button class="btn danger" onclick="removeTx('${t.id}')">Excluir</button></td>`:''}</tr>`).join('')}</tbody></table></div>`}
+window.removeTx=id=>{if(confirm('Excluir esta transação?')){state.transactions=state.transactions.filter(x=>x.id!==id);save()}}
+
+function populateMonthFilter(){const months=[...new Set(state.transactions.map(t=>monthKey(t.date)))].sort().reverse();$('#filterMonth').innerHTML='<option value="all">Todos os meses</option>'+months.map(m=>`<option value="${m}">${new Date(m+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</option>`).join('')}
+function renderTransactions(){populateMonthFilter();const q=$('#searchTx').value.toLowerCase(),tp=$('#filterType').value,mo=$('#filterMonth').value;const rows=[...state.transactions].filter(t=>(!q||t.description.toLowerCase().includes(q)||t.category.toLowerCase().includes(q))&&(tp==='all'||t.type===tp)&&(mo==='all'||monthKey(t.date)===mo)).sort((a,b)=>b.date.localeCompare(a.date));$('#allTx').innerHTML=rows.length?tableTx(rows,true):empty('Nenhuma transação encontrada.')}
+['searchTx','filterType','filterMonth'].forEach(id=>$('#'+id).addEventListener(id==='searchTx'?'input':'change',renderTransactions));
+
+function renderCards(){if(!state.cards.length){$('#cardsList').innerHTML=empty('Cadastre seu primeiro cartão.');$('#cardSummary').innerHTML=empty('Sem cartões cadastrados.');return}$('#cardsList').innerHTML=state.cards.map(c=>{const used=cardUsed(c.id),pct=Math.min(100,(used/(+c.limit||1))*100);return `<div class="budget-card" style="border-bottom:1px solid var(--line)"><div class="row"><strong>${esc(c.name)}</strong><button class="btn danger" onclick="removeCard('${c.id}')">Excluir</button></div><div class="note">Fecha dia ${c.closingDay} • vence dia ${c.dueDay}</div><div class="progress"><span style="width:${pct}%"></span></div><div class="row"><span>${fmt(used)} usados</span><strong>${fmt(c.limit)}</strong></div></div>`}).join('');$('#cardSummary').innerHTML=state.cards.map(c=>`<div class="row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)"><span>${esc(c.name)}</span><strong>${fmt(currentInvoice(c.id))}</strong></div>`).join('')}
+function cardUsed(id){return state.transactions.filter(t=>t.cardId===id&&t.type==='expense').reduce((s,t)=>s+(+t.amount),0)}
+function currentInvoice(id){const cm=currentMonth();return state.transactions.filter(t=>t.cardId===id&&t.type==='expense'&&monthKey(t.date)===cm).reduce((s,t)=>s+(+t.amount),0)}
+window.removeCard=id=>{if(confirm('Excluir este cartão? As transações serão mantidas.')){state.cards=state.cards.filter(x=>x.id!==id);state.transactions.forEach(t=>{if(t.cardId===id)t.cardId=''});save()}}
+function fillCardSelect(){$('#txCardSelect').innerHTML='<option value="">Nenhum</option>'+state.cards.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+
+function renderBudget(){const cm=currentMonth();$('#budgetGrid').innerHTML=state.budgets.length?state.budgets.map(b=>{const spent=state.transactions.filter(t=>t.type==='expense'&&monthKey(t.date)===cm&&t.category.toLowerCase()===b.category.toLowerCase()).reduce((s,t)=>s+(+t.amount),0),pct=Math.min(100,spent/(+b.limit||1)*100);return `<div class="card budget-card"><div class="row"><strong>${esc(b.category)}</strong><button class="btn danger" onclick="removeBudget('${b.id}')">×</button></div><div class="progress"><span style="width:${pct}%"></span></div><div class="row"><span>${Math.round(pct)}%</span><span>${fmt(spent)} / ${fmt(b.limit)}</span></div></div>`}).join(''):empty('Nenhum limite mensal definido.')}
+window.removeBudget=id=>{state.budgets=state.budgets.filter(x=>x.id!==id);save()}
+
+function installmentFutureForMonth(t,monthIndex){const n=Math.max(1,+t.installments||1);if(n<=1||!t.cardId||t.type!=='expense')return 0;const start=new Date(t.date+'T12:00:00');const now=new Date();const target=new Date(now.getFullYear(),now.getMonth()+monthIndex,1);const diff=(target.getFullYear()-start.getFullYear())*12+target.getMonth()-start.getMonth();return diff>=0&&diff<n?(+t.amount)/n:0}
+function projectionData(n=12){const base=totals().balance;let running=base;const out=[];for(let i=0;i<n;i++){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+i);let inc=0,exp=0;state.recurring.forEach(r=>r.type==='income'?inc+=+r.amount:exp+=+r.amount);state.transactions.forEach(t=>exp+=installmentFutureForMonth(t,i));running+=inc-exp;out.push({label:d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}),income:inc,expense:exp,balance:running})}return out}
+function monthCard(m){return `<div class="month-card"><strong>${m.label}</strong><div class="balance ${m.balance>=0?'good':'bad'}">${fmt(m.balance)}</div><div class="note" style="margin-top:8px">+${fmt(m.income)}<br>-${fmt(m.expense)}</div></div>`}
+function renderProjection(){$('#projection12').innerHTML=projectionData(12).map(monthCard).join('');$('#recurringList').innerHTML=state.recurring.length?state.recurring.map(r=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)"><div><strong>${esc(r.description)}</strong><div class="note">Dia ${r.day} • ${esc(r.category)}</div></div><div style="text-align:right"><div class="amount ${r.type}">${r.type==='income'?'+':'-'} ${fmt(r.amount)}</div><button class="btn danger" onclick="removeRec('${r.id}')">Excluir</button></div></div>`).join(''):empty('Cadastre salário, aluguel, assinaturas e outros valores fixos.')}
+window.removeRec=id=>{state.recurring=state.recurring.filter(x=>x.id!==id);save()}
+
+
+function populateTxTaxonomy(){const cat=$('#txCategory'),pay=$('#txPayment');if(!cat||!pay)return;cat.innerHTML=Object.keys(CATS).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');pay.innerHTML=PAYMENTS.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');updateTxSubcategories()}
+function updateTxSubcategories(){const cat=$('#txCategory'),sub=$('#txSubcategory'),kind=$('#txForm [name=expenseKind]');if(!cat||!sub)return;const opts=CATS[cat.value]||{};sub.innerHTML=Object.keys(opts).map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');if(kind&&sub.value)kind.value=opts[sub.value]||'Variável'}
+function uberCalc(u){const fuel=(u.km>0&&u.consumption>0)?(u.km/u.consumption)*u.fuelPrice:0;const maintenance=u.gross*(u.maintenancePct/100);const net=u.gross+u.extra-fuel-maintenance-u.otherCosts;return{fuel,maintenance,net}}
+function renderUber(){if(!$('#uberHistory'))return;const sel=$('#uberMonthFilter'),months=[...new Set(state.uber.map(u=>monthKey(u.date)))].sort().reverse(),prev=sel.value||currentMonth();sel.innerHTML=`<option value="${currentMonth()}">Mês atual</option>`+months.filter(m=>m!==currentMonth()).map(m=>`<option value="${m}">${new Date(m+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</option>`).join('')+'<option value="all">Todos</option>';sel.value=[currentMonth(),...months,'all'].includes(prev)?prev:currentMonth();const rows=sel.value==='all'?state.uber:state.uber.filter(u=>monthKey(u.date)===sel.value),sum=k=>rows.reduce((s,u)=>s+(+u[k]||0),0),gross=sum('gross')+sum('extra'),fuel=sum('fuel'),maint=sum('maintenance'),net=sum('net'),km=sum('km'),trips=sum('trips'),mins=sum('minutesOnline'),hours=mins/60;$('#uberGross').textContent=fmt(gross);$('#uberFuel').textContent=fmt(fuel);$('#uberMaintenance').textContent=fmt(maint);$('#uberNet').textContent=fmt(net);$('#uberPerformance').innerHTML=`<p class="note"><strong>${trips}</strong> viagens · <strong>${km.toFixed(1)} km</strong> · <strong>${hours.toFixed(1)} h</strong> online</p><p class="note">${fmt(km?gross/km:0)}/km bruto · ${fmt(hours?gross/hours:0)}/h bruto · ${fmt(hours?net/hours:0)}/h líquido · margem ${gross?((net/gross)*100).toFixed(1):'0.0'}%</p>`;const sorted=[...rows].sort((a,b)=>b.date.localeCompare(a.date));$('#uberHistory').innerHTML=sorted.length?`<div class="table-wrap"><table><thead><tr><th>Data</th><th>Viagens</th><th>Tempo</th><th>KM</th><th>Bruto</th><th>Combustível</th><th>Manutenção</th><th>Líquido</th><th></th></tr></thead><tbody>${sorted.map(u=>`<tr><td>${new Date(u.date+'T12:00:00').toLocaleDateString('pt-BR')}</td><td>${u.trips}</td><td>${Math.floor(u.minutesOnline/60)}h ${u.minutesOnline%60}m</td><td>${u.km.toFixed(1)}</td><td>${fmt(u.gross+u.extra)}</td><td>${fmt(u.fuel)}</td><td>${fmt(u.maintenance)}</td><td class="amount ${u.net>=0?'income':'expense'}">${fmt(u.net)}</td><td><button class="btn danger" onclick="removeUber('${u.id}')">Excluir</button></td></tr>`).join('')}</tbody></table></div>`:empty('Nenhuma corrida registrada neste período.')}
+window.removeUber=id=>{if(confirm('Excluir este registro do Uber?')){const u=state.uber.find(x=>x.id===id);if(u?.linkedTxId)state.transactions=state.transactions.filter(t=>t.id!==u.linkedTxId);state.uber=state.uber.filter(x=>x.id!==id);save()}}
+
+function renderAll(){renderDashboard();renderTransactions();renderCards();renderBudget();renderProjection();fillCardSelect();renderUber()}
+
+function openTx(){fillCardSelect();$('#txForm').reset();populateTxTaxonomy();$('#txForm [name=date]').value=today();$('#txForm [name=installments]').value=1;$('#txDialog').showModal()}
+$('#addTxTop').onclick=openTx;$('#addTx2').onclick=openTx;
+$('#saveTx').onclick=e=>{e.preventDefault();if(!$('#txForm').reportValidity())return;const f=new FormData($('#txForm'));state.transactions.push({id:uid(),type:f.get('type'),amount:+f.get('amount'),description:f.get('description'),category:f.get('category'),subcategory:f.get('subcategory')||'',expenseKind:f.get('expenseKind')||'',date:f.get('date'),account:f.get('account'),payment:f.get('payment'),cardId:f.get('cardId'),installments:+f.get('installments')||1,tags:String(f.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean)});$('#txDialog').close();save()}
+$('#addCard').onclick=()=>{$('#cardForm').reset();$('#cardDialog').showModal()};$('#saveCard').onclick=e=>{e.preventDefault();if(!$('#cardForm').reportValidity())return;const f=new FormData($('#cardForm'));state.cards.push({id:uid(),name:f.get('name'),limit:+f.get('limit'),closingDay:+f.get('closingDay'),dueDay:+f.get('dueDay')});$('#cardDialog').close();save()}
+$('#addBudget').onclick=()=>{$('#budgetForm').reset();$('#budgetDialog').showModal()};$('#saveBudget').onclick=e=>{e.preventDefault();if(!$('#budgetForm').reportValidity())return;const f=new FormData($('#budgetForm'));state.budgets.push({id:uid(),category:f.get('category'),limit:+f.get('limit')});$('#budgetDialog').close();save()}
+$('#addRecurring').onclick=()=>{$('#recForm').reset();$('#recDialog').showModal()};$('#saveRec').onclick=e=>{e.preventDefault();if(!$('#recForm').reportValidity())return;const f=new FormData($('#recForm'));state.recurring.push({id:uid(),type:f.get('type'),amount:+f.get('amount'),description:f.get('description'),category:f.get('category'),day:+f.get('day')});$('#recDialog').close();save()}
+
+
+$('#txCategory').addEventListener('change',updateTxSubcategories);$('#txSubcategory').addEventListener('change',()=>{const opts=CATS[$('#txCategory').value]||{};$('#txForm [name=expenseKind]').value=opts[$('#txSubcategory').value]||'Variável'});$('#uberMonthFilter').addEventListener('change',renderUber);
+$('#uberForm').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.currentTarget);const u={id:uid(),date:f.get('date'),trips:+f.get('trips')||0,minutesOnline:(+f.get('hours')||0)*60+(+f.get('minutes')||0),gross:+f.get('gross')||0,extra:+f.get('extra')||0,km:+f.get('km')||0,consumption:+f.get('consumption')||0,fuelPrice:+f.get('fuelPrice')||0,otherCosts:+f.get('otherCosts')||0,maintenancePct:+f.get('maintenancePct')||0,piggy:f.get('piggy')==='on'};Object.assign(u,uberCalc(u));if(f.get('linkIncome')==='yes'){const txId=uid();u.linkedTxId=txId;state.transactions.push({id:txId,type:'income',amount:Math.max(0,u.net),description:'Uber — lucro líquido',category:'Renda extra',subcategory:'Uber',expenseKind:'Variável',date:u.date,account:'Uber',payment:'Pix',cardId:'',installments:1,tags:['Uber']})}state.uber.push(u);e.currentTarget.reset();e.currentTarget.date.value=today();e.currentTarget.maintenancePct.value=12;save();go('uber')});
+$('#exportUberCsv').onclick=()=>{const head=['Data','Viagens','Minutos online','Receita bruta','Extra','KM','Consumo km/L','Combustivel R$/L','Custo combustivel','Reserva manutencao','Outros custos','Liquido'];const rows=state.uber.map(u=>[u.date,u.trips,u.minutesOnline,u.gross,u.extra,u.km,u.consumption,u.fuelPrice,u.fuel,u.maintenance,u.otherCosts,u.net]);const csv='\ufeff'+[head,...rows].map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n');dl(`uber-${today()}.csv`,csv,'text/csv;charset=utf-8')};
+
+function dl(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
+function exportBackup(){dl(`meu-financeiro-backup-${today()}.json`,JSON.stringify(state,null,2),'application/json')}
+$('#exportJson').onclick=exportBackup;$('#backupTop').onclick=exportBackup;
+$('#restoreImported').onclick=()=>{if(confirm('Restaurar os 70 lançamentos importados? Isso substituirá a base atual deste navegador.')){const fresh=JSON.parse(JSON.stringify(IMPORTED_SEED));Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,fresh);localStorage.setItem('meuFinanceiroSeedVersion',SEED_VERSION);save();alert('Dados importados restaurados com sucesso.')}};
+$('#importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!data.transactions||!data.cards||!data.budgets||!data.recurring)throw new Error();data.uber=data.uber||[];if(confirm('Importar este backup e substituir os dados atuais?')){Object.assign(state,data);save();alert('Backup importado com sucesso.')}}catch{alert('Arquivo de backup inválido.')}e.target.value=''};
+$('#exportCsv').onclick=()=>{const head=['Data','Tipo','Descricao','Categoria','Conta','Forma','Valor'];const rows=state.transactions.map(t=>[t.date,t.type,t.description,t.category,t.account||'',t.payment||'',String(t.amount).replace('.',',')]);const csv='\ufeff'+[head,...rows].map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n');dl(`transacoes-${today()}.csv`,csv,'text/csv;charset=utf-8')};
+$('#clearData').onclick=()=>{if(confirm('Isso apagará todos os dados deste navegador. Continuar?')){state.transactions=[];state.cards=[];state.budgets=[];state.recurring=[];state.uber=[];save()}};
+
+populateTxTaxonomy();$('#uberForm [name=date]').value=today();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+renderAll();
+</script>
+</body>
+</html>
