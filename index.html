@@ -9,28 +9,34 @@
   <meta name="apple-mobile-web-app-title" content="Meu Financeiro" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <title>Meu Financeiro V5.4</title>
+  <title>Meu Financeiro V5.5</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root{
-      --bg:#f4f6f8;--surface:#fff;--surface2:#f8fafc;--text:#111827;--muted:#64748b;--line:#e5e7eb;
-      --accent:#111827;--accent2:#334155;--good:#047857;--bad:#b91c1c;--warn:#b45309;--radius:18px;
-      --shadow:0 8px 28px rgba(15,23,42,.08)
+      --bg:#f5efe6;--surface:rgba(255,255,255,.52);--surface2:rgba(255,255,255,.34);--text:#112033;--muted:#6f7d91;--line:rgba(255,255,255,.6);
+      --accent:#1265f3;--accent2:#416da8;--good:#0aa466;--bad:#d9304f;--warn:#c77b17;--radius:24px;
+      --shadow:0 18px 42px rgba(40,52,72,.12);--glass:22px;
+      --page-bg:radial-gradient(circle at 15% 12%,rgba(255,255,255,.96),transparent 28%),radial-gradient(circle at 88% 20%,rgba(255,220,183,.44),transparent 30%),radial-gradient(circle at 78% 84%,rgba(186,215,255,.28),transparent 32%),linear-gradient(135deg,#fbf7f0 0%,#eee7dd 52%,#e8eef5 100%);
     }
-    *{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    body[data-theme="dark"]{
+      --bg:#101720;--surface:rgba(24,34,48,.6);--surface2:rgba(30,42,58,.45);--text:#f4f7fb;--muted:#a9b5c6;--line:rgba(255,255,255,.12);
+      --accent:#2c79ff;--accent2:#8ab4ff;--good:#2ed98c;--bad:#ff5674;--warn:#ffb353;--shadow:0 20px 48px rgba(0,0,0,.34);
+      --page-bg:radial-gradient(circle at 12% 16%,rgba(73,105,150,.22),transparent 28%),radial-gradient(circle at 88% 14%,rgba(32,68,116,.24),transparent 30%),radial-gradient(circle at 76% 84%,rgba(38,54,80,.28),transparent 34%),linear-gradient(145deg,#0c121b 0%,#121b27 56%,#1a2532 100%);
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--page-bg);background-attachment:fixed;color:var(--text);transition:background .28s ease,color .28s ease}
     button,input,select{font:inherit}.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
-    aside{background:#0f172a;color:#fff;padding:24px 18px;position:sticky;top:0;height:100vh}.brand{font-weight:800;font-size:22px;margin:0 0 28px}.brand small{display:block;font-size:12px;font-weight:500;color:#94a3b8;margin-top:3px}
+    aside{background:rgba(17,27,42,.72);backdrop-filter:blur(var(--glass));-webkit-backdrop-filter:blur(var(--glass));color:#fff;padding:24px 18px;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.08).brand{font-weight:800;font-size:22px;margin:0 0 28px}.brand small{display:block;font-size:12px;font-weight:500;color:#94a3b8;margin-top:3px}
     .nav{display:grid;gap:7px}.nav button{border:0;background:transparent;color:#cbd5e1;text-align:left;padding:12px 14px;border-radius:12px;cursor:pointer}.nav button.active,.nav button:hover{background:#1e293b;color:#fff}
     .aside-bottom{position:absolute;left:18px;right:18px;bottom:22px;font-size:12px;color:#94a3b8;line-height:1.45}
     main{padding:28px;max-width:1500px;width:100%;margin:0 auto}.topbar{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:24px}.topbar h1{margin:0;font-size:30px}.topbar p{margin:6px 0 0;color:var(--muted)}
     .actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#fff;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:650}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.danger{color:#991b1b}.btn:hover{transform:translateY(-1px)}
-    .grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.kpi{padding:20px}.kpi .label{color:var(--muted);font-size:13px}.kpi .value{font-size:27px;font-weight:800;margin-top:8px}.kpi .sub{font-size:12px;margin-top:6px;color:var(--muted)}
+    .grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}.card{background:var(--surface);backdrop-filter:blur(var(--glass)) saturate(145%);-webkit-backdrop-filter:blur(var(--glass)) saturate(145%);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.kpi{padding:20px}.kpi .label{color:var(--muted);font-size:13px}.kpi .value{font-size:27px;font-weight:800;margin-top:8px}.kpi .sub{font-size:12px;margin-top:6px;color:var(--muted)}
     .two{grid-template-columns:1.25fr .75fr}.section{padding:20px}.section h2{margin:0 0 16px;font-size:17px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.section-head h2{margin:0}
     table{width:100%;border-collapse:collapse}.table-wrap{overflow:auto}.table-wrap th,.table-wrap td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;white-space:nowrap}.table-wrap th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.03em}.amount.income{color:var(--good);font-weight:700}.amount.expense{color:var(--bad);font-weight:700}
     .empty{padding:30px;text-align:center;color:var(--muted);background:var(--surface2);border-radius:14px;border:1px dashed #cbd5e1}
     .bars{display:grid;gap:12px}.bar-row{display:grid;grid-template-columns:120px 1fr 90px;gap:10px;align-items:center;font-size:13px}.bar-track{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar-fill{height:100%;background:#475569;border-radius:999px}
     .projection{display:flex;gap:12px;overflow:auto;padding-bottom:4px}.month-card{min-width:150px;background:var(--surface2);border:1px solid var(--line);padding:14px;border-radius:14px}.month-card strong{display:block;font-size:12px;color:var(--muted);text-transform:uppercase}.month-card .balance{font-size:18px;font-weight:800;margin-top:6px}
-    .filters{display:flex;gap:8px;flex-wrap:wrap}.filters input,.filters select{border:1px solid var(--line);padding:10px 12px;border-radius:11px;background:#fff}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:6px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field input,.field select{border:1px solid var(--line);padding:11px 12px;border-radius:10px;background:#fff;width:100%}.full{grid-column:1/-1}
+    .filters{display:flex;gap:8px;flex-wrap:wrap}.filters input,.filters select{border:1px solid var(--line);padding:10px 12px;border-radius:11px;background:var(--surface2);color:var(--text);backdrop-filter:blur(12px)}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:6px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field input,.field select{border:1px solid var(--line);padding:11px 12px;border-radius:10px;background:var(--surface2);color:var(--text);width:100%;backdrop-filter:blur(12px)}.full{grid-column:1/-1}
     dialog{border:0;border-radius:20px;padding:0;max-width:620px;width:calc(100% - 28px);box-shadow:0 30px 80px rgba(15,23,42,.3)}dialog::backdrop{background:rgba(15,23,42,.45)}.modal{padding:22px}.modal h3{margin:0 0 18px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.pill{font-size:12px;padding:5px 8px;border-radius:999px;background:#e2e8f0;color:#334155;font-weight:700}.good{color:var(--good)}.bad{color:var(--bad)}.planned{color:var(--warn);font-weight:700}.row-actions{display:flex;gap:6px;justify-content:flex-end}
     .auth-overlay{position:fixed;inset:0;background:rgba(15,23,42,.82);backdrop-filter:blur(8px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
     .auth-overlay[hidden]{display:none}.auth-card{width:min(430px,100%);background:#fff;border-radius:22px;padding:24px;box-shadow:0 30px 90px rgba(0,0,0,.35)}
@@ -38,21 +44,31 @@
     .auth-msg{min-height:18px;margin-top:12px;font-size:13px}.cloud-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;margin-right:6px}.cloud-dot.ok{background:#10b981}.cloud-dot.sync{background:#f59e0b}.cloud-dot.err{background:#ef4444}
     .uber-kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}.uber-kpi{padding:16px}.uber-kpi .label{font-size:12px;color:var(--muted)}.uber-kpi .value{font-size:22px;font-weight:800;margin-top:6px}.checkline{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}.checkline input{width:17px;height:17px}.mobile-nav{display:none}.view{display:none}.view.active{display:block}.note{font-size:13px;color:var(--muted);line-height:1.5}.budget-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.budget-card{padding:16px}.budget-card .row{display:flex;justify-content:space-between;gap:10px}.progress{height:9px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:10px 0 5px}.progress>span{display:block;height:100%;background:#334155}
     .mobile-quick-actions,.mobile-app-head,.mobile-balance-hero{display:none}
+    .theme-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+    .theme-option{border:1px solid var(--line);background:var(--surface2);color:var(--text);border-radius:18px;padding:12px;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;backdrop-filter:blur(14px)}
+    .theme-option.active{outline:2px solid var(--accent);outline-offset:1px}
+    .theme-option>span:last-child{display:grid;gap:3px}.theme-option small{color:var(--muted)}
+    .theme-preview{width:62px;height:62px;border-radius:16px;flex:0 0 auto;border:1px solid rgba(255,255,255,.5)}
+    .light-preview{background:radial-gradient(circle at 30% 30%,#fff,transparent 35%),linear-gradient(145deg,#fff9ef,#ece4d8 55%,#dfeaf6)}
+    .dark-preview{background:radial-gradient(circle at 25% 30%,#2f4664,transparent 32%),linear-gradient(145deg,#0e141d,#172131 58%,#25364b)}
+    body[data-theme="dark"] .btn{background:rgba(255,255,255,.07);color:var(--text);border-color:var(--line)}
+    body[data-theme="dark"] .pill{background:rgba(255,255,255,.1);color:#dbe8ff}
+    body[data-theme="dark"] dialog,body[data-theme="dark"] .modal,body[data-theme="dark"] .launch-panel,body[data-theme="dark"] .auth-card{background:#16202d;color:var(--text)}
     @media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.budget-grid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:760px){
       :root{--radius:24px}
-      body{background:#f6f8fb}
-      .app{display:block;min-height:100dvh;background:#f6f8fb}
+      body{background:var(--page-bg)}
+      .app{display:block;min-height:100dvh;background:transparent}
       aside{display:none}
       main{padding:88px 14px calc(104px + env(safe-area-inset-bottom));max-width:none}
-      .topbar{position:fixed;top:0;left:0;right:0;z-index:30;background:rgba(246,248,251,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:calc(12px + env(safe-area-inset-top)) 18px 12px;margin:0;align-items:center;border-bottom:0}
+      .topbar{position:fixed;top:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.18);backdrop-filter:blur(26px) saturate(150%);-webkit-backdrop-filter:blur(26px) saturate(150%);padding:calc(12px + env(safe-area-inset-top)) 18px 12px;margin:0;align-items:center;border-bottom:1px solid var(--line)}
       .topbar h1{font-size:23px;letter-spacing:-.03em}
       .topbar p{display:none}
       .actions{gap:8px}
       .actions .btn{display:none}
       .actions .btn.primary{display:flex;width:44px;height:44px;min-height:44px;border-radius:16px;padding:0;align-items:center;justify-content:center;font-size:0;box-shadow:none}
       .actions .btn.primary::before{content:'+';font-size:28px;line-height:1}
-      .card{border-radius:24px;border:1px solid rgba(15,23,42,.055);box-shadow:0 10px 26px rgba(15,23,42,.055)}
+      .card{border-radius:24px;border:1px solid var(--line);box-shadow:0 14px 34px rgba(23,36,54,.09)}
       .kpis{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
       .kpi{padding:16px;min-height:118px}
       .uber-kpis{grid-template-columns:1fr 1fr!important;gap:10px;margin-bottom:14px}
@@ -65,7 +81,7 @@
       .kpi .value{font-size:22px;letter-spacing:-.03em;line-height:1.15}
       .kpi .sub{font-size:11px;line-height:1.35}
       .mobile-quick-actions{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:0 0 14px}
-      .quick-action{border:0;border-radius:20px;padding:12px 4px;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.05);display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;color:#0f172a}
+      .quick-action{border:1px solid var(--line);border-radius:20px;padding:12px 4px;background:var(--surface);backdrop-filter:blur(20px) saturate(145%);-webkit-backdrop-filter:blur(20px) saturate(145%);box-shadow:0 10px 24px rgba(15,23,42,.06);display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;color:var(--text)}
       .quick-action span{width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:800}
       .quick-action strong{font-size:10px;white-space:nowrap}
       .qa-income span{background:#e7f8ef;color:#07824f}.qa-expense span{background:#fdecef;color:#c82034}.qa-cards span{background:#eaf2ff;color:#2563eb}.qa-uber span{background:#fff2df;color:#ea7a08}.qa-plan span{background:#f0eaff;color:#7c3aed}
@@ -88,7 +104,7 @@
       .recent-card td:nth-child(4){display:none}
       .recent-card td:nth-child(5){position:absolute;right:4px;top:20px;width:auto;font-size:14px}
       .form-grid{grid-template-columns:1fr}
-      .field input,.field select{min-height:50px;border-radius:15px;background:#fff;font-size:16px}
+      .field input,.field select{min-height:50px;border-radius:15px;background:var(--surface2);color:var(--text);font-size:16px}
       .btn{min-height:44px;border-radius:14px}
       dialog{width:calc(100% - 18px);border-radius:26px;margin:auto}
       .modal{padding:20px}
@@ -96,7 +112,7 @@
       .projection{scroll-snap-type:x mandatory;padding-bottom:6px}
       .month-card{scroll-snap-align:start;min-width:160px;border-radius:20px}
       .bar-row{grid-template-columns:92px 1fr 74px;gap:8px}
-      .mobile-nav{display:grid;grid-template-columns:1fr 1fr 1.15fr 1fr 1fr;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(15,23,42,.06);z-index:40;padding:9px 14px calc(9px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(15,23,42,.06)}
+      .mobile-nav{display:grid;grid-template-columns:1fr 1fr 1.15fr 1fr 1fr;position:fixed;bottom:10px;left:10px;right:10px;background:rgba(255,255,255,.28);backdrop-filter:blur(28px) saturate(155%);-webkit-backdrop-filter:blur(28px) saturate(155%);border:1px solid var(--line);z-index:40;padding:9px 14px calc(9px + env(safe-area-inset-bottom));box-shadow:0 16px 40px rgba(15,23,42,.13);border-radius:28px}
       .mobile-nav button{position:relative;border:0;background:transparent;padding:9px 2px 6px;font-size:10px;line-height:1.15;color:#718096;border-radius:16px;min-width:0}
       .mobile-nav button.active{color:#1265f3;font-weight:800;background:transparent}
       .mobile-nav button:nth-child(3){width:58px;height:58px;margin:-24px auto 0;border-radius:50%;background:#1265f3;color:#fff;font-size:0;box-shadow:0 10px 24px rgba(18,101,243,.28)}
@@ -105,7 +121,7 @@
       .mobile-app-head h1{margin:0;font-size:29px;letter-spacing:-.045em}
       .mobile-app-head p{margin:4px 0 0;color:#7b8798;font-size:14px}
       .mobile-avatar{width:48px;height:48px;border-radius:50%;background:#edf2ff;color:#17315c;display:grid;place-items:center;font-weight:800}
-      .mobile-balance-hero{display:block;background:linear-gradient(135deg,#12315d,#0d2445);color:#fff;border-radius:25px;padding:21px 20px;margin-bottom:14px;box-shadow:0 14px 30px rgba(17,49,93,.18)}
+      .mobile-balance-hero{display:block;background:linear-gradient(135deg,rgba(25,64,111,.78),rgba(15,39,72,.7));backdrop-filter:blur(24px) saturate(150%);-webkit-backdrop-filter:blur(24px) saturate(150%);color:#fff;border:1px solid rgba(255,255,255,.24);border-radius:25px;padding:21px 20px;margin-bottom:14px;box-shadow:0 16px 38px rgba(17,49,93,.18)}
       .mobile-balance-label{font-size:14px;color:#d9e5f5}
       .mobile-balance-big{font-size:38px;line-height:1.05;font-weight:850;letter-spacing:-.05em;margin-top:9px}
       .mobile-balance-note{font-size:12px;color:#8ce5b7;margin-top:10px}
@@ -267,6 +283,14 @@
       <div class="grid two">
         <div class="card section"><h2>Backup e restauração</h2><p class="note">Exporte um arquivo JSON e guarde-o em um local seguro. Para usar os mesmos dados em outro aparelho, importe esse arquivo nele.</p><div class="actions"><button class="btn primary" id="exportJson">Exportar backup</button><label class="btn" for="importFile">Importar backup</label><button class="btn" id="restoreImported">Restaurar 70 lançamentos importados</button><input id="importFile" type="file" accept="application/json" hidden></div><p class="note" style="margin-top:12px">“Restaurar” substitui a base atual pelos dados que importamos do seu CSV. Faça backup antes se já tiver novos lançamentos.</p></div>
         <div class="card section"><h2>Exportar planilha</h2><p class="note">Baixe suas transações em CSV para abrir no Excel, Google Sheets ou LibreOffice.</p><button class="btn" id="exportCsv">Exportar CSV</button></div>
+      </div>
+      <div class="card section" style="margin-top:16px">
+        <h2>Aparência</h2>
+        <p class="note">Escolha o plano de fundo do app. A preferência fica salva neste aparelho.</p>
+        <div class="theme-picker">
+          <button class="theme-option" data-theme-choice="light"><span class="theme-preview light-preview"></span><span><strong>Claro (creme)</strong><small>Suave e luminoso</small></span></button>
+          <button class="theme-option" data-theme-choice="dark"><span class="theme-preview dark-preview"></span><span><strong>Escuro (cinza)</strong><small>Mais imersivo</small></span></button>
+        </div>
       </div>
       <div class="card section" style="margin-top:16px"><h2>Sincronização em nuvem</h2><p class="note" id="cloudSettingsText">Entre com sua conta para sincronizar celular e PC.</p><div class="actions"><button class="btn primary" id="syncNow">Sincronizar agora</button><button class="btn" id="showLogin">Entrar / trocar conta</button><button class="btn danger" id="logoutBtn">Sair da nuvem</button></div></div>
       <div class="card section" style="margin-top:16px"><h2>Dados locais</h2><p class="note">O navegador mantém uma cópia local para o app continuar utilizável. O backup manual continua recomendado.</p><button class="btn danger" id="clearData">Apagar todos os dados</button></div>
@@ -465,6 +489,14 @@ const SUPABASE_URL='https://xdgxjvlyiiqxubmxsrir.supabase.co';
 const SUPABASE_KEY='sb_publishable_mv2g3vGhw9VSs5w3Ws-AyQ_cvQapvL1';
 const cloud=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let cloudUser=null,cloudSaveTimer=null,cloudBusy=false,localOnly=false;
+const THEME_KEY='meuFinanceiroTheme';
+function applyTheme(theme){
+  const t=theme==='dark'?'dark':'light';
+  document.body.dataset.theme=t;
+  localStorage.setItem(THEME_KEY,t);
+  $('.theme-option').forEach(b=>b.classList.toggle('active',b.dataset.themeChoice===t));
+}
+function initTheme(){applyTheme(localStorage.getItem(THEME_KEY)||'light')}
 let storedState=null;
 try{storedState=JSON.parse(localStorage.getItem('meuFinanceiroData')||'null')}catch(e){storedState=null}
 const shouldSeed=!storedState || !Array.isArray(storedState.transactions) || storedState.transactions.length===0;
@@ -662,13 +694,14 @@ $('#authSignup').onclick=async()=>{const email=$('#authEmail').value.trim(),pass
 $('#authLocal').onclick=()=>{localOnly=true;showAuth(false);setCloudStatus('','Somente neste aparelho')};
 $('#showLogin').onclick=()=>showAuth(true,'');
 $('#logoutBtn').onclick=async()=>{await cloud.auth.signOut();cloudUser=null;localOnly=true;setCloudStatus('','Somente neste aparelho');showAuth(true,'Você saiu da sincronização.')};
+$('[data-theme-choice]').forEach(btn=>btn.onclick=()=>applyTheme(btn.dataset.themeChoice));
 $('#syncNow').onclick=()=>pullCloud(true);$('#syncTop').onclick=()=>cloudUser?pullCloud(true):showAuth(true,'Entre para sincronizar.');
 window.addEventListener('focus',()=>{if(cloudUser&&!localOnly)pullCloud(false)});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&cloudUser&&!localOnly)pullCloud(false)});
 
 populateTxTaxonomy();$('#uberForm [name=date]').value=today();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-renderAll();initCloud();
+initTheme();renderAll();initCloud();
 </script>
 </body>
 </html>
