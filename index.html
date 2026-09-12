@@ -37,45 +37,64 @@
     .auth-card h2{margin:0 0 6px;font-size:24px}.auth-card p{color:var(--muted);font-size:13px;line-height:1.5}.auth-card .field{margin-top:12px}
     .auth-msg{min-height:18px;margin-top:12px;font-size:13px}.cloud-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;margin-right:6px}.cloud-dot.ok{background:#10b981}.cloud-dot.sync{background:#f59e0b}.cloud-dot.err{background:#ef4444}
     .uber-kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}.uber-kpi{padding:16px}.uber-kpi .label{font-size:12px;color:var(--muted)}.uber-kpi .value{font-size:22px;font-weight:800;margin-top:6px}.checkline{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}.checkline input{width:17px;height:17px}.mobile-nav{display:none}.view{display:none}.view.active{display:block}.note{font-size:13px;color:var(--muted);line-height:1.5}.budget-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.budget-card{padding:16px}.budget-card .row{display:flex;justify-content:space-between;gap:10px}.progress{height:9px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:10px 0 5px}.progress>span{display:block;height:100%;background:#334155}
+    .mobile-quick-actions{display:none}
     @media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.budget-grid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:760px){
-      body{background:#eef2f6}
-      .uber-kpis{grid-template-columns:1fr 1fr}
-      .app{display:block;min-height:100dvh;background:#eef2f6}
+      :root{--radius:24px}
+      body{background:#f6f8fb}
+      .app{display:block;min-height:100dvh;background:#f6f8fb}
       aside{display:none}
-      main{padding:92px 12px calc(96px + env(safe-area-inset-bottom));max-width:none}
-      .topbar{position:fixed;top:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(15,23,42,.06);padding:calc(12px + env(safe-area-inset-top)) 16px 12px;margin:0;align-items:center;box-shadow:0 4px 20px rgba(15,23,42,.05)}
-      .topbar h1{font-size:20px;letter-spacing:-.02em}
+      main{padding:88px 14px calc(104px + env(safe-area-inset-bottom));max-width:none}
+      .topbar{position:fixed;top:0;left:0;right:0;z-index:30;background:rgba(246,248,251,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:calc(12px + env(safe-area-inset-top)) 18px 12px;margin:0;align-items:center;border-bottom:0}
+      .topbar h1{font-size:23px;letter-spacing:-.03em}
       .topbar p{display:none}
       .actions{gap:8px}
       .actions .btn{display:none}
-      .actions .btn.primary{display:inline-flex;width:42px;height:42px;border-radius:14px;padding:0;align-items:center;justify-content:center;font-size:0;box-shadow:0 8px 20px rgba(15,23,42,.18)}
-      .actions .btn.primary::before{content:'+';font-size:24px;line-height:1}
-      .card{border-radius:22px;border:1px solid rgba(15,23,42,.06);box-shadow:0 8px 24px rgba(15,23,42,.06)}
-      .kpis{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-      .kpi{padding:16px;min-height:112px}
+      .actions .btn.primary{display:flex;width:44px;height:44px;min-height:44px;border-radius:16px;padding:0;align-items:center;justify-content:center;font-size:0;box-shadow:none}
+      .actions .btn.primary::before{content:'+';font-size:28px;line-height:1}
+      .card{border-radius:24px;border:1px solid rgba(15,23,42,.055);box-shadow:0 10px 26px rgba(15,23,42,.055)}
+      .kpis{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+      .kpi{padding:16px;min-height:118px}
       .kpi .label{font-size:12px}
-      .kpi .value{font-size:22px;letter-spacing:-.03em}
+      .kpi .value{font-size:22px;letter-spacing:-.03em;line-height:1.15}
       .kpi .sub{font-size:11px;line-height:1.35}
+      .mobile-quick-actions{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:0 0 14px}
+      .quick-action{border:0;border-radius:20px;padding:12px 4px;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.05);display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;color:#0f172a}
+      .quick-action span{width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:800}
+      .quick-action strong{font-size:10px;white-space:nowrap}
+      .qa-income span{background:#e7f8ef;color:#07824f}.qa-expense span{background:#fdecef;color:#c82034}.qa-cards span{background:#eaf2ff;color:#2563eb}.qa-uber span{background:#fff2df;color:#ea7a08}.qa-plan span{background:#f0eaff;color:#7c3aed}
       .section{padding:16px;margin-bottom:12px}
-      .section h2{font-size:16px}
-      .section-head{margin-bottom:12px}
-      .section-head .btn{padding:8px 10px;border-radius:11px;font-size:12px}
+      .section h2{font-size:17px;letter-spacing:-.02em}
+      .section-head{margin-bottom:10px}
+      .section-head .btn{padding:8px 10px;min-height:38px;border-radius:12px;font-size:12px}
+      .recent-card .table-wrap{overflow:visible}
+      .recent-card table,.recent-card thead,.recent-card tbody,.recent-card tr,.recent-card td{display:block;width:100%}
+      .recent-card thead{display:none}
+      .recent-card tr{position:relative;padding:12px 4px 12px 58px;border-bottom:1px solid var(--line);min-height:64px}
+      .recent-card tr:last-child{border-bottom:0}
+      .recent-card td{border:0!important;padding:0!important;white-space:normal!important;font-size:13px}
+      .recent-card td:nth-child(1){position:absolute;left:4px;top:12px;width:44px;height:44px;border-radius:15px!important;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:0}
+      .recent-card td:nth-child(1)::before{content:'•';font-size:28px;color:#64748b}
+      .recent-card td:nth-child(2){font-weight:750;font-size:14px;padding-right:94px!important}
+      .recent-card td:nth-child(2) .note{font-size:11px;margin-top:2px}
+      .recent-card td:nth-child(3){display:inline-block;margin-top:5px;width:auto;background:#eef2f7;border-radius:999px;padding:4px 8px!important;font-size:10px}
+      .recent-card td:nth-child(3) .pill{background:transparent;padding:0;font-size:10px}
+      .recent-card td:nth-child(4){display:none}
+      .recent-card td:nth-child(5){position:absolute;right:4px;top:20px;width:auto;font-size:14px}
       .form-grid{grid-template-columns:1fr}
-      .field input,.field select{min-height:48px;border-radius:14px;background:#fff;font-size:16px}
+      .field input,.field select{min-height:50px;border-radius:15px;background:#fff;font-size:16px}
       .btn{min-height:44px;border-radius:14px}
-      dialog{width:calc(100% - 18px);border-radius:24px;margin:auto}
+      dialog{width:calc(100% - 18px);border-radius:26px;margin:auto}
       .modal{padding:20px}
       .budget-grid{grid-template-columns:1fr}
-      .table-wrap{margin:0 -6px}
-      .table-wrap table{min-width:680px}
       .projection{scroll-snap-type:x mandatory;padding-bottom:6px}
-      .month-card{scroll-snap-align:start;min-width:156px;border-radius:18px}
-      .bar-row{grid-template-columns:88px 1fr 72px;gap:8px}
-      .mobile-nav{display:grid;grid-template-columns:repeat(6,1fr);position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid rgba(15,23,42,.08);z-index:40;padding:7px 4px calc(7px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(15,23,42,.08)}
-      .mobile-nav button{position:relative;border:0;background:transparent;padding:8px 2px 6px;font-size:10px;line-height:1.15;color:#94a3b8;border-radius:14px;min-width:0}
-      .mobile-nav button::first-line{font-size:19px}
-      .mobile-nav button.active{color:#0f172a;font-weight:800;background:#eef2f7}
+      .month-card{scroll-snap-align:start;min-width:160px;border-radius:20px}
+      .bar-row{grid-template-columns:92px 1fr 74px;gap:8px}
+      .mobile-nav{display:grid;grid-template-columns:1fr 1fr 1.15fr 1fr 1fr;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(15,23,42,.06);z-index:40;padding:9px 14px calc(9px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(15,23,42,.06)}
+      .mobile-nav button{position:relative;border:0;background:transparent;padding:9px 2px 6px;font-size:10px;line-height:1.15;color:#718096;border-radius:16px;min-width:0}
+      .mobile-nav button.active{color:#1265f3;font-weight:800;background:transparent}
+      .mobile-nav button:nth-child(3){width:58px;height:58px;margin:-24px auto 0;border-radius:50%;background:#1265f3;color:#fff;font-size:0;box-shadow:0 10px 24px rgba(18,101,243,.28)}
+      .mobile-nav button:nth-child(3)::before{content:'+';font-size:30px;line-height:58px}
       .mobile-nav button:active{transform:scale(.96)}
       .view{animation:mobileViewIn .18s ease}
       .view:not(.active){display:none}
@@ -131,8 +150,16 @@
         <div class="card kpi"><div class="label">Previsto fim do mês</div><div class="value" id="kpiNet">R$ 0,00</div><div class="sub">Inclui lançamentos futuros deste mês</div></div>
       </div>
 
+      <div class="mobile-quick-actions">
+        <button class="quick-action qa-income" id="qaIncome"><span>↗</span><strong>Receita</strong></button>
+        <button class="quick-action qa-expense" id="qaExpense"><span>↘</span><strong>Despesa</strong></button>
+        <button class="quick-action qa-cards" data-go="cards"><span>▣</span><strong>Cartões</strong></button>
+        <button class="quick-action qa-uber" data-go="uber"><span>🚗</span><strong>Uber</strong></button>
+        <button class="quick-action qa-plan" data-go="projection"><span>↗</span><strong>Projeção</strong></button>
+      </div>
+
       <div class="grid two">
-        <div class="card section"><div class="section-head"><h2>Últimas transações</h2><button class="btn" data-go="transactions">Ver todas</button></div><div id="recentTx"></div></div>
+        <div class="card section recent-card"><div class="section-head"><h2>Transações recentes</h2><button class="btn" data-go="transactions">Ver todas</button></div><div id="recentTx"></div></div>
         <div class="card section"><h2>Gastos por categoria</h2><div class="bars" id="categoryBars"></div></div>
       </div>
 
@@ -212,8 +239,7 @@
 <nav class="mobile-nav" id="mobileNav">
   <button data-view="dashboard" class="active">⌂<br>Início</button>
   <button data-view="transactions">↕<br>Movimentos</button>
-  <button data-view="cards">▣<br>Cartões</button>
-  <button data-view="projection">↗<br>Projeção</button>
+  <button id="mobileAdd" aria-label="Novo lançamento">+</button>
   <button data-view="uber">🚗<br>Uber</button>
   <button data-view="settings">⚙<br>Ajustes</button>
 </nav>
@@ -515,10 +541,13 @@ window.removeUber=id=>{if(confirm('Excluir este registro do Uber?')){const u=sta
 
 function renderAll(){renderDashboard();renderTransactions();renderCards();renderBudget();renderProjection();fillCardSelect();renderUber()}
 
-function openTx(){editingTxId=null;fillCardSelect();$('#txForm').reset();populateTxTaxonomy();$('#txDialogTitle').textContent='Nova transação';$('#txForm [name=date]').value=today();$('#txForm [name=installments]').value=1;$('#txDialog').showModal()}
+function openTx(type='expense'){editingTxId=null;fillCardSelect();$('#txForm').reset();populateTxTaxonomy();$('#txDialogTitle').textContent=type==='income'?'Nova receita':'Nova despesa';$('#txForm [name=type]').value=type;$('#txForm [name=date]').value=today();$('#txForm [name=installments]').value=1;$('#txDialog').showModal()}
 window.editTx=id=>{const t=state.transactions.find(x=>x.id===id);if(!t)return;editingTxId=id;fillCardSelect();populateTxTaxonomy();$('#txDialogTitle').textContent='Editar transação';const f=$('#txForm');f.reset();f.elements.type.value=t.type;f.elements.amount.value=t.amount;f.elements.description.value=t.description||'';f.elements.category.value=t.category||Object.keys(CATS)[0];updateTxSubcategories();f.elements.subcategory.value=t.subcategory||'';f.elements.expenseKind.value=t.expenseKind||'Variável';f.elements.date.value=t.date;f.elements.account.value=t.account||'';f.elements.payment.value=t.payment||PAYMENTS[0];f.elements.cardId.value=t.cardId||'';f.elements.installments.value=1;f.elements.installments.disabled=true;f.elements.tags.value=(t.tags||[]).join(', ');$('#txDialog').showModal()};
 $('#txDialog').addEventListener('close',()=>{$('#txForm [name=installments]').disabled=false;editingTxId=null});
-$('#addTxTop').onclick=openTx;$('#addTx2').onclick=openTx;
+$('#addTxTop').onclick=()=>openTx('expense');$('#addTx2').onclick=()=>openTx('expense');
+$('#mobileAdd').onclick=()=>openTx('expense');
+$('#qaIncome').onclick=()=>openTx('income');
+$('#qaExpense').onclick=()=>openTx('expense');
 $('#saveTx').onclick=e=>{e.preventDefault();if(!$('#txForm').reportValidity())return;const f=new FormData($('#txForm'));const base={type:f.get('type'),amount:+f.get('amount'),description:f.get('description'),category:f.get('category'),subcategory:f.get('subcategory')||'',expenseKind:f.get('expenseKind')||'',date:f.get('date'),account:f.get('account'),payment:f.get('payment'),cardId:f.get('cardId'),installments:1,tags:String(f.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean)};
  if(editingTxId){const i=state.transactions.findIndex(x=>x.id===editingTxId);if(i>=0)state.transactions[i]={...state.transactions[i],...base};}
  else {const n=Math.max(1,+f.get('installments')||1);if(n>1&&base.type==='expense'){const total=base.amount,part=Math.round((total/n)*100)/100,group=uid();for(let k=0;k<n;k++){const d=new Date(base.date+'T12:00:00');d.setMonth(d.getMonth()+k);const amt=k===n-1?Math.round((total-part*(n-1))*100)/100:part;state.transactions.push({...base,id:uid(),amount:amt,date:d.toISOString().slice(0,10),installmentGroup:group,installmentLabel:`Parcela ${k+1}/${n}`});}}else state.transactions.push({id:uid(),...base});}
