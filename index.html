@@ -55,6 +55,12 @@
     body[data-theme="dark"] .pill{background:rgba(255,255,255,.1);color:#dbe8ff}
     body[data-theme="dark"] dialog,body[data-theme="dark"] .modal,body[data-theme="dark"] .launch-panel,body[data-theme="dark"] .auth-card{background:#16202d;color:var(--text)}
     @media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.budget-grid{grid-template-columns:repeat(2,1fr)}}
+    /* iPhone/iPad: força o layout mobile mesmo quando o Safari reporta viewport largo */
+    @media(max-width:820px){
+      .app{grid-template-columns:1fr!important}
+      aside{display:none!important}
+      main{width:100%!important;max-width:none!important}
+    }
     @media(max-width:760px){
       :root{--radius:24px}
       body{background:var(--page-bg)}
