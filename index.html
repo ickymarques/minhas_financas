@@ -315,9 +315,24 @@
 
 <dialog id="budgetDialog"><form method="dialog" class="modal" id="budgetForm"><h3>Novo limite mensal</h3><div class="form-grid"><div class="field full"><label>Categoria</label><input name="category" list="categories" required></div><div class="field full"><label>Limite mensal</label><input name="limit" type="number" step="0.01" min="0" required></div></div><div class="modal-actions"><button class="btn" value="cancel">Cancelar</button><button class="btn primary" value="default" id="saveBudget">Salvar</button></div></form></dialog>
 
-<dialog id="recDialog"><form method="dialog" class="modal" id="recForm"><h3>Nova recorrência</h3><div class="form-grid"><div class="field"><label>Tipo</label><select name="type"><option value="expense">Despesa</option><option value="income">Receita</option></select></div><div class="field"><label>Valor mensal</label><input name="amount" type="number" step="0.01" min="0.01" required></div><div class="field full"><label>Descrição</label><input name="description" required placeholder="Ex.: Salário / Aluguel"></div><div class="field"><label>Categoria</label><input name="category" list="categories" required></div><div class="field"><label>Dia do mês</label><input name="day" type="number" min="1" max="31" value="5"></div></div><div class="modal-actions"><button class="btn" value="cancel">Cancelar</button><button class="btn primary" value="default" id="saveRec">Salvar</button></div></form></dialog>
+<dialog id="recDialog"><form method="dialog" class="modal" id="recForm"><h3 id="recDialogTitle">Nova recorrência</h3><div class="form-grid">
+  <div class="field"><label>Tipo</label><select name="type"><option value="expense">Despesa</option><option value="income">Entrada</option></select></div>
+  <div class="field"><label>Valor mensal atual</label><input name="amount" type="number" step="0.01" min="0.01" required></div>
+  <div class="field full"><label>Descrição</label><input name="description" required placeholder="Ex.: Vale Refeição / VR"></div>
+  <div class="field"><label>Categoria</label><input name="category" list="categories" required></div>
+  <div class="field"><label>Dia do mês</label><input name="day" type="number" min="1" max="31" value="5"></div>
+  <div class="field rec-income-field"><label>Recebido via</label><select name="payment"><option>Pix</option><option>Transferência bancária</option><option>Depósito</option><option>Dinheiro</option><option>Outro</option></select></div>
+  <div class="field full"><label class="checkline"><input name="annualAdjustment" type="checkbox"> Possui próximo reajuste anual / dissídio</label></div>
+  <div class="field rec-adjust-field" style="display:none"><label>Mês do dissídio</label><select name="adjustmentMonth">
+    <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+  </select></div>
+  <div class="field rec-adjust-field" style="display:none"><label>Ano do próximo dissídio</label><input name="adjustmentYear" type="number" min="2026" max="2100"></div>
+  <div class="field rec-adjust-field" style="display:none"><label>Valor no mês do dissídio</label><input name="dissidioAmount" type="number" min="0.01" step="0.01" placeholder="Ex.: 750,00"></div>
+  <div class="field rec-adjust-field" style="display:none"><label>Novo valor mensal</label><input name="adjustedAmount" type="number" min="0.01" step="0.01" placeholder="Ex.: 710,00"></div>
+  <div class="field full rec-adjust-field" style="display:none"><p class="note">No mês do dissídio será usado o valor excepcional. A partir do mês seguinte, a projeção passa a usar o novo valor mensal.</p></div>
+</div><div class="modal-actions"><button class="btn" value="cancel" id="cancelRec">Fechar</button><button class="btn primary" value="default" id="saveRec">Salvar</button></div></form></dialog>
 
-<datalist id="categories"><option>Moradia</option><option>Carro</option><option>Alimentação</option><option>Eletrônicos</option><option>Saúde</option><option>Lazer</option><option>Assinaturas</option><option>Transporte</option><option>Investimentos</option><option>Outros</option></datalist>
+<datalist id="categories"><option>Moradia</option><option>Carro</option><option>Alimentação</option><option>Eletrônicos</option><option>Saúde</option><option>Lazer</option><option>Assinaturas</option><option>Transporte</option><option>Investimentos</option><option>Benefícios</option><option>Salário</option><option>Renda extra</option><option>Reembolso</option><option>Outros</option></datalist>
 
 <script>
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -450,7 +465,7 @@ const PAYMENTS = [
   "Caixa - Crédito","Caixa - Débito","Caixa - Pix","Caixa - Boleto",
   "Amazon - Crédito","Dinheiro","Outro"
 ];
-const INCOME_CATEGORIES = ["Salário","Renda extra","Reembolso","Investimentos","Outros"];
+const INCOME_CATEGORIES = ["Salário","Benefícios","Renda extra","Reembolso","Investimentos","Outros"];
 const INCOME_METHODS = ["Pix","Transferência bancária","Depósito","Dinheiro","Outro"];
 
 const fmt=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
@@ -462,6 +477,7 @@ const SEED_VERSION='2026-09-12-v5';
 const SCHEMA_VERSION=5;
 let editingTxId=null;
 let editingUberId=null;
+let editingRecId=null;
 
 const SUPABASE_URL='https://xdgxjvlyiiqxubmxsrir.supabase.co';
 const SUPABASE_KEY='sb_publishable_mv2g3vGhw9VSs5w3Ws-AyQ_cvQapvL1';
@@ -558,12 +574,33 @@ function renderBudget(){const cm=currentMonth();$('#budgetGrid').innerHTML=state
 window.removeBudget=id=>{state.budgets=state.budgets.filter(x=>x.id!==id);save()}
 
 function installmentFutureForMonth(t,monthIndex){const n=Math.max(1,+t.installments||1);if(n<=1||!t.cardId||t.type!=='expense')return 0;const start=new Date(t.date+'T12:00:00');const now=new Date();const target=new Date(now.getFullYear(),now.getMonth()+monthIndex,1);const diff=(target.getFullYear()-start.getFullYear())*12+target.getMonth()-start.getMonth();return diff>=0&&diff<n?(+t.amount)/n:0}
+function recurringAmountForMonth(r,d){
+ const base=+r.amount||0;
+ if(!r.annualAdjustment||!r.adjustmentYear||!r.adjustmentMonth)return base;
+ const targetIndex=d.getFullYear()*12+d.getMonth();
+ const adjIndex=(+r.adjustmentYear)*12+(+r.adjustmentMonth-1);
+ if(targetIndex<adjIndex)return base;
+ if(targetIndex===adjIndex)return +r.dissidioAmount||base;
+ return +r.adjustedAmount||base;
+}
 function projectionData(n=12){const base=totals().balance;let running=base;const out=[],td=today();for(let i=0;i<n;i++){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+i);const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');let inc=0,exp=0;
  state.transactions.filter(t=>t.date>td&&monthKey(t.date)===key).forEach(t=>t.type==='income'?inc+=+t.amount:exp+=+t.amount);
- state.recurring.forEach(r=>{const already=state.transactions.some(t=>monthKey(t.date)===key&&t.description===r.description&&t.type===r.type);if(!already){r.type==='income'?inc+=+r.amount:exp+=+r.amount}});
+ state.recurring.forEach(r=>{const already=state.transactions.some(t=>monthKey(t.date)===key&&t.description===r.description&&t.type===r.type);if(!already){const amt=recurringAmountForMonth(r,d);r.type==='income'?inc+=amt:exp+=amt}});
  running+=inc-exp;out.push({label:d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}),income:inc,expense:exp,balance:running})}return out}
 function monthCard(m){return `<div class="month-card"><strong>${m.label}</strong><div class="balance ${m.balance>=0?'good':'bad'}">${fmt(m.balance)}</div><div class="note" style="margin-top:8px">+${fmt(m.income)}<br>-${fmt(m.expense)}</div></div>`}
-function renderProjection(){$('#projection12').innerHTML=projectionData(12).map(monthCard).join('');$('#recurringList').innerHTML=state.recurring.length?state.recurring.map(r=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)"><div><strong>${esc(r.description)}</strong><div class="note">Dia ${r.day} • ${esc(r.category)}</div></div><div style="text-align:right"><div class="amount ${r.type}">${r.type==='income'?'+':'-'} ${fmt(r.amount)}</div><button class="btn danger" onclick="removeRec('${r.id}')">Excluir</button></div></div>`).join(''):empty('Cadastre salário, aluguel, assinaturas e outros valores fixos.')}
+function renderProjection(){
+ $('#projection12').innerHTML=projectionData(12).map(monthCard).join('');
+ $('#recurringList').innerHTML=state.recurring.length?state.recurring.map(r=>{
+   const adj=r.annualAdjustment&&r.adjustmentYear&&r.adjustmentMonth?`<div class="note">Reajuste: ${String(r.adjustmentMonth).padStart(2,'0')}/${r.adjustmentYear} · dissídio ${fmt(r.dissidioAmount)} · depois ${fmt(r.adjustedAmount)}</div>`:'';
+   return `<div style="display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)"><div><strong>${esc(r.description)}</strong><div class="note">Dia ${r.day} • ${esc(r.category)}${r.payment?' • '+esc(r.payment):''}</div>${adj}</div><div style="text-align:right"><div class="amount ${r.type}">${r.type==='income'?'+':'-'} ${fmt(r.amount)}</div><div class="row-actions" style="margin-top:6px"><button class="btn" onclick="editRec('${r.id}')">Editar</button><button class="btn danger" onclick="removeRec('${r.id}')">Excluir</button></div></div></div>`;
+ }).join(''):empty('Cadastre salário, benefícios, aluguel e outros valores fixos.')
+}
+window.editRec=id=>{
+ const r=state.recurring.find(x=>x.id===id);if(!r)return;editingRecId=id;const f=$('#recForm');f.reset();$('#recDialogTitle').textContent='Editar recorrência';
+ f.elements.type.value=r.type||'expense';f.elements.amount.value=r.amount||'';f.elements.description.value=r.description||'';f.elements.category.value=r.category||'';f.elements.day.value=r.day||5;f.elements.payment.value=r.payment||'Pix';
+ f.elements.annualAdjustment.checked=!!r.annualAdjustment;f.elements.adjustmentMonth.value=r.adjustmentMonth||1;f.elements.adjustmentYear.value=r.adjustmentYear||new Date().getFullYear();f.elements.dissidioAmount.value=r.dissidioAmount||'';f.elements.adjustedAmount.value=r.adjustedAmount||'';
+ updateRecForm();$('#recDialog').showModal();
+}
 window.removeRec=id=>{state.recurring=state.recurring.filter(x=>x.id!==id);save()}
 
 
@@ -633,7 +670,18 @@ $('#saveTx').onclick=e=>{e.preventDefault();if(!$('#txForm').reportValidity())re
  $('#txDialog').close();save()}
 $('#addCard').onclick=()=>{$('#cardForm').reset();$('#cardDialog').showModal()};$('#saveCard').onclick=e=>{e.preventDefault();if(!$('#cardForm').reportValidity())return;const f=new FormData($('#cardForm'));state.cards.push({id:uid(),name:f.get('name'),limit:+f.get('limit'),closingDay:+f.get('closingDay'),dueDay:+f.get('dueDay')});$('#cardDialog').close();save()}
 $('#addBudget').onclick=()=>{$('#budgetForm').reset();$('#budgetDialog').showModal()};$('#saveBudget').onclick=e=>{e.preventDefault();if(!$('#budgetForm').reportValidity())return;const f=new FormData($('#budgetForm'));state.budgets.push({id:uid(),category:f.get('category'),limit:+f.get('limit')});$('#budgetDialog').close();save()}
-$('#addRecurring').onclick=()=>{$('#recForm').reset();$('#recDialog').showModal()};$('#saveRec').onclick=e=>{e.preventDefault();if(!$('#recForm').reportValidity())return;const f=new FormData($('#recForm'));state.recurring.push({id:uid(),type:f.get('type'),amount:+f.get('amount'),description:f.get('description'),category:f.get('category'),day:+f.get('day')});$('#recDialog').close();save()}
+function updateRecForm(){
+ const f=$('#recForm'),income=f.elements.type.value==='income',adj=f.elements.annualAdjustment.checked;
+ $('.rec-income-field').forEach(el=>el.style.display=income?'grid':'none');
+ $('.rec-adjust-field').forEach(el=>el.style.display=adj?'grid':'none');
+ if(income&&(!f.elements.category.value||!INCOME_CATEGORIES.includes(f.elements.category.value)))f.elements.category.value='Benefícios';
+ if(adj&&!f.elements.adjustmentYear.value)f.elements.adjustmentYear.value=new Date().getFullYear();
+}
+$('#addRecurring').onclick=()=>{editingRecId=null;const f=$('#recForm');f.reset();$('#recDialogTitle').textContent='Nova recorrência';f.elements.type.value='income';f.elements.category.value='Benefícios';f.elements.payment.value='Pix';f.elements.day.value=5;f.elements.adjustmentYear.value=new Date().getFullYear();updateRecForm();$('#recDialog').showModal()};
+$('#recForm [name=type]').addEventListener('change',updateRecForm);
+$('#recForm [name=annualAdjustment]').addEventListener('change',updateRecForm);
+$('#cancelRec').onclick=e=>{e.preventDefault();editingRecId=null;$('#recDialog').close()};
+$('#saveRec').onclick=e=>{e.preventDefault();const form=$('#recForm');if(!form.reportValidity())return;const f=new FormData(form),adj=f.get('annualAdjustment')==='on';if(adj&&(!f.get('dissidioAmount')||!f.get('adjustedAmount'))){alert('Informe o valor do mês do dissídio e o novo valor mensal.');return}const rec={type:f.get('type'),amount:+f.get('amount'),description:f.get('description'),category:f.get('category'),day:+f.get('day'),payment:f.get('type')==='income'?f.get('payment'):'',annualAdjustment:adj,adjustmentMonth:adj?+f.get('adjustmentMonth'):null,adjustmentYear:adj?+f.get('adjustmentYear'):null,dissidioAmount:adj?+f.get('dissidioAmount'):null,adjustedAmount:adj?+f.get('adjustedAmount'):null};if(editingRecId){const i=state.recurring.findIndex(x=>x.id===editingRecId);if(i>=0)state.recurring[i]={...state.recurring[i],...rec}}else state.recurring.push({id:uid(),...rec});editingRecId=null;$('#recDialog').close();save()}
 
 
 $('#txForm [name=type]').addEventListener('change',()=>{populateTxTaxonomy();$('#txDialogTitle').textContent=txIsIncome()?'Nova entrada':'Nova despesa'});
