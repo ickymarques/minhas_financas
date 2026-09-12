@@ -1,0 +1,11 @@
+{
+  "name": "Meu Financeiro",
+  "short_name": "Financeiro",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#111827",
+  "lang": "pt-BR",
+  "description": "Controle financeiro pessoal e corridas Uber"
+}
