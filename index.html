@@ -55,6 +55,12 @@
       .card{border-radius:24px;border:1px solid rgba(15,23,42,.055);box-shadow:0 10px 26px rgba(15,23,42,.055)}
       .kpis{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
       .kpi{padding:16px;min-height:118px}
+      .uber-kpis{grid-template-columns:1fr 1fr!important;gap:10px;margin-bottom:14px}
+      .uber-kpi{padding:15px;min-height:104px;display:flex;flex-direction:column;justify-content:center}
+      .uber-kpi .label{font-size:11px;line-height:1.25;min-height:28px;display:flex;align-items:flex-end}
+      .uber-kpi .value{font-size:20px;line-height:1.15;margin-top:6px;letter-spacing:-.025em;word-break:break-word}
+      #uberGross,#uberNet{font-size:21px}
+      @media(max-width:390px){.uber-kpis{grid-template-columns:1fr!important}.uber-kpi{min-height:82px}.uber-kpi .label{min-height:auto}}
       .kpi .label{font-size:12px}
       .kpi .value{font-size:22px;letter-spacing:-.03em;line-height:1.15}
       .kpi .sub{font-size:11px;line-height:1.35}
@@ -116,6 +122,16 @@
       .auth-overlay{align-items:flex-end;padding:12px}
       .auth-card{width:100%;max-width:none;margin-bottom:calc(6px + env(safe-area-inset-bottom))}
     }
+    .launch-sheet{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end}
+    .launch-sheet[hidden]{display:none}
+    .launch-backdrop{position:absolute;inset:0;border:0;background:rgba(15,23,42,.32);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+    .launch-panel{position:relative;width:100%;background:#fff;border-radius:28px 28px 0 0;padding:10px 18px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -20px 50px rgba(15,23,42,.16)}
+    .launch-handle{width:42px;height:5px;border-radius:99px;background:#d8dee8;margin:2px auto 14px}
+    .launch-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;font-size:18px}
+    .launch-head button{border:0;background:#eef2f7;width:36px;height:36px;border-radius:12px;font-size:25px;line-height:1;color:#334155}
+    .launch-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .launch-grid button{border:0;background:#f7f9fc;border-radius:18px;min-height:86px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:8px;font-weight:750;color:#0f172a}
+    .launch-grid button span{font-size:26px}
     @keyframes mobileViewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
   </style>
 </head>
@@ -266,6 +282,20 @@
   <button data-view="settings">⚙<br>Ajustes</button>
 </nav>
 
+<div class="launch-sheet" id="launchSheet" hidden>
+  <button class="launch-backdrop" id="launchBackdrop" aria-label="Fechar"></button>
+  <div class="launch-panel">
+    <div class="launch-handle"></div>
+    <div class="launch-head"><strong>Novo lançamento</strong><button id="launchClose" aria-label="Fechar">×</button></div>
+    <div class="launch-grid">
+      <button id="launchExpense"><span>↘</span>Despesa</button>
+      <button id="launchIncome"><span>↗</span>Receita</button>
+      <button id="launchUber"><span>🚗</span>Uber</button>
+      <button id="launchProjection"><span>↗</span>Projeção</button>
+    </div>
+  </div>
+</div>
+
 <dialog id="txDialog"><form method="dialog" class="modal" id="txForm"><h3 id="txDialogTitle">Nova transação</h3><div class="form-grid">
   <div class="field"><label>Tipo</label><select name="type" required><option value="expense">Despesa</option><option value="income">Receita</option></select></div>
   <div class="field"><label>Valor</label><input name="amount" type="number" step="0.01" min="0.01" required placeholder="0,00"></div>
@@ -279,7 +309,7 @@
   <div class="field"><label>Cartão (opcional)</label><select name="cardId" id="txCardSelect"><option value="">Nenhum</option></select></div>
   <div class="field"><label>Nº de parcelas</label><input name="installments" type="number" min="1" max="60" value="1"></div>
   <div class="field full"><label>Tags</label><input name="tags" placeholder="Ex.: trabalho, viagem, reembolsável"></div>
-</div><div class="modal-actions"><button class="btn" value="cancel">Cancelar</button><button class="btn primary" value="default" id="saveTx">Salvar</button></div></form></dialog>
+</div><div class="modal-actions"><button class="btn" value="cancel" id="cancelTx">Fechar</button><button class="btn primary" value="default" id="saveTx">Salvar</button></div></form></dialog>
 
 <dialog id="cardDialog"><form method="dialog" class="modal" id="cardForm"><h3>Novo cartão</h3><div class="form-grid"><div class="field full"><label>Nome</label><input name="name" required placeholder="Ex.: Nubank"></div><div class="field"><label>Limite</label><input name="limit" type="number" step="0.01" required></div><div class="field"><label>Dia de fechamento</label><input name="closingDay" type="number" min="1" max="31" value="25"></div><div class="field"><label>Dia de vencimento</label><input name="dueDay" type="number" min="1" max="31" value="5"></div></div><div class="modal-actions"><button class="btn" value="cancel">Cancelar</button><button class="btn primary" value="default" id="saveCard">Salvar</button></div></form></dialog>
 
@@ -566,8 +596,18 @@ function renderAll(){renderDashboard();renderTransactions();renderCards();render
 function openTx(type='expense'){editingTxId=null;fillCardSelect();$('#txForm').reset();populateTxTaxonomy();$('#txDialogTitle').textContent=type==='income'?'Nova receita':'Nova despesa';$('#txForm [name=type]').value=type;$('#txForm [name=date]').value=today();$('#txForm [name=installments]').value=1;$('#txDialog').showModal()}
 window.editTx=id=>{const t=state.transactions.find(x=>x.id===id);if(!t)return;editingTxId=id;fillCardSelect();populateTxTaxonomy();$('#txDialogTitle').textContent='Editar transação';const f=$('#txForm');f.reset();f.elements.type.value=t.type;f.elements.amount.value=t.amount;f.elements.description.value=t.description||'';f.elements.category.value=t.category||Object.keys(CATS)[0];updateTxSubcategories();f.elements.subcategory.value=t.subcategory||'';f.elements.expenseKind.value=t.expenseKind||'Variável';f.elements.date.value=t.date;f.elements.account.value=t.account||'';f.elements.payment.value=t.payment||PAYMENTS[0];f.elements.cardId.value=t.cardId||'';f.elements.installments.value=1;f.elements.installments.disabled=true;f.elements.tags.value=(t.tags||[]).join(', ');$('#txDialog').showModal()};
 $('#txDialog').addEventListener('close',()=>{$('#txForm [name=installments]').disabled=false;editingTxId=null});
+$('#cancelTx').onclick=e=>{e.preventDefault();$('#txDialog').close()};
+$('#txDialog').addEventListener('click',e=>{if(e.target===$('#txDialog'))$('#txDialog').close()});
 $('#addTxTop').onclick=()=>openTx('expense');$('#addTx2').onclick=()=>openTx('expense');
-$('#mobileAdd').onclick=()=>openTx('expense');
+function openLaunchSheet(){$('#launchSheet').hidden=false}
+function closeLaunchSheet(){$('#launchSheet').hidden=true}
+$('#mobileAdd').onclick=openLaunchSheet;
+$('#launchClose').onclick=closeLaunchSheet;
+$('#launchBackdrop').onclick=closeLaunchSheet;
+$('#launchExpense').onclick=()=>{closeLaunchSheet();openTx('expense')};
+$('#launchIncome').onclick=()=>{closeLaunchSheet();openTx('income')};
+$('#launchUber').onclick=()=>{closeLaunchSheet();go('uber')};
+$('#launchProjection').onclick=()=>{closeLaunchSheet();go('projection')};
 $('#qaIncome').onclick=()=>openTx('income');
 $('#qaExpense').onclick=()=>openTx('expense');
 $('#saveTx').onclick=e=>{e.preventDefault();if(!$('#txForm').reportValidity())return;const f=new FormData($('#txForm'));const base={type:f.get('type'),amount:+f.get('amount'),description:f.get('description'),category:f.get('category'),subcategory:f.get('subcategory')||'',expenseKind:f.get('expenseKind')||'',date:f.get('date'),account:f.get('account'),payment:f.get('payment'),cardId:f.get('cardId'),installments:1,tags:String(f.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean)};
