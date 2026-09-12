@@ -450,6 +450,8 @@ const PAYMENTS = [
   "Caixa - Crédito","Caixa - Débito","Caixa - Pix","Caixa - Boleto",
   "Amazon - Crédito","Dinheiro","Outro"
 ];
+const INCOME_CATEGORIES = ["Salário","Renda extra","Reembolso","Investimentos","Outros"];
+const INCOME_METHODS = ["Pix","Transferência bancária","Depósito","Dinheiro","Outro"];
 
 const fmt=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
@@ -565,8 +567,23 @@ function renderProjection(){$('#projection12').innerHTML=projectionData(12).map(
 window.removeRec=id=>{state.recurring=state.recurring.filter(x=>x.id!==id);save()}
 
 
-function populateTxTaxonomy(){const cat=$('#txCategory'),pay=$('#txPayment');if(!cat||!pay)return;cat.innerHTML=Object.keys(CATS).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');pay.innerHTML=PAYMENTS.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');updateTxSubcategories()}
-function updateTxSubcategories(){const cat=$('#txCategory'),sub=$('#txSubcategory'),kind=$('#txForm [name=expenseKind]');if(!cat||!sub)return;const opts=CATS[cat.value]||{};sub.innerHTML=Object.keys(opts).map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');if(kind&&sub.value)kind.value=opts[sub.value]||'Variável'}
+function txIsIncome(){return $('#txForm [name=type]')?.value==='income'}
+function setFieldVisible(name,visible){const el=$('#txForm [name="'+name+'"]');if(el?.closest('.field'))el.closest('.field').style.display=visible?'grid':'none'}
+function populateTxTaxonomy(){
+ const cat=$('#txCategory'),pay=$('#txPayment');if(!cat||!pay)return;
+ const income=txIsIncome();
+ cat.innerHTML=(income?INCOME_CATEGORIES:Object.keys(CATS)).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+ pay.innerHTML=(income?INCOME_METHODS:PAYMENTS).map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+ const payLabel=pay.closest('.field')?.querySelector('label');if(payLabel)payLabel.textContent=income?'Recebido via':'Meio de pagamento';
+ const desc=$('#txForm [name=description]');if(desc)desc.placeholder=income?'Ex.: Salário de agosto':'Ex.: Supermercado';
+ setFieldVisible('subcategory',!income);
+ setFieldVisible('expenseKind',!income);
+ setFieldVisible('account',!income);
+ setFieldVisible('cardId',!income);
+ setFieldVisible('installments',!income);
+ updateTxSubcategories();
+}
+function updateTxSubcategories(){const cat=$('#txCategory'),sub=$('#txSubcategory'),kind=$('#txForm [name=expenseKind]');if(!cat||!sub)return;if(txIsIncome()){sub.innerHTML='';if(kind)kind.value='';return}const opts=CATS[cat.value]||{};sub.innerHTML=Object.keys(opts).map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');if(kind&&sub.value)kind.value=opts[sub.value]||'Variável'}
 function uberCalc(u){const fuel=(u.km>0&&u.consumption>0)?(u.km/u.consumption)*u.fuelPrice:0;const maintenance=u.gross*(u.maintenancePct/100);const net=u.gross+u.extra-fuel-maintenance-u.otherCosts;return{fuel,maintenance,net}}
 function renderUber(){if(!$('#uberHistory'))return;const sel=$('#uberMonthFilter'),months=[...new Set(state.uber.map(u=>monthKey(u.date)))].sort().reverse(),prev=sel.value||currentMonth();sel.innerHTML=`<option value="${currentMonth()}">Mês atual</option>`+months.filter(m=>m!==currentMonth()).map(m=>`<option value="${m}">${new Date(m+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</option>`).join('')+'<option value="all">Todos</option>';sel.value=[currentMonth(),...months,'all'].includes(prev)?prev:currentMonth();const rows=sel.value==='all'?state.uber:state.uber.filter(u=>monthKey(u.date)===sel.value),sum=k=>rows.reduce((s,u)=>s+(+u[k]||0),0),gross=sum('gross')+sum('extra'),fuel=sum('fuel'),maint=sum('maintenance'),net=sum('net'),km=sum('km'),trips=sum('trips'),mins=sum('minutesOnline'),hours=mins/60;$('#uberGross').textContent=fmt(gross);$('#uberFuel').textContent=fmt(fuel);$('#uberMaintenance').textContent=fmt(maint);$('#uberNet').textContent=fmt(net);$('#uberPerformance').innerHTML=`<p class="note"><strong>${trips}</strong> viagens · <strong>${km.toFixed(1)} km</strong> · <strong>${hours.toFixed(1)} h</strong> online</p><p class="note">${fmt(km?gross/km:0)}/km bruto · ${fmt(hours?gross/hours:0)}/h bruto · ${fmt(hours?net/hours:0)}/h líquido · margem ${gross?((net/gross)*100).toFixed(1):'0.0'}%</p>`;const sorted=[...rows].sort((a,b)=>b.date.localeCompare(a.date));$('#uberHistory').innerHTML=sorted.length?`<div class="table-wrap"><table><thead><tr><th>Data</th><th>Viagens</th><th>Tempo</th><th>KM</th><th>Bruto</th><th>Combustível</th><th>Manutenção</th><th>Líquido</th><th></th></tr></thead><tbody>${sorted.map(u=>`<tr><td>${new Date(u.date+'T12:00:00').toLocaleDateString('pt-BR')}</td><td>${u.trips}</td><td>${Math.floor(u.minutesOnline/60)}h ${u.minutesOnline%60}m</td><td>${u.km.toFixed(1)}</td><td>${fmt(u.gross+u.extra)}</td><td>${fmt(u.fuel)}</td><td>${fmt(u.maintenance)}</td><td class="amount ${u.net>=0?'income':'expense'}">${fmt(u.net)}</td><td><div class="row-actions"><button class="btn" onclick="editUber('${u.id}')">Editar</button><button class="btn danger" onclick="removeUber('${u.id}')">Excluir</button></div></td></tr>`).join('')}</tbody></table></div>`:empty('Nenhuma corrida registrada neste período.')}
 window.editUber=id=>{
@@ -593,8 +610,8 @@ window.removeUber=id=>{if(confirm('Excluir este registro do Uber?')){const u=sta
 
 function renderAll(){renderDashboard();renderTransactions();renderCards();renderBudget();renderProjection();fillCardSelect();renderUber()}
 
-function openTx(type='expense'){editingTxId=null;fillCardSelect();$('#txForm').reset();populateTxTaxonomy();$('#txDialogTitle').textContent=type==='income'?'Nova receita':'Nova despesa';$('#txForm [name=type]').value=type;$('#txForm [name=date]').value=today();$('#txForm [name=installments]').value=1;$('#txDialog').showModal()}
-window.editTx=id=>{const t=state.transactions.find(x=>x.id===id);if(!t)return;editingTxId=id;fillCardSelect();populateTxTaxonomy();$('#txDialogTitle').textContent='Editar transação';const f=$('#txForm');f.reset();f.elements.type.value=t.type;f.elements.amount.value=t.amount;f.elements.description.value=t.description||'';f.elements.category.value=t.category||Object.keys(CATS)[0];updateTxSubcategories();f.elements.subcategory.value=t.subcategory||'';f.elements.expenseKind.value=t.expenseKind||'Variável';f.elements.date.value=t.date;f.elements.account.value=t.account||'';f.elements.payment.value=t.payment||PAYMENTS[0];f.elements.cardId.value=t.cardId||'';f.elements.installments.value=1;f.elements.installments.disabled=true;f.elements.tags.value=(t.tags||[]).join(', ');$('#txDialog').showModal()};
+function openTx(type='expense'){editingTxId=null;fillCardSelect();$('#txForm').reset();$('#txForm [name=type]').value=type;populateTxTaxonomy();$('#txDialogTitle').textContent=type==='income'?'Nova entrada':'Nova despesa';$('#txForm [name=date]').value=today();$('#txForm [name=installments]').value=1;$('#txDialog').showModal()}
+window.editTx=id=>{const t=state.transactions.find(x=>x.id===id);if(!t)return;editingTxId=id;fillCardSelect();const f=$('#txForm');f.reset();f.elements.type.value=t.type;populateTxTaxonomy();$('#txDialogTitle').textContent=t.type==='income'?'Editar entrada':'Editar despesa';f.elements.amount.value=t.amount;f.elements.description.value=t.description||'';f.elements.category.value=t.category||(t.type==='income'?INCOME_CATEGORIES[0]:Object.keys(CATS)[0]);updateTxSubcategories();if(t.type!=='income'){f.elements.subcategory.value=t.subcategory||'';f.elements.expenseKind.value=t.expenseKind||'Variável';f.elements.account.value=t.account||'';f.elements.cardId.value=t.cardId||''}f.elements.date.value=t.date;f.elements.payment.value=t.payment||(t.type==='income'?INCOME_METHODS[0]:PAYMENTS[0]);f.elements.installments.value=1;f.elements.installments.disabled=true;f.elements.tags.value=(t.tags||[]).join(', ');$('#txDialog').showModal()};
 $('#txDialog').addEventListener('close',()=>{$('#txForm [name=installments]').disabled=false;editingTxId=null});
 $('#cancelTx').onclick=e=>{e.preventDefault();$('#txDialog').close()};
 $('#txDialog').addEventListener('click',e=>{if(e.target===$('#txDialog'))$('#txDialog').close()});
@@ -610,15 +627,16 @@ $('#launchUber').onclick=()=>{closeLaunchSheet();go('uber')};
 $('#launchProjection').onclick=()=>{closeLaunchSheet();go('projection')};
 $('#qaIncome').onclick=()=>openTx('income');
 $('#qaExpense').onclick=()=>openTx('expense');
-$('#saveTx').onclick=e=>{e.preventDefault();if(!$('#txForm').reportValidity())return;const f=new FormData($('#txForm'));const base={type:f.get('type'),amount:+f.get('amount'),description:f.get('description'),category:f.get('category'),subcategory:f.get('subcategory')||'',expenseKind:f.get('expenseKind')||'',date:f.get('date'),account:f.get('account'),payment:f.get('payment'),cardId:f.get('cardId'),installments:1,tags:String(f.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean)};
+$('#saveTx').onclick=e=>{e.preventDefault();if(!$('#txForm').reportValidity())return;const f=new FormData($('#txForm'));const isIncome=f.get('type')==='income';const base={type:f.get('type'),amount:+f.get('amount'),description:f.get('description'),category:f.get('category'),subcategory:isIncome?'':(f.get('subcategory')||''),expenseKind:isIncome?'':(f.get('expenseKind')||''),date:f.get('date'),account:isIncome?'':(f.get('account')||''),payment:f.get('payment'),cardId:isIncome?'':(f.get('cardId')||''),installments:1,tags:String(f.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean)};
  if(editingTxId){const i=state.transactions.findIndex(x=>x.id===editingTxId);if(i>=0)state.transactions[i]={...state.transactions[i],...base};}
- else {const n=Math.max(1,+f.get('installments')||1);if(n>1&&base.type==='expense'){const total=base.amount,part=Math.round((total/n)*100)/100,group=uid();for(let k=0;k<n;k++){const d=new Date(base.date+'T12:00:00');d.setMonth(d.getMonth()+k);const amt=k===n-1?Math.round((total-part*(n-1))*100)/100:part;state.transactions.push({...base,id:uid(),amount:amt,date:d.toISOString().slice(0,10),installmentGroup:group,installmentLabel:`Parcela ${k+1}/${n}`});}}else state.transactions.push({id:uid(),...base});}
+ else {const n=isIncome?1:Math.max(1,+f.get('installments')||1);if(n>1){const total=base.amount,part=Math.round((total/n)*100)/100,group=uid();for(let k=0;k<n;k++){const d=new Date(base.date+'T12:00:00');d.setMonth(d.getMonth()+k);const amt=k===n-1?Math.round((total-part*(n-1))*100)/100:part;state.transactions.push({...base,id:uid(),amount:amt,date:d.toISOString().slice(0,10),installmentGroup:group,installmentLabel:`Parcela ${k+1}/${n}`});}}else state.transactions.push({id:uid(),...base});}
  $('#txDialog').close();save()}
 $('#addCard').onclick=()=>{$('#cardForm').reset();$('#cardDialog').showModal()};$('#saveCard').onclick=e=>{e.preventDefault();if(!$('#cardForm').reportValidity())return;const f=new FormData($('#cardForm'));state.cards.push({id:uid(),name:f.get('name'),limit:+f.get('limit'),closingDay:+f.get('closingDay'),dueDay:+f.get('dueDay')});$('#cardDialog').close();save()}
 $('#addBudget').onclick=()=>{$('#budgetForm').reset();$('#budgetDialog').showModal()};$('#saveBudget').onclick=e=>{e.preventDefault();if(!$('#budgetForm').reportValidity())return;const f=new FormData($('#budgetForm'));state.budgets.push({id:uid(),category:f.get('category'),limit:+f.get('limit')});$('#budgetDialog').close();save()}
 $('#addRecurring').onclick=()=>{$('#recForm').reset();$('#recDialog').showModal()};$('#saveRec').onclick=e=>{e.preventDefault();if(!$('#recForm').reportValidity())return;const f=new FormData($('#recForm'));state.recurring.push({id:uid(),type:f.get('type'),amount:+f.get('amount'),description:f.get('description'),category:f.get('category'),day:+f.get('day')});$('#recDialog').close();save()}
 
 
+$('#txForm [name=type]').addEventListener('change',()=>{populateTxTaxonomy();$('#txDialogTitle').textContent=txIsIncome()?'Nova entrada':'Nova despesa'});
 $('#txCategory').addEventListener('change',updateTxSubcategories);$('#txSubcategory').addEventListener('change',()=>{const opts=CATS[$('#txCategory').value]||{};$('#txForm [name=expenseKind]').value=opts[$('#txSubcategory').value]||'Variável'});$('#uberMonthFilter').addEventListener('change',renderUber);
 $('#uberForm').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.currentTarget);const base={date:f.get('date'),trips:+f.get('trips')||0,minutesOnline:(+f.get('hours')||0)*60+(+f.get('minutes')||0),gross:+f.get('gross')||0,extra:+f.get('extra')||0,km:+f.get('km')||0,consumption:+f.get('consumption')||0,fuelPrice:+f.get('fuelPrice')||0,otherCosts:+f.get('otherCosts')||0,maintenancePct:+f.get('maintenancePct')||0,piggy:f.get('piggy')==='on'};Object.assign(base,uberCalc(base));
  if(editingUberId){
