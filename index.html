@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Meu Financeiro" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <title>Meu Financeiro V5</title>
+  <title>Meu Financeiro V5.4</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root{
@@ -37,7 +37,7 @@
     .auth-card h2{margin:0 0 6px;font-size:24px}.auth-card p{color:var(--muted);font-size:13px;line-height:1.5}.auth-card .field{margin-top:12px}
     .auth-msg{min-height:18px;margin-top:12px;font-size:13px}.cloud-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;margin-right:6px}.cloud-dot.ok{background:#10b981}.cloud-dot.sync{background:#f59e0b}.cloud-dot.err{background:#ef4444}
     .uber-kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}.uber-kpi{padding:16px}.uber-kpi .label{font-size:12px;color:var(--muted)}.uber-kpi .value{font-size:22px;font-weight:800;margin-top:6px}.checkline{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}.checkline input{width:17px;height:17px}.mobile-nav{display:none}.view{display:none}.view.active{display:block}.note{font-size:13px;color:var(--muted);line-height:1.5}.budget-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.budget-card{padding:16px}.budget-card .row{display:flex;justify-content:space-between;gap:10px}.progress{height:9px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:10px 0 5px}.progress>span{display:block;height:100%;background:#334155}
-    .mobile-quick-actions{display:none}
+    .mobile-quick-actions,.mobile-app-head,.mobile-balance-hero{display:none}
     @media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.budget-grid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:760px){
       :root{--radius:24px}
@@ -95,6 +95,19 @@
       .mobile-nav button.active{color:#1265f3;font-weight:800;background:transparent}
       .mobile-nav button:nth-child(3){width:58px;height:58px;margin:-24px auto 0;border-radius:50%;background:#1265f3;color:#fff;font-size:0;box-shadow:0 10px 24px rgba(18,101,243,.28)}
       .mobile-nav button:nth-child(3)::before{content:'+';font-size:30px;line-height:58px}
+      .mobile-app-head{display:flex;align-items:center;justify-content:space-between;margin:4px 4px 16px}
+      .mobile-app-head h1{margin:0;font-size:29px;letter-spacing:-.045em}
+      .mobile-app-head p{margin:4px 0 0;color:#7b8798;font-size:14px}
+      .mobile-avatar{width:48px;height:48px;border-radius:50%;background:#edf2ff;color:#17315c;display:grid;place-items:center;font-weight:800}
+      .mobile-balance-hero{display:block;background:linear-gradient(135deg,#12315d,#0d2445);color:#fff;border-radius:25px;padding:21px 20px;margin-bottom:14px;box-shadow:0 14px 30px rgba(17,49,93,.18)}
+      .mobile-balance-label{font-size:14px;color:#d9e5f5}
+      .mobile-balance-big{font-size:38px;line-height:1.05;font-weight:850;letter-spacing:-.05em;margin-top:9px}
+      .mobile-balance-note{font-size:12px;color:#8ce5b7;margin-top:10px}
+      #dashboard>.kpis{display:none}
+      #dashboard>.card.section{display:none}
+      .mobile-quick-actions{margin-top:0}
+      .quick-action span{width:52px;height:52px;font-size:28px}
+      .quick-action{padding:12px 4px 10px}
       .mobile-nav button:active{transform:scale(.96)}
       .view{animation:mobileViewIn .18s ease}
       .view:not(.active){display:none}
@@ -143,6 +156,15 @@
     </div>
 
     <section class="view active" id="dashboard">
+      <div class="mobile-app-head">
+        <div><h1>Olá, Icky! 👋</h1><p>Suas finanças, no seu ritmo.</p></div>
+        <div class="mobile-avatar">IM</div>
+      </div>
+      <div class="mobile-balance-hero">
+        <div class="mobile-balance-label">Saldo atual</div>
+        <div class="mobile-balance-big" id="mobileBalanceBig">R$ 0,00</div>
+        <div class="mobile-balance-note" id="mobileBalanceNote">Visão atualizada das suas finanças</div>
+      </div>
       <div class="grid kpis">
         <div class="card kpi"><div class="label">Saldo atual</div><div class="value" id="kpiBalance">R$ 0,00</div><div class="sub">Receitas menos despesas registradas</div></div>
         <div class="card kpi"><div class="label">Receitas realizadas</div><div class="value good" id="kpiIncome">R$ 0,00</div><div class="sub" id="kpiIncomeSub">Entradas até hoje</div></div>
@@ -479,7 +501,7 @@ function totals(){
  });
  return{income,expense,mi,me,balance:income-expense,net:mi-me,futureMonthIncome,futureMonthExpense,monthForecast:(mi+futureMonthIncome)-(me+futureMonthExpense)}
 }
-function renderDashboard(){const t=totals();$('#kpiBalance').textContent=fmt(t.balance);$('#kpiIncome').textContent=fmt(t.mi);$('#kpiExpense').textContent=fmt(t.me);$('#kpiNet').textContent=fmt(t.monthForecast);$('#kpiNet').className='value '+(t.monthForecast>=0?'good':'bad');$('#kpiIncomeSub').textContent=t.futureMonthIncome?`${fmt(t.futureMonthIncome)} ainda previsto neste mês`:'Entradas até hoje';$('#kpiExpenseSub').textContent=t.futureMonthExpense?`${fmt(t.futureMonthExpense)} ainda previsto neste mês`:'Saídas até hoje';
+function renderDashboard(){const t=totals();if($('#mobileBalanceBig'))$('#mobileBalanceBig').textContent=fmt(t.balance);if($('#mobileBalanceNote'))$('#mobileBalanceNote').textContent='Previsto no fim do mês: '+fmt(t.monthForecast);$('#kpiBalance').textContent=fmt(t.balance);$('#kpiIncome').textContent=fmt(t.mi);$('#kpiExpense').textContent=fmt(t.me);$('#kpiNet').textContent=fmt(t.monthForecast);$('#kpiNet').className='value '+(t.monthForecast>=0?'good':'bad');$('#kpiIncomeSub').textContent=t.futureMonthIncome?`${fmt(t.futureMonthIncome)} ainda previsto neste mês`:'Entradas até hoje';$('#kpiExpenseSub').textContent=t.futureMonthExpense?`${fmt(t.futureMonthExpense)} ainda previsto neste mês`:'Saídas até hoje';
  const recent=[...state.transactions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);$('#recentTx').innerHTML=recent.length?tableTx(recent,false):empty('Nenhuma transação ainda.');
  const cm=currentMonth(),cats={};state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===cm).forEach(x=>cats[x.category]=(cats[x.category]||0)+(+x.amount));const arr=Object.entries(cats).sort((a,b)=>b[1]-a[1]);const max=arr[0]?.[1]||1;$('#categoryBars').innerHTML=arr.length?arr.slice(0,6).map(([c,v])=>`<div class="bar-row"><span>${esc(c)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,v/max*100)}%"></div></div><strong>${fmt(v)}</strong></div>`).join(''):empty('Sem despesas neste mês.');
  $('#quickProjection').innerHTML=projectionData(6).map(m=>monthCard(m)).join('');}
