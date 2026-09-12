@@ -330,6 +330,7 @@ const IMPORTED_SEED={"transactions":[{"id":"import-tx-001","type":"expense","amo
 const SEED_VERSION='2026-09-12-v5';
 const SCHEMA_VERSION=5;
 let editingTxId=null;
+let editingUberId=null;
 
 const SUPABASE_URL='https://xdgxjvlyiiqxubmxsrir.supabase.co';
 const SUPABASE_KEY='sb_publishable_mv2g3vGhw9VSs5w3Ws-AyQ_cvQapvL1';
@@ -438,7 +439,27 @@ window.removeRec=id=>{state.recurring=state.recurring.filter(x=>x.id!==id);save(
 function populateTxTaxonomy(){const cat=$('#txCategory'),pay=$('#txPayment');if(!cat||!pay)return;cat.innerHTML=Object.keys(CATS).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');pay.innerHTML=PAYMENTS.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');updateTxSubcategories()}
 function updateTxSubcategories(){const cat=$('#txCategory'),sub=$('#txSubcategory'),kind=$('#txForm [name=expenseKind]');if(!cat||!sub)return;const opts=CATS[cat.value]||{};sub.innerHTML=Object.keys(opts).map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');if(kind&&sub.value)kind.value=opts[sub.value]||'Variável'}
 function uberCalc(u){const fuel=(u.km>0&&u.consumption>0)?(u.km/u.consumption)*u.fuelPrice:0;const maintenance=u.gross*(u.maintenancePct/100);const net=u.gross+u.extra-fuel-maintenance-u.otherCosts;return{fuel,maintenance,net}}
-function renderUber(){if(!$('#uberHistory'))return;const sel=$('#uberMonthFilter'),months=[...new Set(state.uber.map(u=>monthKey(u.date)))].sort().reverse(),prev=sel.value||currentMonth();sel.innerHTML=`<option value="${currentMonth()}">Mês atual</option>`+months.filter(m=>m!==currentMonth()).map(m=>`<option value="${m}">${new Date(m+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</option>`).join('')+'<option value="all">Todos</option>';sel.value=[currentMonth(),...months,'all'].includes(prev)?prev:currentMonth();const rows=sel.value==='all'?state.uber:state.uber.filter(u=>monthKey(u.date)===sel.value),sum=k=>rows.reduce((s,u)=>s+(+u[k]||0),0),gross=sum('gross')+sum('extra'),fuel=sum('fuel'),maint=sum('maintenance'),net=sum('net'),km=sum('km'),trips=sum('trips'),mins=sum('minutesOnline'),hours=mins/60;$('#uberGross').textContent=fmt(gross);$('#uberFuel').textContent=fmt(fuel);$('#uberMaintenance').textContent=fmt(maint);$('#uberNet').textContent=fmt(net);$('#uberPerformance').innerHTML=`<p class="note"><strong>${trips}</strong> viagens · <strong>${km.toFixed(1)} km</strong> · <strong>${hours.toFixed(1)} h</strong> online</p><p class="note">${fmt(km?gross/km:0)}/km bruto · ${fmt(hours?gross/hours:0)}/h bruto · ${fmt(hours?net/hours:0)}/h líquido · margem ${gross?((net/gross)*100).toFixed(1):'0.0'}%</p>`;const sorted=[...rows].sort((a,b)=>b.date.localeCompare(a.date));$('#uberHistory').innerHTML=sorted.length?`<div class="table-wrap"><table><thead><tr><th>Data</th><th>Viagens</th><th>Tempo</th><th>KM</th><th>Bruto</th><th>Combustível</th><th>Manutenção</th><th>Líquido</th><th></th></tr></thead><tbody>${sorted.map(u=>`<tr><td>${new Date(u.date+'T12:00:00').toLocaleDateString('pt-BR')}</td><td>${u.trips}</td><td>${Math.floor(u.minutesOnline/60)}h ${u.minutesOnline%60}m</td><td>${u.km.toFixed(1)}</td><td>${fmt(u.gross+u.extra)}</td><td>${fmt(u.fuel)}</td><td>${fmt(u.maintenance)}</td><td class="amount ${u.net>=0?'income':'expense'}">${fmt(u.net)}</td><td><button class="btn danger" onclick="removeUber('${u.id}')">Excluir</button></td></tr>`).join('')}</tbody></table></div>`:empty('Nenhuma corrida registrada neste período.')}
+function renderUber(){if(!$('#uberHistory'))return;const sel=$('#uberMonthFilter'),months=[...new Set(state.uber.map(u=>monthKey(u.date)))].sort().reverse(),prev=sel.value||currentMonth();sel.innerHTML=`<option value="${currentMonth()}">Mês atual</option>`+months.filter(m=>m!==currentMonth()).map(m=>`<option value="${m}">${new Date(m+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</option>`).join('')+'<option value="all">Todos</option>';sel.value=[currentMonth(),...months,'all'].includes(prev)?prev:currentMonth();const rows=sel.value==='all'?state.uber:state.uber.filter(u=>monthKey(u.date)===sel.value),sum=k=>rows.reduce((s,u)=>s+(+u[k]||0),0),gross=sum('gross')+sum('extra'),fuel=sum('fuel'),maint=sum('maintenance'),net=sum('net'),km=sum('km'),trips=sum('trips'),mins=sum('minutesOnline'),hours=mins/60;$('#uberGross').textContent=fmt(gross);$('#uberFuel').textContent=fmt(fuel);$('#uberMaintenance').textContent=fmt(maint);$('#uberNet').textContent=fmt(net);$('#uberPerformance').innerHTML=`<p class="note"><strong>${trips}</strong> viagens · <strong>${km.toFixed(1)} km</strong> · <strong>${hours.toFixed(1)} h</strong> online</p><p class="note">${fmt(km?gross/km:0)}/km bruto · ${fmt(hours?gross/hours:0)}/h bruto · ${fmt(hours?net/hours:0)}/h líquido · margem ${gross?((net/gross)*100).toFixed(1):'0.0'}%</p>`;const sorted=[...rows].sort((a,b)=>b.date.localeCompare(a.date));$('#uberHistory').innerHTML=sorted.length?`<div class="table-wrap"><table><thead><tr><th>Data</th><th>Viagens</th><th>Tempo</th><th>KM</th><th>Bruto</th><th>Combustível</th><th>Manutenção</th><th>Líquido</th><th></th></tr></thead><tbody>${sorted.map(u=>`<tr><td>${new Date(u.date+'T12:00:00').toLocaleDateString('pt-BR')}</td><td>${u.trips}</td><td>${Math.floor(u.minutesOnline/60)}h ${u.minutesOnline%60}m</td><td>${u.km.toFixed(1)}</td><td>${fmt(u.gross+u.extra)}</td><td>${fmt(u.fuel)}</td><td>${fmt(u.maintenance)}</td><td class="amount ${u.net>=0?'income':'expense'}">${fmt(u.net)}</td><td><div class="row-actions"><button class="btn" onclick="editUber('${u.id}')">Editar</button><button class="btn danger" onclick="removeUber('${u.id}')">Excluir</button></div></td></tr>`).join('')}</tbody></table></div>`:empty('Nenhuma corrida registrada neste período.')}
+window.editUber=id=>{
+ const u=state.uber.find(x=>x.id===id); if(!u)return;
+ editingUberId=id;
+ const f=$('#uberForm');
+ f.elements.date.value=u.date||today();
+ f.elements.trips.value=u.trips||0;
+ f.elements.hours.value=Math.floor((u.minutesOnline||0)/60);
+ f.elements.minutes.value=(u.minutesOnline||0)%60;
+ f.elements.gross.value=u.gross||0;
+ f.elements.extra.value=u.extra||0;
+ f.elements.km.value=u.km||0;
+ f.elements.consumption.value=u.consumption||0;
+ f.elements.fuelPrice.value=u.fuelPrice||0;
+ f.elements.otherCosts.value=u.otherCosts||0;
+ f.elements.maintenancePct.value=u.maintenancePct||0;
+ f.elements.piggy.checked=!!u.piggy;
+ f.elements.linkIncome.value=u.linkedTxId?'yes':'no';
+ const btn=f.querySelector('button[type="submit"]'); if(btn)btn.textContent='Salvar alterações';
+ f.scrollIntoView({behavior:'smooth',block:'start'});
+};
 window.removeUber=id=>{if(confirm('Excluir este registro do Uber?')){const u=state.uber.find(x=>x.id===id);if(u?.linkedTxId)state.transactions=state.transactions.filter(t=>t.id!==u.linkedTxId);state.uber=state.uber.filter(x=>x.id!==id);save()}}
 
 function renderAll(){renderDashboard();renderTransactions();renderCards();renderBudget();renderProjection();fillCardSelect();renderUber()}
@@ -457,7 +478,34 @@ $('#addRecurring').onclick=()=>{$('#recForm').reset();$('#recDialog').showModal(
 
 
 $('#txCategory').addEventListener('change',updateTxSubcategories);$('#txSubcategory').addEventListener('change',()=>{const opts=CATS[$('#txCategory').value]||{};$('#txForm [name=expenseKind]').value=opts[$('#txSubcategory').value]||'Variável'});$('#uberMonthFilter').addEventListener('change',renderUber);
-$('#uberForm').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.currentTarget);const u={id:uid(),date:f.get('date'),trips:+f.get('trips')||0,minutesOnline:(+f.get('hours')||0)*60+(+f.get('minutes')||0),gross:+f.get('gross')||0,extra:+f.get('extra')||0,km:+f.get('km')||0,consumption:+f.get('consumption')||0,fuelPrice:+f.get('fuelPrice')||0,otherCosts:+f.get('otherCosts')||0,maintenancePct:+f.get('maintenancePct')||0,piggy:f.get('piggy')==='on'};Object.assign(u,uberCalc(u));if(f.get('linkIncome')==='yes'){const txId=uid();u.linkedTxId=txId;state.transactions.push({id:txId,type:'income',amount:Math.max(0,u.net),description:'Uber — lucro líquido',category:'Renda extra',subcategory:'Uber',expenseKind:'Variável',date:u.date,account:'Uber',payment:'Pix',cardId:'',installments:1,tags:['Uber']})}state.uber.push(u);e.currentTarget.reset();e.currentTarget.date.value=today();e.currentTarget.maintenancePct.value=12;save();go('uber')});
+$('#uberForm').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.currentTarget);const base={date:f.get('date'),trips:+f.get('trips')||0,minutesOnline:(+f.get('hours')||0)*60+(+f.get('minutes')||0),gross:+f.get('gross')||0,extra:+f.get('extra')||0,km:+f.get('km')||0,consumption:+f.get('consumption')||0,fuelPrice:+f.get('fuelPrice')||0,otherCosts:+f.get('otherCosts')||0,maintenancePct:+f.get('maintenancePct')||0,piggy:f.get('piggy')==='on'};Object.assign(base,uberCalc(base));
+ if(editingUberId){
+   const i=state.uber.findIndex(x=>x.id===editingUberId);
+   if(i>=0){
+     const old=state.uber[i];
+     const wantsIncome=f.get('linkIncome')==='yes';
+     const updated={...old,...base};
+     if(wantsIncome){
+       if(old.linkedTxId){
+         const ti=state.transactions.findIndex(t=>t.id===old.linkedTxId);
+         if(ti>=0)state.transactions[ti]={...state.transactions[ti],amount:Math.max(0,updated.net),date:updated.date};
+       }else{
+         const txId=uid();updated.linkedTxId=txId;
+         state.transactions.push({id:txId,type:'income',amount:Math.max(0,updated.net),description:'Uber — lucro líquido',category:'Renda extra',subcategory:'Uber',expenseKind:'Variável',date:updated.date,account:'Uber',payment:'Pix',cardId:'',installments:1,tags:['Uber']});
+       }
+     }else if(old.linkedTxId){
+       state.transactions=state.transactions.filter(t=>t.id!==old.linkedTxId);
+       updated.linkedTxId=null;
+     }
+     state.uber[i]=updated;
+   }
+   editingUberId=null;
+ }else{
+   const u={id:uid(),...base};
+   if(f.get('linkIncome')==='yes'){const txId=uid();u.linkedTxId=txId;state.transactions.push({id:txId,type:'income',amount:Math.max(0,u.net),description:'Uber — lucro líquido',category:'Renda extra',subcategory:'Uber',expenseKind:'Variável',date:u.date,account:'Uber',payment:'Pix',cardId:'',installments:1,tags:['Uber']})}
+   state.uber.push(u);
+ }
+ e.currentTarget.reset();e.currentTarget.date.value=today();e.currentTarget.maintenancePct.value=12;const btn=e.currentTarget.querySelector('button[type="submit"]');if(btn)btn.textContent='Registrar dia';save();go('uber')});
 $('#exportUberCsv').onclick=()=>{const head=['Data','Viagens','Minutos online','Receita bruta','Extra','KM','Consumo km/L','Combustivel R$/L','Custo combustivel','Reserva manutencao','Outros custos','Liquido'];const rows=state.uber.map(u=>[u.date,u.trips,u.minutesOnline,u.gross,u.extra,u.km,u.consumption,u.fuelPrice,u.fuel,u.maintenance,u.otherCosts,u.net]);const csv='\ufeff'+[head,...rows].map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n');dl(`uber-${today()}.csv`,csv,'text/csv;charset=utf-8')};
 
 function dl(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
