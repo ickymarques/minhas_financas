@@ -44,7 +44,7 @@
       body{background:#f6f8fb}
       .app{display:block;min-height:100dvh;background:#f6f8fb}
       aside{display:none}
-      main{padding:88px 14px calc(104px + env(safe-area-inset-bottom));max-width:none}
+      main{padding:88px 14px calc(132px + env(safe-area-inset-bottom));max-width:none}
       .topbar{position:fixed;top:0;left:0;right:0;z-index:30;background:rgba(246,248,251,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:calc(12px + env(safe-area-inset-top)) 18px 12px;margin:0;align-items:center;border-bottom:0}
       .topbar h1{font-size:23px;letter-spacing:-.03em}
       .topbar p{display:none}
@@ -96,12 +96,102 @@
       .projection{scroll-snap-type:x mandatory;padding-bottom:6px}
       .month-card{scroll-snap-align:start;min-width:160px;border-radius:20px}
       .bar-row{grid-template-columns:92px 1fr 74px;gap:8px}
-      .mobile-nav{display:grid;grid-template-columns:1fr 1.15fr 1.05fr 1fr 1fr;position:fixed;bottom:10px;left:10px;right:10px;background:linear-gradient(135deg,rgba(255,255,255,.58),rgba(245,249,255,.34));backdrop-filter:blur(28px) saturate(170%);-webkit-backdrop-filter:blur(28px) saturate(170%);border:1px solid rgba(255,255,255,.74);z-index:40;padding:10px 10px calc(10px + env(safe-area-inset-bottom));box-shadow:0 14px 40px rgba(52,72,100,.18),inset 0 1px 0 rgba(255,255,255,.92);border-radius:30px;overflow:visible}
-      .mobile-nav button{position:relative;border:0;background:transparent;padding:8px 2px 6px;font-size:11px;line-height:1.1;color:#637089;border-radius:18px;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-weight:600}
-      .mobile-nav button .nav-icon{width:25px;height:25px;display:block;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-      .mobile-nav button.active{color:#1265f3;font-weight:800;background:linear-gradient(135deg,rgba(223,237,255,.72),rgba(255,255,255,.36));box-shadow:inset 0 0 0 1px rgba(255,255,255,.62),0 6px 18px rgba(18,101,243,.10)}
-      .mobile-nav button:nth-child(3){width:62px;height:62px;margin:-28px auto -4px;border-radius:50%;background:linear-gradient(145deg,#2580ff,#0e5ce6);color:#fff;font-size:0;box-shadow:0 10px 25px rgba(18,101,243,.34),inset 0 1px 0 rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.78)}
-      .mobile-nav button:nth-child(3)::before{content:'+';font-size:36px;font-weight:300;line-height:1}
+      .mobile-nav{
+        display:grid;
+        grid-template-columns:1fr 1.15fr 1fr 1fr 1fr;
+        position:fixed;
+        bottom:14px;
+        left:12px;
+        right:12px;
+        z-index:40;
+        min-height:88px;
+        padding:10px 10px calc(10px + env(safe-area-inset-bottom));
+        border-radius:34px;
+        border:1px solid rgba(255,255,255,.78);
+        background:
+          radial-gradient(circle at 12% 52%,rgba(110,174,255,.18),transparent 24%),
+          radial-gradient(circle at 72% 48%,rgba(187,155,255,.13),transparent 24%),
+          radial-gradient(circle at 90% 55%,rgba(112,229,188,.12),transparent 22%),
+          linear-gradient(135deg,rgba(255,255,255,.62),rgba(244,248,255,.38));
+        backdrop-filter:blur(30px) saturate(175%);
+        -webkit-backdrop-filter:blur(30px) saturate(175%);
+        box-shadow:
+          0 18px 44px rgba(42,59,82,.18),
+          inset 0 1px 0 rgba(255,255,255,.95),
+          inset 0 -1px 0 rgba(255,255,255,.32);
+        overflow:visible
+      }
+      .mobile-nav::after{
+        content:'';
+        position:absolute;
+        inset:1px;
+        border-radius:33px;
+        pointer-events:none;
+        box-shadow:inset 0 0 26px rgba(255,255,255,.22)
+      }
+      .mobile-nav button{
+        position:relative;
+        z-index:1;
+        border:0;
+        background:transparent;
+        color:#66748a;
+        min-width:0;
+        min-height:66px;
+        padding:8px 2px 7px;
+        border-radius:23px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:6px;
+        font-size:11px;
+        line-height:1;
+        font-weight:650;
+        transition:transform .16s ease,background .16s ease,color .16s ease,box-shadow .16s ease
+      }
+      .mobile-nav button .nav-icon{
+        width:27px;
+        height:27px;
+        display:block;
+        stroke:currentColor;
+        stroke-width:2;
+        fill:none;
+        stroke-linecap:round;
+        stroke-linejoin:round
+      }
+      .mobile-nav button.active{
+        color:#1265f3;
+        background:linear-gradient(135deg,rgba(221,236,255,.88),rgba(255,255,255,.42));
+        box-shadow:
+          inset 0 0 0 1px rgba(255,255,255,.78),
+          0 8px 22px rgba(18,101,243,.12)
+      }
+      .mobile-nav button:nth-child(3){
+        width:68px;
+        height:68px;
+        min-height:68px;
+        margin:-30px auto -2px;
+        padding:0;
+        border-radius:50%;
+        background:
+          radial-gradient(circle at 35% 28%,rgba(255,255,255,.28),transparent 25%),
+          linear-gradient(145deg,#2d85ff 0%,#1166f2 52%,#0a55d3 100%);
+        color:#fff;
+        box-shadow:
+          0 14px 30px rgba(18,101,243,.35),
+          0 0 0 1px rgba(255,255,255,.82),
+          inset 0 1px 0 rgba(255,255,255,.56);
+        font-size:0
+      }
+      .mobile-nav button:nth-child(3)::before{
+        content:'+';
+        font-size:40px;
+        font-weight:300;
+        line-height:1;
+        transform:translateY(-1px)
+      }
+      .mobile-nav button:active{transform:scale(.96)}
+      .mobile-nav button:nth-child(3):active{transform:scale(.94)}
       .mobile-app-head{display:flex;align-items:center;justify-content:space-between;margin:4px 4px 16px}
       .mobile-app-head h1{margin:0;font-size:29px;letter-spacing:-.045em}
       .mobile-app-head p{margin:4px 0 0;color:#7b8798;font-size:14px}
