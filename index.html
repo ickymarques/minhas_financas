@@ -11,6 +11,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <title>Meu Financeiro V5.6</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     :root{
       --bg:#f4f6f8;--surface:#fff;--surface2:#f8fafc;--text:#111827;--muted:#64748b;--line:#e5e7eb;
@@ -306,6 +307,14 @@
       .auth-overlay{align-items:flex-end;padding:12px}
       .auth-card{width:100%;max-width:none;margin-bottom:calc(6px + env(safe-area-inset-bottom))}
     }
+    .invoice-import{margin-top:16px}
+    .invoice-toolbar{display:grid;grid-template-columns:1fr 1.5fr auto;gap:10px;align-items:end}
+    .invoice-preview{display:grid;gap:10px;margin-top:14px}
+    .invoice-row{display:grid;grid-template-columns:34px 120px 1.6fr 140px 110px 120px;gap:8px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--surface2)}
+    .invoice-row.duplicate{opacity:.58}
+    .invoice-row input,.invoice-row select{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}
+    .invoice-summary{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:13px}
+    @media(max-width:760px){.invoice-toolbar{grid-template-columns:1fr}.invoice-row{grid-template-columns:30px 1fr 110px}.invoice-row .inv-date{grid-column:2}.invoice-row .inv-desc{grid-column:2/4}.invoice-row .inv-cat{grid-column:2}.invoice-row .inv-amount{grid-column:3}.invoice-row .inv-dup{grid-column:2/4}}
     .launch-sheet{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end}
     .launch-sheet[hidden]{display:none}
     .launch-backdrop{position:absolute;inset:0;border:0;background:rgba(15,23,42,.32);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
@@ -400,6 +409,18 @@
       <div class="grid two">
         <div class="card section"><div class="section-head"><h2>Cartões</h2><button class="btn primary" id="addCard">+ Cartão</button></div><div id="cardsList"></div></div>
         <div class="card section"><h2>Resumo das faturas</h2><div id="cardSummary"></div></div>
+      </div>
+      <div class="card section invoice-import">
+        <div class="section-head"><div><h2>Importar fatura em PDF</h2><p class="note" style="margin:5px 0 0">O PDF é lido localmente no navegador. Revise tudo antes de importar.</p></div></div>
+        <div class="invoice-toolbar">
+          <div class="field"><label>Cartão</label><select id="invoiceCard"></select></div>
+          <div class="field"><label>Arquivo PDF</label><input id="invoicePdf" type="file" accept="application/pdf"></div>
+          <button class="btn primary" id="analyzeInvoice">Analisar fatura</button>
+        </div>
+        <div id="invoiceStatus" class="note" style="margin-top:10px"></div>
+        <div id="invoicePreview" class="invoice-preview"></div>
+        <div id="invoiceSummary" class="invoice-summary"></div>
+        <div class="actions" id="invoiceActions" style="margin-top:14px;display:none"><button class="btn" id="clearInvoice">Cancelar</button><button class="btn primary" id="importInvoice">Importar selecionados</button></div>
       </div>
     </section>
 
@@ -932,6 +953,7 @@ populateTxTaxonomy();$('#uberForm [name=date]').value=today();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 renderAll();initCloud();
 </script>
+<script src="./invoice-import.js"></script>
 <!-- integration-write-check-20260913b -->
 <!-- integration-write-check-20260913d -->
 </body>
