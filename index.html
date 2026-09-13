@@ -96,11 +96,12 @@
       .projection{scroll-snap-type:x mandatory;padding-bottom:6px}
       .month-card{scroll-snap-align:start;min-width:160px;border-radius:20px}
       .bar-row{grid-template-columns:92px 1fr 74px;gap:8px}
-      .mobile-nav{display:grid;grid-template-columns:1fr 1fr 1.15fr 1fr 1fr;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(15,23,42,.06);z-index:40;padding:9px 14px calc(9px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(15,23,42,.06)}
-      .mobile-nav button{position:relative;border:0;background:transparent;padding:9px 2px 6px;font-size:10px;line-height:1.15;color:#718096;border-radius:16px;min-width:0}
-      .mobile-nav button.active{color:#1265f3;font-weight:800;background:transparent}
-      .mobile-nav button:nth-child(3){width:58px;height:58px;margin:-24px auto 0;border-radius:50%;background:#1265f3;color:#fff;font-size:0;box-shadow:0 10px 24px rgba(18,101,243,.28)}
-      .mobile-nav button:nth-child(3)::before{content:'+';font-size:30px;line-height:58px}
+      .mobile-nav{display:grid;grid-template-columns:1fr 1.15fr 1.05fr 1fr 1fr;position:fixed;bottom:10px;left:10px;right:10px;background:linear-gradient(135deg,rgba(255,255,255,.58),rgba(245,249,255,.34));backdrop-filter:blur(28px) saturate(170%);-webkit-backdrop-filter:blur(28px) saturate(170%);border:1px solid rgba(255,255,255,.74);z-index:40;padding:10px 10px calc(10px + env(safe-area-inset-bottom));box-shadow:0 14px 40px rgba(52,72,100,.18),inset 0 1px 0 rgba(255,255,255,.92);border-radius:30px;overflow:visible}
+      .mobile-nav button{position:relative;border:0;background:transparent;padding:8px 2px 6px;font-size:11px;line-height:1.1;color:#637089;border-radius:18px;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-weight:600}
+      .mobile-nav button .nav-icon{width:25px;height:25px;display:block;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+      .mobile-nav button.active{color:#1265f3;font-weight:800;background:linear-gradient(135deg,rgba(223,237,255,.72),rgba(255,255,255,.36));box-shadow:inset 0 0 0 1px rgba(255,255,255,.62),0 6px 18px rgba(18,101,243,.10)}
+      .mobile-nav button:nth-child(3){width:62px;height:62px;margin:-28px auto -4px;border-radius:50%;background:linear-gradient(145deg,#2580ff,#0e5ce6);color:#fff;font-size:0;box-shadow:0 10px 25px rgba(18,101,243,.34),inset 0 1px 0 rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.78)}
+      .mobile-nav button:nth-child(3)::before{content:'+';font-size:36px;font-weight:300;line-height:1}
       .mobile-app-head{display:flex;align-items:center;justify-content:space-between;margin:4px 4px 16px}
       .mobile-app-head h1{margin:0;font-size:29px;letter-spacing:-.045em}
       .mobile-app-head p{margin:4px 0 0;color:#7b8798;font-size:14px}
