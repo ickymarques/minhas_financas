@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Meu Financeiro" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <title>Meu Financeiro V5.4</title>
+  <title>Meu Financeiro V5.6</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root{
@@ -158,9 +158,10 @@
       .kpi .sub{font-size:11px;line-height:1.35}
       .mobile-quick-actions{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:0 0 14px}
       .quick-action{border:0;border-radius:20px;padding:12px 4px;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.05);display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;color:#0f172a}
-      .quick-action span{width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:800}
+      .quick-action .qa-icon{width:50px;height:50px;border-radius:17px;display:flex;align-items:center;justify-content:center}
+      .quick-action .qa-icon svg{width:28px;height:28px;stroke:currentColor;stroke-width:2.15;fill:none;stroke-linecap:round;stroke-linejoin:round}
       .quick-action strong{font-size:10px;white-space:nowrap}
-      .qa-income span{background:#e7f8ef;color:#07824f}.qa-expense span{background:#fdecef;color:#c82034}.qa-cards span{background:#eaf2ff;color:#2563eb}.qa-uber span{background:#fff2df;color:#ea7a08}.qa-plan span{background:#f0eaff;color:#7c3aed}
+      .qa-income .qa-icon{background:#e7f8ef;color:#07824f}.qa-expense .qa-icon{background:#fdecef;color:#d61e35}.qa-cards .qa-icon{background:#eaf2ff;color:#2563eb}.qa-uber .qa-icon{background:#fff2df;color:#e88a0b}.qa-plan .qa-icon{background:#f0eaff;color:#7c3aed}
       .section{padding:16px;margin-bottom:12px}
       .section h2{font-size:17px;letter-spacing:-.02em}
       .section-head{margin-bottom:10px}
@@ -253,16 +254,16 @@
       }
       .mobile-nav button.active{
         color:#1265f3;
-        background:linear-gradient(135deg,rgba(221,236,255,.88),rgba(255,255,255,.42));
+        background:rgba(221,236,255,.34);
         box-shadow:
           inset 0 0 0 1px rgba(255,255,255,.78),
           0 8px 22px rgba(18,101,243,.12)
       }
       .mobile-nav button:nth-child(3){
-        width:68px;
-        height:68px;
-        min-height:68px;
-        margin:-30px auto -2px;
+        width:60px;
+        height:60px;
+        min-height:60px;
+        margin:-22px auto -2px;
         padding:0;
         border-radius:50%;
         background:
@@ -277,7 +278,7 @@
       }
       .mobile-nav button:nth-child(3)::before{
         content:'+';
-        font-size:40px;
+        font-size:35px;
         font-weight:300;
         line-height:1;
         transform:translateY(-1px)
@@ -295,7 +296,7 @@
       #dashboard>.kpis{display:none}
       #dashboard>.card.section{display:none}
       .mobile-quick-actions{margin-top:0}
-      .quick-action span{width:52px;height:52px;font-size:28px}
+      .quick-action .qa-icon{width:52px;height:52px}
       .quick-action{padding:12px 4px 10px}
       .mobile-nav button:active{transform:scale(.96)}
       .view{animation:mobileViewIn .18s ease}
@@ -372,11 +373,11 @@
       </div>
 
       <div class="mobile-quick-actions">
-        <button class="quick-action qa-income" id="qaIncome"><span>↗</span><strong>Receita</strong></button>
-        <button class="quick-action qa-expense" id="qaExpense"><span>↘</span><strong>Despesa</strong></button>
-        <button class="quick-action qa-cards" data-go="cards"><span>▣</span><strong>Cartões</strong></button>
-        <button class="quick-action qa-uber" data-go="uber"><span>🚗</span><strong>Uber</strong></button>
-        <button class="quick-action qa-plan" data-go="projection"><span>↗</span><strong>Projeção</strong></button>
+        <button class="quick-action qa-income" id="qaIncome"><span class="qa-icon"><svg viewBox="0 0 24 24"><path d="M5 19 19 5"/><path d="M10 5h9v9"/></svg></span><strong>Receita</strong></button>
+        <button class="quick-action qa-expense" id="qaExpense"><span class="qa-icon"><svg viewBox="0 0 24 24"><path d="m5 5 14 14"/><path d="M10 19h9v-9"/></svg></span><strong>Despesa</strong></button>
+        <button class="quick-action qa-cards" data-go="cards"><span class="qa-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg></span><strong>Cartões</strong></button>
+        <button class="quick-action qa-uber" data-go="uber"><span class="qa-icon"><svg viewBox="0 0 24 24"><path d="M5 17h14"/><path d="M6 17l1-5h10l1 5"/><path d="M8 12l1-3h6l1 3"/><circle cx="7" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></svg></span><strong>Uber</strong></button>
+        <button class="quick-action qa-plan" data-go="projection"><span class="qa-icon"><svg viewBox="0 0 24 24"><path d="m5 17 5-5 4 3 5-7"/><path d="M14 8h5v5"/></svg></span><strong>Projeção</strong></button>
       </div>
 
       <div class="grid two">
