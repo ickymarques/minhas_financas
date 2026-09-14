@@ -101,7 +101,7 @@
     var box=el('invoicePreview'), sum=el('invoiceSummary'), actions=el('invoiceActions'); if(!box) return;
     if(!draft.length){ box.innerHTML=''; sum.innerHTML=''; actions.style.display='none'; return; }
     var cats=Object.keys(CATS);
-    box.innerHTML='<div class="invoice-columns"><span>Importar</span><span>Data</span><span>Descrição da compra</span><span>Categoria</span><span>Subcategoria</span><span>Valor</span><span>Status</span></div>'+draft.map(function(r,i){
+    box.innerHTML='<div class="invoice-columns"><span>Importar</span><span>Data</span><span>Descrição da compra</span><span>Parcela</span><span>Categoria</span><span>Subcategoria</span><span>Valor</span><span>Status</span></div>'+draft.map(function(r,i){
       var subs=Object.keys(CATS[r.category]||{});
       var statusText=r.duplicateStatus==='manual'?'JÁ FOI LANÇADO MANUALMENTE':(r.duplicateStatus==='imported'?'JÁ FOI IMPORTADO DA FATURA':'OK');
       return '<div class="invoice-row '+(r.duplicateStatus?'duplicate':'')+'" data-i="'+i+'">'+
