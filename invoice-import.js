@@ -21,13 +21,18 @@
     select.innerHTML=state.cards.map(function(c){ return '<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>'; }).join('');
     if(state.cards.some(function(c){return c.id===current;})) select.value=current;
   }
-  function isDuplicate(row,cardId){
-    var nd=normalize(row.description);
-    return state.transactions.some(function(t){
-      return t.type==='expense' && t.cardId===cardId && t.date===row.date &&
-        Math.abs((+t.amount)-(+row.amount))<0.01 &&
-        (normalize(t.description)===nd || !nd);
+  function duplicateStatus(row,cardId){
+    var nd=normalize(row.description), found=null;
+    state.transactions.some(function(t){
+      if(t.type!=='expense' || t.date!==row.date || Math.abs((+t.amount)-(+row.amount))>=0.01) return false;
+      var td=normalize(t.description);
+      var sameDesc=!nd||!td||td===nd||td.indexOf(nd)>=0||nd.indexOf(td)>=0;
+      var sameCard=!t.cardId||!cardId||t.cardId===cardId;
+      if(sameDesc&&sameCard){found=t;return true}
+      return false;
     });
+    if(!found)return '';
+    return (found.tags||[]).includes('Importado da fatura')?'imported':'manual';
   }
   async function extractLines(file){
     if(!window.pdfjsLib) throw new Error('Leitor de PDF não carregou. Reabra o app conectado à internet.');
@@ -60,7 +65,9 @@
       var date=yy+'-'+String(Number(dm[2])).padStart(2,'0')+'-'+String(Number(dm[1])).padStart(2,'0');
       var description=line.replace(dm[0],'').replace(last[0],'').replace(/\s{2,}/g,' ').replace(/^[-–—•]+|[-–—•]+$/g,'').trim();
       if(description.length<2) return;
-      out.push({date:date,description:description,amount:amount,category:guessCategory(description),selected:true,duplicate:false});
+      var category=guessCategory(description);
+      var subcategory=Object.keys(CATS[category]||{})[0]||'';
+      out.push({date:date,description:description,amount:amount,category:category,subcategory:subcategory,selected:true,duplicateStatus:''});
     });
     var seen={};
     return out.filter(function(r){ var k=r.date+'|'+normalize(r.description)+'|'+r.amount; if(seen[k]) return false; seen[k]=1; return true; });
@@ -70,28 +77,42 @@
     if(!draft.length){ box.innerHTML=''; sum.innerHTML=''; actions.style.display='none'; return; }
     var cats=Object.keys(CATS);
     box.innerHTML=draft.map(function(r,i){
-      return '<div class="invoice-row '+(r.duplicate?'duplicate':'')+'" data-i="'+i+'">'+
+      var subs=Object.keys(CATS[r.category]||{});
+      var statusText=r.duplicateStatus==='manual'?'JÁ FOI LANÇADO MANUALMENTE':(r.duplicateStatus==='imported'?'JÁ FOI IMPORTADO DA FATURA':'OK');
+      return '<div class="invoice-row '+(r.duplicateStatus?'duplicate':'')+'" data-i="'+i+'">'+
         '<input class="inv-use" type="checkbox" '+(r.selected?'checked':'')+'>'+
         '<input class="inv-date" type="date" value="'+escHtml(r.date)+'">'+
         '<input class="inv-desc" value="'+escHtml(r.description)+'">'+
         '<select class="inv-cat">'+cats.map(function(c){return '<option value="'+escHtml(c)+'" '+(c===r.category?'selected':'')+'>'+escHtml(c)+'</option>';}).join('')+'</select>'+
+        '<select class="inv-sub">'+subs.map(function(sub){return '<option value="'+escHtml(sub)+'" '+(sub===r.subcategory?'selected':'')+'>'+escHtml(sub)+'</option>';}).join('')+'</select>'+
         '<input class="inv-amount" type="number" min="0.01" step="0.01" value="'+Number(r.amount).toFixed(2)+'">'+
-        '<div class="inv-dup note">'+(r.duplicate?'Possível duplicado':'OK')+'</div></div>';
+        '<div class="inv-dup note">'+statusText+'</div></div>';
     }).join('');
     Array.from(box.querySelectorAll('.invoice-row')).forEach(function(row){
       var i=Number(row.dataset.i);
       row.querySelector('.inv-use').onchange=function(e){draft[i].selected=e.target.checked; updateSummary();};
       row.querySelector('.inv-date').onchange=function(e){draft[i].date=e.target.value;};
       row.querySelector('.inv-desc').oninput=function(e){draft[i].description=e.target.value;};
-      row.querySelector('.inv-cat').onchange=function(e){draft[i].category=e.target.value;};
+      row.querySelector('.inv-cat').onchange=function(e){
+        draft[i].category=e.target.value;
+        var subs=Object.keys(CATS[draft[i].category]||{});
+        draft[i].subcategory=subs[0]||'';
+        var subSel=row.querySelector('.inv-sub');
+        subSel.innerHTML=subs.map(function(sub){return '<option value="'+escHtml(sub)+'">'+escHtml(sub)+'</option>';}).join('');
+        subSel.value=draft[i].subcategory;
+      };
+      row.querySelector('.inv-sub').onchange=function(e){draft[i].subcategory=e.target.value;};
       row.querySelector('.inv-amount').oninput=function(e){draft[i].amount=Number(e.target.value)||0; updateSummary();};
     });
     actions.style.display='flex'; updateSummary();
   }
   function updateSummary(){
     var sum=el('invoiceSummary'); if(!sum) return;
-    var chosen=draft.filter(function(x){return x.selected;}), total=chosen.reduce(function(a,b){return a+(+b.amount||0);},0), dups=draft.filter(function(x){return x.duplicate;}).length;
-    sum.innerHTML='<span><strong>'+draft.length+'</strong> encontrados · <strong>'+chosen.length+'</strong> selecionados</span><span>Total: <strong>'+fmt(total)+'</strong>'+(dups?' · '+dups+' possível(is) duplicado(s)':'')+'</span>';
+    var chosen=draft.filter(function(x){return x.selected;}),total=chosen.reduce(function(a,b){return a+(+b.amount||0);},0);
+    var manual=draft.filter(function(x){return x.duplicateStatus==='manual';}).length;
+    var imported=draft.filter(function(x){return x.duplicateStatus==='imported';}).length;
+    var warn=(manual?' · '+manual+' já lançado(s) manualmente':'')+(imported?' · '+imported+' já importado(s)':'');
+    sum.innerHTML='<span><strong>'+draft.length+'</strong> encontrados · <strong>'+chosen.length+'</strong> selecionados</span><span>Total: <strong>'+fmt(total)+'</strong>'+warn+'</span>';
   }
   function init(){
     var analyze=el('analyzeInvoice'); if(!analyze) return;
@@ -105,7 +126,7 @@
       status.textContent='Lendo e analisando a fatura…';
       try{
         var lines=await extractLines(file); draft=parseLines(lines);
-        draft.forEach(function(r){r.duplicate=isDuplicate(r,cardId); if(r.duplicate) r.selected=false;});
+        draft.forEach(function(r){r.duplicateStatus=duplicateStatus(r,cardId);if(r.duplicateStatus)r.selected=false;});
         status.textContent=draft.length?'Confira os lançamentos abaixo antes de importar.':'Não encontrei compras automaticamente. Esse layout pode precisar de um interpretador específico.';
         render();
       }catch(e){console.error(e);status.textContent='Não foi possível ler a fatura: '+e.message;}
@@ -115,7 +136,10 @@
       var cardId=el('invoiceCard').value, card=state.cards.find(function(c){return c.id===cardId;});
       var rows=draft.filter(function(r){return r.selected&&r.amount>0&&r.date&&r.description.trim();});
       if(!rows.length){alert('Nenhum lançamento selecionado.');return;}
-      rows.forEach(function(r){state.transactions.push({id:uid(),type:'expense',amount:+r.amount,description:r.description.trim(),category:r.category,subcategory:'',expenseKind:'Variável',date:r.date,account:card?card.name:'Cartão',payment:(card?card.name:'Cartão')+' - Crédito',cardId:cardId,installments:1,tags:['Importado da fatura']});});
+      rows.forEach(function(r){
+        var kind=(CATS[r.category]||{})[r.subcategory]||'Variável';
+        state.transactions.push({id:uid(),type:'expense',amount:+r.amount,description:r.description.trim(),category:r.category,subcategory:r.subcategory||'',expenseKind:kind,date:r.date,account:card?card.name:'Cartão',payment:(card?card.name:'Cartão')+' - Crédito',cardId:cardId,installments:1,tags:['Importado da fatura']});
+      });
       draft=[];el('invoicePdf').value='';el('invoiceStatus').textContent=rows.length+' lançamento(s) importado(s) com sucesso.';render();save();go('cards');
     };
   }
