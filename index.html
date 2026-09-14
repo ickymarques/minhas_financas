@@ -999,7 +999,7 @@ $('#authSubmit').onclick=async()=>{
      const {data,error}=await cloud.auth.signInWithPassword({email,password});if(error){showAuth(true,'Não foi possível entrar: '+error.message);return}
      if(data?.session)await enterSession(data.session);else showAuth(true,'Não foi possível iniciar a sessão. Tente novamente.');
    }else{
-     const {data,error}=await cloud.auth.signUp({email,password,options:{data:{display_name:name}}});if(error){showAuth(true,'Não foi possível criar a conta: '+error.message);return}
+     const {data,error}=await cloud.auth.signUp({email,password,options:{data:{display_name:name},emailRedirectTo:'https://ickymarques.github.io/minhas_financas/'}});if(error){showAuth(true,'Não foi possível criar a conta: '+error.message);return}
      if(data?.session){if(msg)msg.className='auth-msg success';await enterSession(data.session)}
      else{if(msg)msg.className='auth-msg success';showAuth(true,'Conta criada. Confira seu e-mail para confirmar o cadastro e depois volte para entrar.')}
    }
