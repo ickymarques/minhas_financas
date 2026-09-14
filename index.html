@@ -310,11 +310,12 @@
     .invoice-import{margin-top:16px}
     .invoice-toolbar{display:grid;grid-template-columns:1fr 1.5fr auto;gap:10px;align-items:end}
     .invoice-preview{display:grid;gap:10px;margin-top:14px}
-    .invoice-row{display:grid;grid-template-columns:34px 120px 1.6fr 140px 110px 120px;gap:8px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--surface2)}
+    .invoice-row{display:grid;grid-template-columns:34px 120px 1.5fr 130px 180px 110px 190px;gap:8px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--surface2)}
+    .invoice-row.duplicate .inv-dup{font-weight:900;color:#b42318;background:#fff0ed;border:1px solid #ffd1c7;border-radius:10px;padding:8px}
     .invoice-row.duplicate{opacity:.58}
     .invoice-row input,.invoice-row select{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}
     .invoice-summary{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:13px}
-    @media(max-width:760px){.invoice-toolbar{grid-template-columns:1fr}.invoice-row{grid-template-columns:30px 1fr 110px}.invoice-row .inv-date{grid-column:2}.invoice-row .inv-desc{grid-column:2/4}.invoice-row .inv-cat{grid-column:2}.invoice-row .inv-amount{grid-column:3}.invoice-row .inv-dup{grid-column:2/4}}
+    @media(max-width:760px){.invoice-toolbar{grid-template-columns:1fr}.invoice-row{grid-template-columns:30px 1fr 110px}.invoice-row .inv-date{grid-column:2}.invoice-row .inv-desc{grid-column:2/4}.invoice-row .inv-cat{grid-column:2}.invoice-row .inv-sub{grid-column:3}.invoice-row .inv-amount{grid-column:2}.invoice-row .inv-dup{grid-column:2/4}}
     .launch-sheet{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end}
     .launch-sheet[hidden]{display:none}
     .launch-backdrop{position:absolute;inset:0;border:0;background:rgba(15,23,42,.32);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
