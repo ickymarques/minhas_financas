@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Meu Financeiro" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <title>Meu Financeiro V5.6</title>
+  <title>Meu Financeiro V5.8</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
@@ -33,10 +33,20 @@
     .projection{display:flex;gap:12px;overflow:auto;padding-bottom:4px}.month-card{min-width:150px;background:var(--surface2);border:1px solid var(--line);padding:14px;border-radius:14px}.month-card strong{display:block;font-size:12px;color:var(--muted);text-transform:uppercase}.month-card .balance{font-size:18px;font-weight:800;margin-top:6px}
     .filters{display:flex;gap:8px;flex-wrap:wrap}.filters input,.filters select{border:1px solid var(--line);padding:10px 12px;border-radius:11px;background:#fff}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:6px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field input,.field select{border:1px solid var(--line);padding:11px 12px;border-radius:10px;background:#fff;width:100%}.full{grid-column:1/-1}
     dialog{border:0;border-radius:20px;padding:0;max-width:620px;width:calc(100% - 28px);box-shadow:0 30px 80px rgba(15,23,42,.3)}dialog::backdrop{background:rgba(15,23,42,.45)}.modal{padding:22px}.modal h3{margin:0 0 18px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.pill{font-size:12px;padding:5px 8px;border-radius:999px;background:#e2e8f0;color:#334155;font-weight:700}.good{color:var(--good)}.bad{color:var(--bad)}.planned{color:var(--warn);font-weight:700}.row-actions{display:flex;gap:6px;justify-content:flex-end}
-    .auth-overlay{position:fixed;inset:0;background:rgba(15,23,42,.82);backdrop-filter:blur(8px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
-    .auth-overlay[hidden]{display:none}.auth-card{width:min(430px,100%);background:#fff;border-radius:22px;padding:24px;box-shadow:0 30px 90px rgba(0,0,0,.35)}
-    .auth-card h2{margin:0 0 6px;font-size:24px}.auth-card p{color:var(--muted);font-size:13px;line-height:1.5}.auth-card .field{margin-top:12px}
-    .auth-msg{min-height:18px;margin-top:12px;font-size:13px}.cloud-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;margin-right:6px}.cloud-dot.ok{background:#10b981}.cloud-dot.sync{background:#f59e0b}.cloud-dot.err{background:#ef4444}
+    .auth-overlay{position:fixed;inset:0;background:linear-gradient(145deg,#edf3fb,#f8fafc 46%,#e8eef7);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px}
+    .auth-overlay[hidden]{display:none}
+    .auth-shell{width:min(920px,100%);min-height:560px;display:grid;grid-template-columns:.9fr 1.1fr;background:rgba(255,255,255,.76);border:1px solid rgba(255,255,255,.9);border-radius:32px;overflow:hidden;box-shadow:0 35px 100px rgba(30,55,90,.18);backdrop-filter:blur(22px)}
+    .auth-brand-panel{position:relative;overflow:hidden;background:linear-gradient(150deg,#10294d,#173d6b);color:#fff;padding:44px;display:flex;flex-direction:column;justify-content:space-between}
+    .auth-brand-panel::after{content:'';position:absolute;width:420px;height:420px;border-radius:50%;border:72px solid rgba(66,139,225,.14);right:-220px;top:-120px}
+    .auth-logo{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:850;position:relative;z-index:1}.auth-logo-mark{width:44px;height:44px;border-radius:15px;background:linear-gradient(145deg,#3286ff,#1265f3);display:grid;place-items:center;font-size:24px;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+    .auth-brand-copy{position:relative;z-index:1}.auth-brand-copy h1{font-size:38px;line-height:1.08;letter-spacing:-.04em;margin:0 0 16px}.auth-brand-copy p{font-size:15px;line-height:1.65;color:#c9d8eb;max-width:330px}.auth-benefits{display:grid;gap:10px;margin-top:24px;font-size:13px;color:#e0eaf7}.auth-benefits span{display:flex;align-items:center;gap:9px}
+    .auth-card{background:transparent;padding:48px 52px;display:flex;flex-direction:column;justify-content:center;box-shadow:none}
+    .auth-card h2{margin:0 0 7px;font-size:28px;letter-spacing:-.03em}.auth-card>p{color:var(--muted);font-size:14px;line-height:1.5;margin:0 0 22px}.auth-card .field{margin-top:13px}.auth-card .field input{min-height:50px;border-radius:14px;font-size:16px}
+    .auth-tabs{display:grid;grid-template-columns:1fr 1fr;background:#edf2f8;padding:4px;border-radius:14px;margin-bottom:20px}.auth-tab{border:0;background:transparent;padding:10px;border-radius:11px;color:#69788d;font-weight:750;cursor:pointer}.auth-tab.active{background:#fff;color:#1265f3;box-shadow:0 4px 14px rgba(30,55,90,.08)}
+    .auth-submit{width:100%;margin-top:18px;min-height:50px;border-radius:14px;font-size:15px}.auth-local{border:0;background:transparent;color:#718096;margin:12px auto 0;cursor:pointer;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+    .auth-msg{min-height:20px;margin-top:12px;font-size:13px;line-height:1.45;color:#b42318}.auth-msg.success{color:#087a4f}
+    .auth-privacy{font-size:11px!important;color:#94a3b8!important;text-align:center;margin:14px 0 0!important}
+    @media(max-width:760px){.auth-overlay{padding:0;align-items:stretch}.auth-shell{display:block;min-height:100dvh;border-radius:0;border:0}.auth-brand-panel{min-height:205px;padding:calc(28px + env(safe-area-inset-top)) 24px 24px}.auth-brand-copy h1{font-size:29px;margin-bottom:8px}.auth-brand-copy p{margin:0;font-size:13px}.auth-benefits{display:none}.auth-card{padding:28px 22px calc(28px + env(safe-area-inset-bottom))}.auth-logo{font-size:18px}.auth-logo-mark{width:38px;height:38px}.auth-brand-copy{margin-top:24px}}.cloud-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;margin-right:6px}.cloud-dot.ok{background:#10b981}.cloud-dot.sync{background:#f59e0b}.cloud-dot.err{background:#ef4444}
     .uber-kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}.uber-kpi{padding:16px}.uber-kpi .label{font-size:12px;color:var(--muted)}.uber-kpi .value{font-size:22px;font-weight:800;margin-top:6px}.checkline{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}.checkline input{width:17px;height:17px}.mobile-nav{
         display:grid;
         grid-template-columns:1fr 1.12fr .92fr 1fr 1fr;
@@ -331,17 +341,27 @@
 </head>
 <body>
 <div class="auth-overlay" id="authOverlay" hidden>
-  <div class="auth-card">
-    <h2>☁️ Sincronizar Minhas Finanças</h2>
-    <p>Entre com a mesma conta no celular e no PC para manter seus lançamentos sincronizados.</p>
-    <div class="field"><label>E-mail</label><input id="authEmail" type="email" autocomplete="email" placeholder="seu@email.com"></div>
-    <div class="field"><label>Senha</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="mínimo 6 caracteres"></div>
-    <div class="actions" style="margin-top:16px">
-      <button class="btn primary" id="authLogin">Entrar</button>
-      <button class="btn" id="authSignup">Criar conta</button>
-      <button class="btn" id="authLocal">Usar só neste aparelho</button>
-    </div>
-    <div class="auth-msg" id="authMsg"></div>
+  <div class="auth-shell">
+    <section class="auth-brand-panel">
+      <div class="auth-logo"><span class="auth-logo-mark">₿</span><span>Meu Financeiro</span></div>
+      <div class="auth-brand-copy">
+        <h1>Suas finanças.<br>Do seu jeito.</h1>
+        <p>Organize entradas, despesas, cartões, projeções e ganhos com Uber em um só lugar.</p>
+        <div class="auth-benefits"><span>✓ Dados separados por usuário</span><span>✓ Sincronização entre celular e computador</span><span>✓ Controle e projeções em tempo real</span></div>
+      </div>
+    </section>
+    <section class="auth-card">
+      <div class="auth-tabs"><button class="auth-tab active" id="authTabLogin" type="button">Entrar</button><button class="auth-tab" id="authTabSignup" type="button">Criar conta</button></div>
+      <h2 id="authTitle">Bem-vindo de volta</h2>
+      <p id="authSubtitle">Entre para acessar suas finanças sincronizadas.</p>
+      <div class="field" id="authNameField" hidden><label>Seu nome</label><input id="authName" type="text" autocomplete="name" maxlength="60" placeholder="Como podemos te chamar?"></div>
+      <div class="field"><label>E-mail</label><input id="authEmail" type="email" autocomplete="email" placeholder="seu@email.com"></div>
+      <div class="field"><label>Senha</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="Mínimo de 6 caracteres"></div>
+      <button class="btn primary auth-submit" id="authSubmit" type="button">Entrar</button>
+      <button class="auth-local" id="authLocal" type="button">Continuar somente neste aparelho</button>
+      <div class="auth-msg" id="authMsg"></div>
+      <p class="auth-privacy">Cada conta possui seus próprios dados financeiros.</p>
+    </section>
   </div>
 </div>
 <div class="app">
@@ -367,8 +387,8 @@
 
     <section class="view active" id="dashboard">
       <div class="mobile-app-head">
-        <div><h1>Olá, Icky! 👋</h1><p>Suas finanças, no seu ritmo.</p></div>
-        <div class="mobile-avatar">IM</div>
+        <div><h1 id="mobileGreeting">Olá! 👋</h1><p>Suas finanças, no seu ritmo.</p></div>
+        <div class="mobile-avatar" id="mobileAvatar">MF</div>
       </div>
       <div class="mobile-balance-hero">
         <div class="mobile-balance-label">Saldo atual</div>
@@ -701,29 +721,53 @@ const SUPABASE_URL='https://xdgxjvlyiiqxubmxsrir.supabase.co';
 const SUPABASE_KEY='sb_publishable_mv2g3vGhw9VSs5w3Ws-AyQ_cvQapvL1';
 const cloud=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let cloudUser=null,cloudSaveTimer=null,cloudBusy=false,localOnly=false;
-let storedState=null;
-try{storedState=JSON.parse(localStorage.getItem('meuFinanceiroData')||'null')}catch(e){storedState=null}
-const shouldSeed=!storedState || !Array.isArray(storedState.transactions) || storedState.transactions.length===0;
-const state=shouldSeed ? JSON.parse(JSON.stringify(IMPORTED_SEED)) : storedState;
-if(shouldSeed){localStorage.setItem('meuFinanceiroData',JSON.stringify(state));localStorage.setItem('meuFinanceiroSeedVersion',SEED_VERSION)}
-state.transactions=state.transactions||[];state.cards=state.cards||[];state.budgets=state.budgets||[];state.recurring=state.recurring||[];state.uber=state.uber||[];state.meta=state.meta||{};state.meta.schemaVersion=SCHEMA_VERSION;
+const LOCAL_ONLY_KEY='meuFinanceiroData:local';
+const USER_KEY_PREFIX='meuFinanceiroData:user:';
+function emptyState(){return{transactions:[],cards:[],budgets:[],recurring:[],uber:[],meta:{schemaVersion:SCHEMA_VERSION}}}
+function readLocalState(key){try{const v=JSON.parse(localStorage.getItem(key)||'null');return v&&typeof v==='object'?v:null}catch(e){return null}}
+function userCacheKey(id){return USER_KEY_PREFIX+id}
+function activeCacheKey(){return cloudUser?userCacheKey(cloudUser.id):LOCAL_ONLY_KEY}
+const state=emptyState();
 function normalizeState(){state.transactions=state.transactions||[];state.cards=state.cards||[];state.budgets=state.budgets||[];state.recurring=state.recurring||[];state.uber=state.uber||[];state.meta=state.meta||{};state.meta.schemaVersion=SCHEMA_VERSION}
-function save(){localStorage.setItem('meuFinanceiroData',JSON.stringify(state));renderAll();scheduleCloudPush()}
+function applyState(data){Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,data&&typeof data==='object'?data:emptyState());normalizeState()}
+function cacheState(){localStorage.setItem(activeCacheKey(),JSON.stringify(state))}
+function loadUserCache(userId){applyState(readLocalState(userCacheKey(userId))||emptyState());renderAll()}
+function loadLocalOnlyCache(){applyState(readLocalState(LOCAL_ONLY_KEY)||emptyState());renderAll()}
+function save(){cacheState();renderAll();scheduleCloudPush()}
+function displayUser(){
+ const name=(cloudUser?.user_metadata?.display_name||cloudUser?.user_metadata?.full_name||cloudUser?.email?.split('@')[0]||'').trim();
+ const pretty=name?name.charAt(0).toUpperCase()+name.slice(1):'';
+ const greeting=$('#mobileGreeting'),avatar=$('#mobileAvatar');
+ if(greeting)greeting.textContent=pretty?'Olá, '+pretty+'! 👋':'Olá! 👋';
+ if(avatar){const parts=pretty.split(/\s+/).filter(Boolean);avatar.textContent=parts.length?((parts[0][0]||'')+(parts[1]?.[0]||'')).toUpperCase():'MF'}
+}
 function setCloudStatus(mode,text){
  const dot=$('#cloudDot'),txt=$('#cloudText'),email=$('#cloudEmail'),settings=$('#cloudSettingsText');
  if(dot){dot.className='cloud-dot '+(mode||'');}
  if(txt)txt.textContent=text||'Modo local';
  if(email)email.textContent=cloudUser?.email||'';
- if(settings)settings.textContent=cloudUser?('Conectado como '+cloudUser.email+'. Alterações são salvas na nuvem.'):'Entre com a mesma conta no celular e no PC para sincronizar.';
+ if(settings)settings.textContent=cloudUser?('Conectado como '+cloudUser.email+'. Alterações são salvas na nuvem.'):'Entre com uma conta para sincronizar entre aparelhos.';
+ displayUser();
 }
-function showAuth(show,msg=''){const el=$('#authOverlay');if(el)el.hidden=!show;const m=$('#authMsg');if(m)m.textContent=msg}
-function replaceState(data){if(!data||typeof data!=='object')return;Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,data);normalizeState();localStorage.setItem('meuFinanceiroData',JSON.stringify(state));renderAll()}
+let authMode='login';
+function setAuthMode(mode){
+ authMode=mode==='signup'?'signup':'login';
+ $('#authTabLogin')?.classList.toggle('active',authMode==='login');$('#authTabSignup')?.classList.toggle('active',authMode==='signup');
+ if($('#authNameField'))$('#authNameField').hidden=authMode!=='signup';
+ if($('#authTitle'))$('#authTitle').textContent=authMode==='login'?'Bem-vindo de volta':'Crie sua conta';
+ if($('#authSubtitle'))$('#authSubtitle').textContent=authMode==='login'?'Entre para acessar suas finanças sincronizadas.':'Comece com uma base financeira vazia e só sua.';
+ if($('#authSubmit'))$('#authSubmit').textContent=authMode==='login'?'Entrar':'Criar minha conta';
+ const p=$('#authPassword');if(p)p.autocomplete=authMode==='login'?'current-password':'new-password';
+ const m=$('#authMsg');if(m){m.textContent='';m.className='auth-msg'}
+}
+function showAuth(show,msg=''){const el=$('#authOverlay');if(el)el.hidden=!show;const m=$('#authMsg');if(m){m.textContent=msg;m.className='auth-msg'}}
+function replaceState(data){applyState(data);cacheState();renderAll()}
 async function pushCloud(){
  if(!cloudUser||localOnly||cloudBusy)return;cloudBusy=true;setCloudStatus('sync','Sincronizando…');
  try{
    const {data,error}=await cloud.from('finance_state').upsert({user_id:cloudUser.id,data:JSON.parse(JSON.stringify(state))},{onConflict:'user_id'}).select('updated_at').single();
    if(error)throw error;
-   if(data?.updated_at)localStorage.setItem('meuFinanceiroCloudUpdatedAt',data.updated_at);
+   if(data?.updated_at)localStorage.setItem('meuFinanceiroCloudUpdatedAt:'+cloudUser.id,data.updated_at);cacheState();
    setCloudStatus('ok','Sincronizado');
  }catch(e){console.error(e);setCloudStatus('err','Erro de sincronização')}
  finally{cloudBusy=false}
@@ -734,24 +778,26 @@ async function pullCloud(force=false){
  try{
    const {data,error}=await cloud.from('finance_state').select('data,updated_at').eq('user_id',cloudUser.id).maybeSingle();
    if(error)throw error;
-   if(!data){cloudBusy=false;await pushCloud();return}
-   const last=localStorage.getItem('meuFinanceiroCloudUpdatedAt');
-   if(force||!last||new Date(data.updated_at)>new Date(last)){replaceState(data.data);localStorage.setItem('meuFinanceiroCloudUpdatedAt',data.updated_at)}
+   if(!data){applyState(emptyState());cacheState();cloudBusy=false;await pushCloud();return}
+   const stampKey='meuFinanceiroCloudUpdatedAt:'+cloudUser.id,last=localStorage.getItem(stampKey);
+   if(force||!last||new Date(data.updated_at)>new Date(last)){replaceState(data.data);localStorage.setItem(stampKey,data.updated_at)}
    setCloudStatus('ok','Sincronizado');
  }catch(e){console.error(e);setCloudStatus('err','Erro de sincronização')}
  finally{cloudBusy=false}
 }
+async function enterSession(session){
+ cloudUser=session.user;localOnly=false;loadUserCache(cloudUser.id);displayUser();showAuth(false);await pullCloud(true);
+}
 async function initCloud(){
  try{
    const {data:{session}}=await cloud.auth.getSession();
-   if(session){cloudUser=session.user;localOnly=false;showAuth(false);await pullCloud(true)}
-   else{setCloudStatus('','Modo local');showAuth(true)}
-   cloud.auth.onAuthStateChange(async(_event,session)=>{
-     cloudUser=session?.user||null;
-     if(cloudUser){localOnly=false;showAuth(false);await pullCloud(true)}
-     else setCloudStatus('','Modo local');
+   if(session)await enterSession(session);
+   else{applyState(emptyState());renderAll();setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true)}
+   cloud.auth.onAuthStateChange(async(event,session)=>{
+     if(session&&(!cloudUser||cloudUser.id!==session.user.id)){await enterSession(session)}
+     else if(!session&&event==='SIGNED_OUT'){cloudUser=null;localOnly=false;applyState(emptyState());renderAll();setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true,'Você saiu da sua conta.')}
    });
- }catch(e){console.error(e);setCloudStatus('err','Nuvem indisponível')}
+ }catch(e){console.error(e);setCloudStatus('err','Nuvem indisponível');setAuthMode('login');showAuth(true,'Não foi possível conectar à nuvem.')}
 }
 
 const meta={dashboard:['Início','Visão geral das suas finanças.'],transactions:['Movimentos','Entradas, saídas e histórico.'],cards:['Cartões','Limites, faturas e compras parceladas.'],budget:['Orçamento','Acompanhe limites mensais por categoria.'],projection:['Projeção','Veja como seu caixa pode evoluir.'],uber:['Uber','Receita, custos e rentabilidade das corridas.'],settings:['Ajustes','Backup, sincronização e dados locais.']};
@@ -941,11 +987,27 @@ $('#restoreImported').onclick=()=>{if(confirm('Restaurar os 70 lançamentos impo
 $('#importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!data.transactions||!data.cards||!data.budgets||!data.recurring)throw new Error();data.uber=data.uber||[];if(confirm('Importar este backup e substituir os dados atuais?')){Object.assign(state,data);save();alert('Backup importado com sucesso.')}}catch{alert('Arquivo de backup inválido.')}e.target.value=''};
 $('#exportCsv').onclick=()=>{const head=['Data','Tipo','Descricao','Categoria','Conta','Forma','Valor'];const rows=state.transactions.map(t=>[t.date,t.type,t.description,t.category,t.account||'',t.payment||'',String(t.amount).replace('.',',')]);const csv='\ufeff'+[head,...rows].map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n');dl(`transacoes-${today()}.csv`,csv,'text/csv;charset=utf-8')};
 $('#clearData').onclick=()=>{if(confirm('Isso apagará todos os dados deste navegador e, se conectado, atualizará a nuvem. Continuar?')){state.transactions=[];state.cards=[];state.budgets=[];state.recurring=[];state.uber=[];save()}};
-$('#authLogin').onclick=async()=>{const email=$('#authEmail').value.trim(),password=$('#authPassword').value;if(!email||!password){showAuth(true,'Informe seu e-mail e senha.');return}showAuth(true,'Entrando…');try{const {data,error}=await cloud.auth.signInWithPassword({email,password});if(error){showAuth(true,'Não foi possível entrar: '+error.message);return}if(data?.session){cloudUser=data.session.user;localOnly=false;showAuth(false);setCloudStatus('sync','Sincronizando…');await pullCloud(true)}else showAuth(true,'Login concluído, mas a sessão não foi iniciada. Tente novamente.')}catch(e){console.error(e);showAuth(true,'Falha ao conectar com a nuvem. Verifique sua internet e tente novamente.')}};
-$('#authSignup').onclick=async()=>{const email=$('#authEmail').value.trim(),password=$('#authPassword').value;if(!email||password.length<6){showAuth(true,'Informe um e-mail válido e uma senha com pelo menos 6 caracteres.');return}showAuth(true,'Criando conta…');const {data,error}=await cloud.auth.signUp({email,password});if(error){showAuth(true,'Não foi possível criar: '+error.message);return}if(!data.session)showAuth(true,'Conta criada. Confira seu e-mail para confirmar o cadastro e depois volte aqui para entrar.');};
-$('#authLocal').onclick=()=>{localOnly=true;showAuth(false);setCloudStatus('','Somente neste aparelho')};
-$('#showLogin').onclick=()=>showAuth(true,'');
-$('#logoutBtn').onclick=async()=>{await cloud.auth.signOut();cloudUser=null;localOnly=true;setCloudStatus('','Somente neste aparelho');showAuth(true,'Você saiu da sincronização.')};
+$('#authTabLogin').onclick=()=>setAuthMode('login');
+$('#authTabSignup').onclick=()=>setAuthMode('signup');
+$('#authSubmit').onclick=async()=>{
+ const email=$('#authEmail').value.trim(),password=$('#authPassword').value,name=$('#authName').value.trim(),msg=$('#authMsg');
+ if(!email||password.length<6){showAuth(true,'Informe um e-mail válido e uma senha com pelo menos 6 caracteres.');return}
+ if(authMode==='signup'&&!name){showAuth(true,'Informe seu nome para criar a conta.');return}
+ showAuth(true,authMode==='login'?'Entrando…':'Criando sua conta…');
+ try{
+   if(authMode==='login'){
+     const {data,error}=await cloud.auth.signInWithPassword({email,password});if(error){showAuth(true,'Não foi possível entrar: '+error.message);return}
+     if(data?.session)await enterSession(data.session);else showAuth(true,'Não foi possível iniciar a sessão. Tente novamente.');
+   }else{
+     const {data,error}=await cloud.auth.signUp({email,password,options:{data:{display_name:name}}});if(error){showAuth(true,'Não foi possível criar a conta: '+error.message);return}
+     if(data?.session){if(msg)msg.className='auth-msg success';await enterSession(data.session)}
+     else{if(msg)msg.className='auth-msg success';showAuth(true,'Conta criada. Confira seu e-mail para confirmar o cadastro e depois volte para entrar.')}
+   }
+ }catch(e){console.error(e);showAuth(true,'Falha ao conectar. Verifique sua internet e tente novamente.')}
+};
+$('#authLocal').onclick=()=>{cloudUser=null;localOnly=true;loadLocalOnlyCache();showAuth(false);setCloudStatus('','Somente neste aparelho');displayUser()};
+$('#showLogin').onclick=()=>{setAuthMode('login');showAuth(true,'')};
+$('#logoutBtn').onclick=async()=>{await cloud.auth.signOut()};
 $('#syncNow').onclick=()=>pullCloud(true);$('#syncTop').onclick=()=>cloudUser?pullCloud(true):showAuth(true,'Entre para sincronizar.');
 window.addEventListener('focus',()=>{if(cloudUser&&!localOnly)pullCloud(false)});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&cloudUser&&!localOnly)pullCloud(false)});
