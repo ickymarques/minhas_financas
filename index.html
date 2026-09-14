@@ -340,12 +340,18 @@
     .invoice-import{margin-top:16px}
     .invoice-toolbar{display:grid;grid-template-columns:1fr 1.5fr auto;gap:10px;align-items:end}
     .invoice-preview{display:grid;gap:10px;margin-top:14px}
-    .invoice-row{display:grid;grid-template-columns:34px 120px 1.5fr 130px 180px 110px 190px;gap:8px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--surface2)}
-    .invoice-row.duplicate .inv-dup{font-weight:900;color:#b42318;background:#fff0ed;border:1px solid #ffd1c7;border-radius:10px;padding:8px}
-    .invoice-row.duplicate{opacity:.58}
-    .invoice-row input,.invoice-row select{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}
-    .invoice-summary{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:13px}
-    @media(max-width:760px){.invoice-toolbar{grid-template-columns:1fr}.invoice-row{grid-template-columns:30px 1fr 110px}.invoice-row .inv-date{grid-column:2}.invoice-row .inv-desc{grid-column:2/4}.invoice-row .inv-cat{grid-column:2}.invoice-row .inv-sub{grid-column:3}.invoice-row .inv-amount{grid-column:2}.invoice-row .inv-dup{grid-column:2/4}}
+    .invoice-columns{display:grid;grid-template-columns:38px 140px minmax(280px,1.7fr) 155px 205px 125px minmax(120px,.8fr);gap:10px;align-items:end;padding:0 14px 7px;color:#718096;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.055em}
+    .invoice-columns span:first-child{text-align:center}
+    .invoice-row{display:grid;grid-template-columns:38px 140px minmax(280px,1.7fr) 155px 205px 125px minmax(120px,.8fr);gap:10px;align-items:center;padding:12px 14px;border:1px solid #e4eaf2;border-radius:14px;background:#fbfcfe}
+    .invoice-row .inv-use{width:18px;height:18px;justify-self:center;accent-color:#1265f3}
+    .invoice-row input:not(.inv-use),.invoice-row select{width:100%;min-width:0;border:1px solid #dfe6ef;border-radius:10px;padding:10px 11px;background:#fff;font-size:13px;color:#172033}
+    .invoice-row .inv-desc{font-weight:620}
+    .invoice-row .inv-amount{font-weight:750;text-align:right}
+    .invoice-row .inv-dup{font-size:11px;font-weight:750;line-height:1.3;color:#66758a;padding:7px 8px;border-radius:9px;background:#eef2f7;text-align:center}
+    .invoice-row.duplicate .inv-dup{font-weight:900;color:#b42318;background:#fff0ed;border:1px solid #ffd1c7}
+    .invoice-row.duplicate{opacity:.62}
+    .invoice-summary{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #e7ecf2;font-size:13px}
+    @media(max-width:760px){.invoice-toolbar{grid-template-columns:1fr}.invoice-columns{display:none}.invoice-row{grid-template-columns:30px 1fr 110px}.invoice-row .inv-date{grid-column:2}.invoice-row .inv-desc{grid-column:2/4}.invoice-row .inv-cat{grid-column:2}.invoice-row .inv-sub{grid-column:3}.invoice-row .inv-amount{grid-column:2}.invoice-row .inv-dup{grid-column:2/4}}
     .launch-sheet{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end}
     .launch-sheet[hidden]{display:none}
     .launch-backdrop{position:absolute;inset:0;border:0;background:rgba(15,23,42,.32);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
