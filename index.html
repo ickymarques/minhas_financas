@@ -156,7 +156,11 @@
       .kpi{padding:18px 20px;position:relative;overflow:hidden}.kpi .label{font-size:12px}.kpi .value{font-size:25px;letter-spacing:-.025em}.kpi .sub{font-size:11px}
       .section{padding:20px 22px}.section h2{font-size:16px}.table-wrap th,.table-wrap td{padding:12px 10px}.bar-track{height:8px;background:#e9edf3}.bar-fill{background:#64748b}
     }
-    @media(min-width:761px){.mobile-nav,.mobile-quick-actions,.mobile-app-head,.mobile-balance-hero{display:none!important}}
+    @media(min-width:761px){
+      .mobile-nav,.mobile-quick-actions,.mobile-app-head,.mobile-balance-hero{display:none!important}
+      .view{display:none!important}
+      .view.active{display:block!important}
+    }
     @media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.budget-grid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:760px){
       :root{--radius:24px}
