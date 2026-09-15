@@ -156,7 +156,12 @@
       .kpi{padding:18px 20px;position:relative;overflow:hidden}.kpi .label{font-size:12px}.kpi .value{font-size:25px;letter-spacing:-.025em}.kpi .sub{font-size:11px}
       .section{padding:20px 22px}.section h2{font-size:16px}.table-wrap th,.table-wrap td{padding:12px 10px}.bar-track{height:8px;background:#e9edf3}.bar-fill{background:#64748b}
     }
-    .desktop-home-actions{display:grid;grid-template-columns:repeat(2,minmax(0,240px));gap:12px;margin:0 0 16px}
+    .desktop-top-launch{border:0;border-radius:13px;padding:11px 15px;min-height:42px;display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:800;cursor:pointer;transition:.16s ease}
+.desktop-top-launch:hover{transform:translateY(-1px)}
+.desktop-top-launch span{font-size:18px;line-height:1}
+.desktop-top-launch.income{background:#e7f8ef;color:#087b4c}
+.desktop-top-launch.expense{background:#fdecef;color:#c91f35}
+.desktop-home-actions{display:grid;grid-template-columns:repeat(2,minmax(0,240px));gap:12px;margin:0 0 16px}
 .desktop-launch{border:1px solid #e3e9f1;background:#fff;border-radius:16px;padding:13px 15px;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;box-shadow:0 6px 18px rgba(35,55,80,.04);transition:.16s ease;color:#172033}
 .desktop-launch:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(35,55,80,.07)}
 .desktop-launch-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:24px;font-weight:800}
@@ -169,7 +174,7 @@
     }
     @media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.budget-grid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:760px){
-      .desktop-home-actions{display:none!important}
+      .desktop-home-actions,.desktop-top-launch{display:none!important}
       :root{--radius:24px}
       body{background:#f6f8fb}
       .app{display:block;min-height:100dvh;background:#f6f8fb}
@@ -458,7 +463,7 @@
   <main>
     <div class="topbar">
       <div><h1 id="viewTitle">Início</h1><p id="viewSubtitle">Visão geral das suas finanças.</p></div>
-      <div class="actions"><button class="btn" id="syncTop">☁ Sincronizar</button><button class="btn" id="backupTop">Backup</button><button class="btn primary" id="addTxTop">+ Transação</button></div>
+      <div class="actions"><button class="btn" id="syncTop">☁ Sincronizar</button><button class="btn" id="backupTop">Backup</button><button class="desktop-top-launch income" id="desktopIncome"><span>↗</span> Entrada</button><button class="desktop-top-launch expense" id="desktopExpense"><span>↘</span> Saída</button></div>
     </div>
 
     <section class="view active" id="dashboard">
@@ -476,11 +481,6 @@
         <div class="card kpi"><div class="label">Receitas realizadas</div><div class="value good" id="kpiIncome">R$ 0,00</div><div class="sub" id="kpiIncomeSub">Entradas até hoje</div></div>
         <div class="card kpi"><div class="label">Despesas realizadas</div><div class="value bad" id="kpiExpense">R$ 0,00</div><div class="sub" id="kpiExpenseSub">Saídas até hoje</div></div>
         <div class="card kpi"><div class="label">Previsto fim do mês</div><div class="value" id="kpiNet">R$ 0,00</div><div class="sub">Inclui lançamentos futuros deste mês</div></div>
-      </div>
-
-      <div class="desktop-home-actions">
-        <button class="desktop-launch income" id="desktopIncome"><span class="desktop-launch-icon">↗</span><span><strong>Nova entrada</strong><small>Registrar receita</small></span></button>
-        <button class="desktop-launch expense" id="desktopExpense"><span class="desktop-launch-icon">↘</span><span><strong>Nova saída</strong><small>Registrar despesa</small></span></button>
       </div>
 
       <div class="mobile-quick-actions">
@@ -998,7 +998,7 @@ window.editTx=id=>{const t=state.transactions.find(x=>x.id===id);if(!t)return;ed
 $('#txDialog').addEventListener('close',()=>{$('#txForm [name=installments]').disabled=false;editingTxId=null});
 $('#cancelTx').onclick=e=>{e.preventDefault();$('#txDialog').close()};
 $('#txDialog').addEventListener('click',e=>{if(e.target===$('#txDialog'))$('#txDialog').close()});
-$('#addTxTop').onclick=()=>openTx('expense');$('#addTx2').onclick=()=>openTx('expense');
+$('#addTx2').onclick=()=>openTx('expense');
 function openLaunchSheet(){$('#launchSheet').hidden=false}
 function closeLaunchSheet(){$('#launchSheet').hidden=true}
 $('#mobileAdd').onclick=openLaunchSheet;
