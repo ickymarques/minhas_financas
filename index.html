@@ -351,7 +351,20 @@
     .invoice-row.duplicate .inv-dup{font-weight:900;color:#b42318;background:#fff0ed;border:1px solid #ffd1c7}
     .invoice-row.duplicate{opacity:.62}
     .invoice-summary{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #e7ecf2;font-size:13px}
-    @media(max-width:760px){.invoice-toolbar{grid-template-columns:1fr}.invoice-columns{display:none}.invoice-row{grid-template-columns:30px 1fr 110px}.invoice-row .inv-date{grid-column:2}.invoice-row .inv-desc{grid-column:2/4}.invoice-row .inv-inst{grid-column:2}.invoice-row .inv-cat{grid-column:2}.invoice-row .inv-sub{grid-column:3}.invoice-row .inv-amount{grid-column:2}.invoice-row .inv-dup{grid-column:2/4}}
+    /* Budget layout refresh */
+#budget>.card.section{padding:26px;border-radius:22px}
+#budget .section-head{margin-bottom:6px}
+#budget .section-head h2{font-size:20px}
+#budget .budget-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:22px}
+#budget .budget-card{padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:0 8px 24px rgba(15,23,42,.04)}
+#budget .budget-card .row:first-child{margin-bottom:16px}
+#budget .budget-card .row:first-child strong{font-size:17px}
+#budget .budget-card .btn.danger{width:34px;height:34px;padding:0;border-radius:10px;font-size:17px;display:grid;place-items:center}
+#budget .budget-card .progress{height:10px;margin:10px 0 12px;border-radius:999px;overflow:hidden}
+#budget .budget-card .row:last-child{font-size:14px;color:var(--muted)}
+#budget .budget-card .row:last-child span:last-child{font-weight:700;color:var(--text)}
+@media(max-width:900px){#budget .budget-grid{grid-template-columns:1fr}}
+@media(max-width:760px){.invoice-toolbar{grid-template-columns:1fr}.invoice-columns{display:none}.invoice-row{grid-template-columns:30px 1fr 110px}.invoice-row .inv-date{grid-column:2}.invoice-row .inv-desc{grid-column:2/4}.invoice-row .inv-inst{grid-column:2}.invoice-row .inv-cat{grid-column:2}.invoice-row .inv-sub{grid-column:3}.invoice-row .inv-amount{grid-column:2}.invoice-row .inv-dup{grid-column:2/4}}
     .launch-sheet{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end}
     .launch-sheet[hidden]{display:none}
     .launch-backdrop{position:absolute;inset:0;border:0;background:rgba(15,23,42,.32);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
