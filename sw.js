@@ -1,4 +1,4 @@
-const CACHE='meu-financeiro-v5-9-6';
+const CACHE='meu-financeiro-v5-9-7';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./invoice-import.js'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));
