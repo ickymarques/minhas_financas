@@ -860,7 +860,7 @@ async function pullCloud(force=false){
  try{
    const {data,error}=await cloud.from('finance_state').select('data,updated_at').eq('user_id',cloudUser.id).maybeSingle();
    if(error)throw error;
-   if(!data){applyState(emptyState());cacheState();cloudBusy=false;await pushCloud();return}
+   if(!data){const hasData=(state.transactions?.length||state.cards?.length||state.budgets?.length||state.recurring?.length||state.uber?.length);cloudBusy=false;if(hasData)await pushCloud();else setCloudStatus('','Conta sem dados sincronizados');return}
    const stampKey='meuFinanceiroCloudUpdatedAt:'+cloudUser.id,last=localStorage.getItem(stampKey);
    if(force||!last||new Date(data.updated_at)>new Date(last)){replaceState(data.data);localStorage.setItem(stampKey,data.updated_at)}
    setCloudStatus('ok','Sincronizado');
@@ -874,12 +874,12 @@ async function initCloud(){
  try{
    const {data:{session}}=await cloud.auth.getSession();
    if(session)await enterSession(session);
-   else{applyState(emptyState());renderAll();setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true)}
+   else{const local=readLocalState(LOCAL_ONLY_KEY);if(local)applyState(local);renderAll();setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true)}
    cloud.auth.onAuthStateChange(async(event,session)=>{
      if(session&&(!cloudUser||cloudUser.id!==session.user.id)){await enterSession(session)}
-     else if(!session&&event==='SIGNED_OUT'){cloudUser=null;localOnly=false;applyState(emptyState());renderAll();setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true,'Você saiu da sua conta.')}
+     else if(!session&&event==='SIGNED_OUT'){cloudUser=null;localOnly=false;const local=readLocalState(LOCAL_ONLY_KEY);if(local)applyState(local);renderAll();setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true,'Você saiu da sua conta.')}
    });
- }catch(e){console.error(e);setCloudStatus('err','Nuvem indisponível');setAuthMode('login');showAuth(true,'Não foi possível conectar à nuvem.')}
+ }catch(e){console.error('Falha ao iniciar Supabase:',e);setCloudStatus('err','Nuvem indisponível');setAuthMode('login');const detail=(e&&e.message)?e.message:String(e||'erro desconhecido');showAuth(true,'Não foi possível conectar à nuvem: '+detail)}
 }
 
 const meta={dashboard:['Início','Visão geral das suas finanças.'],transactions:['Movimentos','Entradas, saídas e histórico.'],cards:['Cartões','Limites, faturas e compras parceladas.'],budget:['Orçamento','Acompanhe limites mensais por categoria.'],projection:['Projeção','Veja como seu caixa pode evoluir.'],uber:['Uber','Receita, custos e rentabilidade das corridas.'],settings:['Ajustes','Backup, sincronização e dados locais.']};
@@ -1088,7 +1088,7 @@ $('#authSubmit').onclick=async()=>{
      if(data?.session){if(msg)msg.className='auth-msg success';await enterSession(data.session)}
      else{if(msg)msg.className='auth-msg success';showAuth(true,'Conta criada. Confira seu e-mail para confirmar o cadastro e depois volte para entrar.')}
    }
- }catch(e){console.error(e);showAuth(true,'Falha ao conectar. Verifique sua internet e tente novamente.')}
+ }catch(e){console.error('Falha no login Supabase:',e);const detail=(e&&e.message)?e.message:String(e||'erro desconhecido');showAuth(true,'Falha ao conectar: '+detail)}
 };
 $('#authLocal').onclick=()=>{cloudUser=null;localOnly=true;loadLocalOnlyCache();showAuth(false);setCloudStatus('','Somente neste aparelho');displayUser()};
 $('#showLogin').onclick=()=>{setAuthMode('login');showAuth(true,'')};
