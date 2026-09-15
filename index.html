@@ -386,6 +386,7 @@
 #budget .budget-card .budget-remove{position:absolute;top:16px;right:16px;width:34px;height:34px;padding:0;border-radius:10px;display:grid;place-items:center}
 #budget .budget-chart{display:grid;grid-template-columns:104px 1fr;gap:20px;align-items:center}
 
+#uber .uber-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}#uber .uber-form-compact{gap:12px}#uber .uber-form-compact .field{min-width:0}#uber .uber-form-compact input,#uber .uber-form-compact select{width:100%}@media(max-width:380px){#uber .uber-form-row{gap:8px}#uber .uber-form-compact label{font-size:11px}}
 #uber .uber-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
 #uber .uber-kpi{padding:14px;border:1px solid var(--line);border-radius:16px;background:#f8fafc}
 #uber .uber-kpi-icon{font-size:20px;margin-bottom:8px}#uber .uber-kpi-value{display:block;font-size:18px;font-weight:900;color:var(--text)}#uber .uber-kpi-label{display:block;margin-top:3px;font-size:10px;font-weight:700;color:var(--muted)}
@@ -577,19 +578,14 @@
       <div class="grid two">
         <div class="card section">
           <div class="section-head"><h2>Lançar corridas</h2><span class="pill">Uber</span></div>
-          <form id="uberForm" class="form-grid">
-            <div class="field"><label>Data</label><input name="date" type="date" required></div>
-            <div class="field"><label>Nº de viagens</label><input name="trips" type="number" min="0" step="1" value="0"></div>
-            <div class="field"><label>Horas online</label><input name="hours" type="number" min="0" step="1" value="0"></div>
-            <div class="field"><label>Minutos</label><input name="minutes" type="number" min="0" max="59" step="1" value="0"></div>
-            <div class="field"><label>Receita bruta</label><input name="gross" type="number" min="0" step="0.01" required placeholder="0,00"></div>
-            <div class="field"><label>Gorjetas / extra</label><input name="extra" type="number" min="0" step="0.01" value="0"></div>
-            <div class="field"><label>KM rodados</label><input name="km" type="number" min="0" step="0.1" value="0"></div>
-            <div class="field"><label>Consumo médio (km/L)</label><input name="consumption" type="number" min="0" step="0.1" placeholder="Ex.: 10,5"></div>
-            <div class="field"><label>Combustível (R$/L)</label><input name="fuelPrice" type="number" min="0" step="0.01" placeholder="Ex.: 5,89"></div>
-            <div class="field"><label>Outros custos</label><input name="otherCosts" type="number" min="0" step="0.01" value="0"></div>
-            <div class="field"><label>Reserva manutenção (%)</label><input name="maintenancePct" type="number" min="0" max="100" step="0.1" value="12"></div>
-            <div class="field"><label>Destino da renda</label><select name="linkIncome"><option value="yes">Lançar líquido no financeiro</option><option value="no">Somente registrar no Uber</option></select></div>
+          <form id="uberForm" class="form-grid uber-form-compact">
+            <div class="field full"><label>Data</label><input name="date" type="date" required></div>
+            <div class="uber-form-row full"><div class="field"><label>Nº de viagens</label><input name="trips" type="number" min="0" step="1" value="0"></div><div class="field"><label>KM rodados</label><input name="km" type="number" min="0" step="0.1" value="0"></div></div>
+            <div class="uber-form-row full"><div class="field"><label>Horas online</label><input name="hours" type="number" min="0" step="1" value="0"></div><div class="field"><label>Minutos</label><input name="minutes" type="number" min="0" max="59" step="1" value="0"></div></div>
+            <div class="uber-form-row full"><div class="field"><label>Receita bruta</label><input name="gross" type="number" min="0" step="0.01" required placeholder="0,00"></div><div class="field"><label>Gorjetas / extra</label><input name="extra" type="number" min="0" step="0.01" value="0"></div></div>
+            <div class="uber-form-row full"><div class="field"><label>Consumo (km/L)</label><input name="consumption" type="number" min="0" step="0.1" placeholder="Ex.: 10,5"></div><div class="field"><label>Combustível (R$/L)</label><input name="fuelPrice" type="number" min="0" step="0.01" placeholder="Ex.: 5,89"></div></div>
+            <div class="uber-form-row full"><div class="field"><label>Outros custos</label><input name="otherCosts" type="number" min="0" step="0.01" value="0"></div><div class="field"><label>Manutenção (%)</label><input name="maintenancePct" type="number" min="0" max="100" step="0.1" value="12"></div></div>
+            <div class="field full"><label>Destino da renda</label><select name="linkIncome"><option value="yes">Lançar líquido no financeiro</option><option value="no">Somente registrar no Uber</option></select></div>
             <div class="field full"><label class="checkline"><input name="piggy" type="checkbox"> Marcar que parte do valor foi guardada em caixinha/reserva</label></div>
             <div class="full"><button type="submit" class="btn primary" style="width:100%">Registrar dia</button></div>
           </form>
