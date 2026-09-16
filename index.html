@@ -403,6 +403,11 @@
 #uber .uber-efficiency-metric{padding:8px 6px;border-radius:10px;background:#fff;text-align:center}.uber-efficiency-metric strong{display:block;font-size:11px}.uber-efficiency-metric span{display:block;margin-top:2px;font-size:8px;color:var(--muted);font-weight:700}
 #uber .uber-efficiency-track{height:7px;border-radius:999px;background:#e2e8f0;overflow:hidden;margin-top:10px}.uber-efficiency-fill{height:100%;border-radius:inherit;background:#1672f3}
 
+
+.mobile-avatar.has-photo{background-size:cover;background-position:center;color:transparent}
+.profile-settings{margin-bottom:16px}.profile-settings-grid{display:grid;grid-template-columns:180px minmax(0,420px);gap:24px;align-items:center;margin-top:16px}
+.profile-avatar-editor{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.profile-avatar-preview{width:76px;height:76px;border-radius:50%;border:0;background:#edf3ff;color:#173765;font-size:22px;font-weight:900;display:grid;place-items:center;background-size:cover;background-position:center;cursor:pointer}
+@media(max-width:760px){.profile-settings-grid{grid-template-columns:1fr}.profile-avatar-editor{display:grid;grid-template-columns:76px 1fr 1fr}.profile-avatar-preview{grid-row:1/3}.profile-settings .field{margin-top:4px}}
 @media(max-width:760px){
  #transactions>.card.section{padding:16px 14px 110px}
  #transactions .section-head{align-items:center;margin-bottom:14px}
@@ -637,6 +642,13 @@
     </section>
 
     <section class="view" id="settings">
+      <div class="card section profile-settings">
+        <div class="section-head"><div><h2>Seu perfil</h2><p class="note" style="margin:5px 0 0">Personalize como você aparece no Meu Financeiro.</p></div></div>
+        <div class="profile-settings-grid">
+          <div class="profile-avatar-editor"><button type="button" class="profile-avatar-preview" id="profileAvatarPreview" aria-label="Escolher avatar">MF</button><input id="profileAvatarFile" type="file" accept="image/*" hidden><button class="btn" type="button" id="chooseProfileAvatar">Escolher foto</button><button class="btn danger" type="button" id="removeProfileAvatar">Remover</button></div>
+          <div class="field"><label>Como você gostaria de ser chamado?</label><input id="profileDisplayName" maxlength="40" placeholder="Ex.: Icky"><p class="note">Este nome será usado na saudação da página inicial.</p><button class="btn primary" type="button" id="saveProfile">Salvar perfil</button></div>
+        </div>
+      </div>
       <div class="grid two">
         <div class="card section"><h2>Backup e restauração</h2><p class="note">Exporte um arquivo JSON e guarde-o em um local seguro. Para usar os mesmos dados em outro aparelho, importe esse arquivo nele.</p><div class="actions"><button class="btn primary" id="exportJson">Exportar backup</button><label class="btn" for="importFile">Importar backup</label><button class="btn" id="restoreImported">Restaurar 70 lançamentos importados</button><input id="importFile" type="file" accept="application/json" hidden></div><p class="note" style="margin-top:12px">“Restaurar” substitui a base atual pelos dados que importamos do seu CSV. Faça backup antes se já tiver novos lançamentos.</p></div>
         <div class="card section"><h2>Exportar planilha</h2><p class="note">Baixe suas transações em CSV para abrir no Excel, Google Sheets ou LibreOffice.</p><button class="btn" id="exportCsv">Exportar CSV</button></div>
@@ -882,12 +894,17 @@ function cacheState(){localStorage.setItem(activeCacheKey(),JSON.stringify(state
 function loadUserCache(userId){applyState(readLocalState(userCacheKey(userId))||emptyState());renderAll()}
 function loadLocalOnlyCache(){applyState(readLocalState(LOCAL_ONLY_KEY)||emptyState());renderAll()}
 function save(){cacheState();renderAll();scheduleCloudPush()}
+function profileKey(){return 'mf_profile_'+(cloudUser?.id||'local')}
+function readProfile(){try{return JSON.parse(localStorage.getItem(profileKey())||'{}')}catch(e){return {}}}
+function writeProfile(p){localStorage.setItem(profileKey(),JSON.stringify(p))}
 function displayUser(){
- const name=(cloudUser?.user_metadata?.display_name||cloudUser?.user_metadata?.full_name||cloudUser?.email?.split('@')[0]||'').trim();
+ const p=readProfile(),name=(p.displayName||cloudUser?.user_metadata?.display_name||cloudUser?.user_metadata?.full_name||cloudUser?.email?.split('@')[0]||'').trim();
  const pretty=name?name.charAt(0).toUpperCase()+name.slice(1):'';
- const greeting=$('#mobileGreeting'),avatar=$('#mobileAvatar');
+ const greeting=$('#mobileGreeting'),avatar=$('#mobileAvatar'),preview=$('#profileAvatarPreview'),nameInput=$('#profileDisplayName');
  if(greeting)greeting.textContent=pretty?'Olá, '+pretty+'! 👋':'Olá! 👋';
- if(avatar){const parts=pretty.split(/\s+/).filter(Boolean);avatar.textContent=parts.length?((parts[0][0]||'')+(parts[1]?.[0]||'')).toUpperCase():'MF'}
+ const parts=pretty.split(/\s+/).filter(Boolean),initials=parts.length?((parts[0][0]||'')+(parts[1]?.[0]||'')).toUpperCase():'MF';
+ [avatar,preview].forEach(el=>{if(!el)return;el.textContent=initials;if(p.avatar){el.style.backgroundImage='url("'+p.avatar+'")';el.classList.add('has-photo')}else{el.style.backgroundImage='';el.classList.remove('has-photo')}});
+ if(nameInput&&document.activeElement!==nameInput)nameInput.value=p.displayName||pretty;
 }
 function setCloudStatus(mode,text){
  const dot=$('#cloudDot'),txt=$('#cloudText'),email=$('#cloudEmail'),settings=$('#cloudSettingsText');
@@ -1146,6 +1163,12 @@ $('#restoreImported').onclick=()=>{if(confirm('Restaurar os 70 lançamentos impo
 $('#importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!data.transactions||!data.cards||!data.budgets||!data.recurring)throw new Error();data.uber=data.uber||[];if(confirm('Importar este backup e substituir os dados atuais?')){Object.assign(state,data);save();alert('Backup importado com sucesso.')}}catch{alert('Arquivo de backup inválido.')}e.target.value=''};
 $('#exportCsv').onclick=()=>{const head=['Data','Tipo','Descricao','Categoria','Conta','Forma','Valor'];const rows=state.transactions.map(t=>[t.date,t.type,t.description,t.category,t.account||'',t.payment||'',String(t.amount).replace('.',',')]);const csv='\ufeff'+[head,...rows].map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n');dl(`transacoes-${today()}.csv`,csv,'text/csv;charset=utf-8')};
 $('#clearData').onclick=()=>{if(confirm('Isso apagará todos os dados deste navegador e, se conectado, atualizará a nuvem. Continuar?')){state.transactions=[];state.cards=[];state.budgets=[];state.recurring=[];state.uber=[];save()}};
+const profileNameEl=$('#profileDisplayName'),profileFileEl=$('#profileAvatarFile');
+$('#chooseProfileAvatar').onclick=()=>profileFileEl.click();
+$('#profileAvatarPreview').onclick=()=>profileFileEl.click();
+profileFileEl.onchange=()=>{const file=profileFileEl.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const size=256,c=document.createElement('canvas');c.width=size;c.height=size;const ctx=c.getContext('2d'),scale=Math.max(size/img.width,size/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);const p=readProfile();p.avatar=c.toDataURL('image/jpeg',.82);writeProfile(p);displayUser()};img.src=reader.result};reader.readAsDataURL(file)};
+$('#removeProfileAvatar').onclick=()=>{const p=readProfile();delete p.avatar;writeProfile(p);profileFileEl.value='';displayUser()};
+$('#saveProfile').onclick=()=>{const p=readProfile();p.displayName=(profileNameEl.value||'').trim();writeProfile(p);displayUser()};
 $('#authTabLogin').onclick=()=>setAuthMode('login');
 $('#authTabSignup').onclick=()=>setAuthMode('signup');
 $('#authSubmit').onclick=async()=>{
