@@ -520,7 +520,19 @@
     .launch-grid button{border:0;background:#f7f9fc;border-radius:18px;min-height:86px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:8px;font-weight:750;color:#0f172a}
     .launch-grid button span{font-size:26px}
     @keyframes mobileViewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-  </style>
+  
+    /* Prévia mobile manual no desktop */
+    body.force-mobile-preview{background:#dfe5ec;overflow-x:auto}
+    body.force-mobile-preview .app{width:430px;max-width:430px;margin:18px auto;min-height:932px;background:var(--bg);box-shadow:0 18px 55px rgba(15,23,42,.22);border-radius:28px;overflow:hidden;display:block}
+    body.force-mobile-preview aside{display:none!important}
+    body.force-mobile-preview main{padding:28px 18px 132px!important;min-width:0!important}
+    body.force-mobile-preview .topbar{display:none!important}
+    body.force-mobile-preview .mobile-nav{display:grid!important;left:50%!important;right:auto!important;width:398px!important;transform:translateX(-50%);bottom:18px}
+    body.force-mobile-preview .mobile-app-head,body.force-mobile-preview .mobile-balance-hero,body.force-mobile-preview .mobile-home-shortcuts{display:flex}
+    body.force-mobile-preview .mobile-balance-hero{display:block}
+    body.force-mobile-preview .desktop-only{display:none!important}
+    .layout-preview-card .actions{margin-top:14px}.layout-preview-status{margin-top:9px;color:var(--muted);font-size:13px}
+</style>
 </head>
 <body>
 <div class="auth-overlay" id="authOverlay" hidden>
@@ -679,6 +691,7 @@
         <div class="card section"><h2>Backup e restauração</h2><p class="note">Exporte um arquivo JSON e guarde-o em um local seguro. Para usar os mesmos dados em outro aparelho, importe esse arquivo nele.</p><div class="actions"><button class="btn primary" id="exportJson">Exportar backup</button><label class="btn" for="importFile">Importar backup</label><button class="btn" id="restoreImported">Restaurar 70 lançamentos importados</button><input id="importFile" type="file" accept="application/json" hidden></div><p class="note" style="margin-top:12px">“Restaurar” substitui a base atual pelos dados que importamos do seu CSV. Faça backup antes se já tiver novos lançamentos.</p></div>
         <div class="card section"><h2>Exportar planilha</h2><p class="note">Baixe suas transações em CSV para abrir no Excel, Google Sheets ou LibreOffice.</p><button class="btn" id="exportCsv">Exportar CSV</button></div>
       </div>
+      <div class="card section layout-preview-card" style="margin-top:16px"><h2>Visualização do layout</h2><p class="note">No computador, alterne temporariamente para o formato de celular para revisar o app e tirar prints sem precisar usar o iPhone.</p><div class="actions"><button class="btn primary" type="button" id="previewMobileLayout">📱 Ver como celular</button><button class="btn" type="button" id="previewDesktopLayout">🖥️ Voltar para PC</button></div><div class="layout-preview-status" id="layoutPreviewStatus">Layout automático</div></div>
       <div class="card section" style="margin-top:16px"><h2>Sincronização em nuvem</h2><p class="note" id="cloudSettingsText">Entre com sua conta para sincronizar celular e PC.</p><div class="actions"><button class="btn primary" id="syncNow">Sincronizar agora</button><button class="btn" id="showLogin">Entrar / trocar conta</button><button class="btn danger" id="logoutBtn">Sair da conta</button></div></div>
       <div class="card section" style="margin-top:16px"><h2>Dados locais</h2><p class="note">O navegador mantém uma cópia local para o app continuar utilizável. O backup manual continua recomendado.</p><button class="btn danger" id="clearData">Apagar todos os dados</button></div>
     </section>
@@ -1222,6 +1235,16 @@ $('#authSubmit').onclick=async()=>{
 };
 $('#authLocal').onclick=()=>{cloudUser=null;localOnly=true;loadLocalOnlyCache();showAuth(false);setCloudStatus('','Somente neste aparelho');displayUser()};
 $('#showLogin').onclick=()=>{setAuthMode('login');showAuth(true,'')};
+
+function setManualLayoutPreview(mode){
+ const mobile=mode==='mobile';document.body.classList.toggle('force-mobile-preview',mobile);
+ localStorage.setItem('mfLayoutPreview',mobile?'mobile':'desktop');
+ const st=$('#layoutPreviewStatus');if(st)st.textContent=mobile?'Prévia de celular ativa':'Layout de computador ativo';
+ if(mobile){window.scrollTo({top:0,behavior:'smooth'})}
+}
+$('#previewMobileLayout').onclick=()=>setManualLayoutPreview('mobile');
+$('#previewDesktopLayout').onclick=()=>setManualLayoutPreview('desktop');
+if(localStorage.getItem('mfLayoutPreview')==='mobile')setManualLayoutPreview('mobile');
 $('#logoutBtn').onclick=async()=>{if(cloudUser){await cloud.auth.signOut()}else{localOnly=false;setAuthMode('login');showAuth(true,'Você saiu da conta.')}};
 $('#syncNow').onclick=()=>pullCloud(true);$('#syncTop').onclick=()=>cloudUser?pullCloud(true):showAuth(true,'Entre para sincronizar.');
 window.addEventListener('focus',()=>{if(cloudUser&&!localOnly)pullCloud(false)});
