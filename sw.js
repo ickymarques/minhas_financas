@@ -1,4 +1,4 @@
-const CACHE='meu-financeiro-v5-9-77-security';
+const CACHE='meu-financeiro-v5-9-78-dark-mobile';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./invoice-import.js'];
 
 self.addEventListener('install',event=>{
