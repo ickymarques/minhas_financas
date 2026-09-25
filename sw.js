@@ -1,4 +1,4 @@
-const CACHE='meu-financeiro-v5-9-80-projection';
+const CACHE='meu-financeiro-v5-9-81-sync-guard';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./invoice-import.js'];
 
 self.addEventListener('install',event=>{

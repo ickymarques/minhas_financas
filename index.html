@@ -1209,6 +1209,7 @@ const SUPABASE_KEY='sb_publishable_mv2g3vGhw9VSs5w3Ws-AyQ_cvQapvL1';
 const cloud=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let cloudUser=null,cloudSaveTimer=null,cloudBusy=false,localOnly=false;
 let sessionEpoch=0,cloudPushPending=false;
+let cloudConflict=false;
 let isAdmin=false,uberEnabled=false;
 let onboardingProfile=null,onboardingCompleted=false,onboardingRecordExists=false,onboardingResendRequested=false;
 const LOCAL_ONLY_KEY='meuFinanceiroData:local';
@@ -1221,11 +1222,11 @@ function currentSession(id,epoch){return !!cloudUser&&!localOnly&&cloudUser.id==
 function clearUserCaches(keepUserId=''){
  for(const key of Object.keys(localStorage)){
   const belongsToCurrent=keepUserId&&(key===userCacheKey(keepUserId)||key==='meuFinanceiroCloudUpdatedAt:'+keepUserId||key==='mf_profile_'+keepUserId);
-  if(!belongsToCurrent&&(key.startsWith(USER_KEY_PREFIX)||key.startsWith('meuFinanceiroCloudUpdatedAt:')||key.startsWith('mf_profile_')&&key!=='mf_profile_local'))localStorage.removeItem(key);
+  if(!belongsToCurrent&&(key.startsWith(USER_KEY_PREFIX)||key.startsWith('meuFinanceiroCloudUpdatedAt:')||key.startsWith('meuFinanceiroPending:')||key.startsWith('mf_profile_')&&key!=='mf_profile_local'))localStorage.removeItem(key);
  }
 }
 function resetCloudSession(){
- sessionEpoch++;clearTimeout(cloudSaveTimer);cloudSaveTimer=null;cloudBusy=false;cloudPushPending=false;
+ sessionEpoch++;clearTimeout(cloudSaveTimer);cloudSaveTimer=null;cloudBusy=false;cloudPushPending=false;cloudConflict=false;
 }
 const state=emptyState();
 function inferAccountFromPayment(payment){const p=String(payment||'').trim();if(!p)return '';const banks=['C6 Bank','Itaú','Nubank','PicPay','Mercado Pago','Caixa','Amazon'];return banks.find(b=>p.toLowerCase().startsWith(b.toLowerCase()))||''}
@@ -1249,7 +1250,9 @@ function applyState(data){Object.keys(state).forEach(k=>delete state[k]);Object.
 function cacheState(){localStorage.setItem(activeCacheKey(),JSON.stringify(state))}
 function loadUserCache(userId){applyState(readLocalState(userCacheKey(userId))||emptyState());renderAll()}
 function loadLocalOnlyCache(){applyState(readLocalState(LOCAL_ONLY_KEY)||emptyState());renderAll()}
-function save(){cacheState();renderAll();scheduleCloudPush()}
+function dirtyKey(id){return 'meuFinanceiroPending:'+id}
+function markPending(){if(cloudUser&&!localOnly)localStorage.setItem(dirtyKey(cloudUser.id),'1')}
+function save(){cacheState();markPending();renderAll();scheduleCloudPush()}
 function profileKey(){return 'mf_profile_'+(cloudUser?.id||'local')}
 function readProfile(){try{return JSON.parse(localStorage.getItem(profileKey())||'{}')}catch(e){return {}}}
 function writeProfile(p){localStorage.setItem(profileKey(),JSON.stringify(p))}
@@ -1286,29 +1289,46 @@ function setAuthMode(mode){
 function showAuth(show,msg=''){const el=$('#authOverlay');if(el)el.hidden=!show;const m=$('#authMsg');if(m){m.textContent=msg;m.className='auth-msg'}}
 function replaceState(data){const migrated=applyState(data);cacheState();renderAll();if(migrated)scheduleCloudPush()}
 async function pushCloud(){
- if(!cloudUser||localOnly)return;
+ if(!cloudUser||localOnly||cloudConflict)return;
  if(cloudBusy){cloudPushPending=true;return}
  const userId=cloudUser.id,epoch=sessionEpoch,snapshot=JSON.parse(JSON.stringify(state));
+ const stampKey='meuFinanceiroCloudUpdatedAt:'+userId,expected=localStorage.getItem(stampKey);
  cloudBusy=true;setCloudStatus('sync','Sincronizando…');
  try{
-   const {data,error}=await cloud.from('finance_state').upsert({user_id:userId,data:snapshot},{onConflict:'user_id'}).select('updated_at').single();
+   const query=expected
+     ?cloud.from('finance_state').update({data:snapshot}).eq('user_id',userId).eq('updated_at',expected).select('updated_at').maybeSingle()
+     :cloud.from('finance_state').insert({user_id:userId,data:snapshot}).select('updated_at').maybeSingle();
+   const {data,error}=await query;
    if(!currentSession(userId,epoch))return;
+   if(error?.code==='23505'||!error&&!data){cloudConflict=true;setCloudStatus('err','Conflito: dados locais preservados. Exporte um backup antes de resolver.');return}
    if(error)throw error;
-   if(data?.updated_at)localStorage.setItem('meuFinanceiroCloudUpdatedAt:'+userId,data.updated_at);
+   if(data?.updated_at)localStorage.setItem(stampKey,data.updated_at);
+   if(JSON.stringify(state)===JSON.stringify(snapshot))localStorage.removeItem(dirtyKey(userId));
    setCloudStatus('ok','Sincronizado');
  }catch(e){if(currentSession(userId,epoch)){console.error(e);setCloudStatus('err','Erro de sincronização')}}
- finally{if(currentSession(userId,epoch)){cloudBusy=false;if(cloudPushPending){cloudPushPending=false;scheduleCloudPush()}}}
+ finally{if(currentSession(userId,epoch)){cloudBusy=false;if(cloudPushPending&&!cloudConflict){cloudPushPending=false;scheduleCloudPush()}}}
 }
-function scheduleCloudPush(){if(!cloudUser||localOnly)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(pushCloud,500)}
+function scheduleCloudPush(){if(!cloudUser||localOnly||cloudConflict)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(pushCloud,500)}
 async function pullCloud(force=false){
  if(!cloudUser||localOnly||cloudBusy)return;
  const userId=cloudUser.id,epoch=sessionEpoch;
+ if(cloudConflict||localStorage.getItem(dirtyKey(userId))==='1'){
+   if(!cloudConflict)await pushCloud();
+   if(cloudConflict)setCloudStatus('err','Conflito: dados locais preservados. Exporte um backup antes de resolver.');
+   return;
+ }
+ if(readLocalState(userCacheKey(userId))&&!localStorage.getItem('meuFinanceiroCloudUpdatedAt:'+userId)){
+   markPending();await pushCloud();return;
+ }
  cloudBusy=true;setCloudStatus('sync','Sincronizando…');
  try{
    const {data,error}=await cloud.from('finance_state').select('data,updated_at').eq('user_id',userId).maybeSingle();
    if(!currentSession(userId,epoch))return;
    if(error)throw error;
-   if(!data){const hasData=(state.transactions?.length||state.cards?.length||state.budgets?.length||state.recurring?.length||state.uber?.length);if(hasData)cloudPushPending=true;else setCloudStatus('','Conta sem dados sincronizados');return}
+   if(localStorage.getItem(dirtyKey(userId))==='1'){
+     cloudConflict=true;setCloudStatus('err','Dados locais alterados durante a leitura. Exporte um backup antes de resolver.');return;
+   }
+   if(!data){const hasData=(state.transactions?.length||state.cards?.length||state.budgets?.length||state.recurring?.length||state.uber?.length);if(hasData){markPending();cloudPushPending=true}else setCloudStatus('','Conta sem dados sincronizados');return}
    const stampKey='meuFinanceiroCloudUpdatedAt:'+userId,last=localStorage.getItem(stampKey);
    if(force||!last||new Date(data.updated_at)>new Date(last)){replaceState(data.data);localStorage.setItem(stampKey,data.updated_at)}
    setCloudStatus('ok','Sincronizado');
