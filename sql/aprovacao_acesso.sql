@@ -5,6 +5,10 @@ alter table public.app_users
 
 update public.app_users set access_status = 'approved';
 
+-- A política RLS limita a alteração ao administrador; o privilégio de coluna
+-- permite que o botão de aprovação/suspensão envie a atualização.
+grant update (access_status) on public.app_users to authenticated;
+
 -- A autorização é conferida no banco para cada acesso aos dados privados.
 alter policy finance_state_select_own on public.finance_state
   using (user_id = (select auth.uid()) and exists (
