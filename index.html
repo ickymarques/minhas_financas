@@ -805,9 +805,10 @@ html[data-theme="dark"] .projection-flow-track{background:#34465e}
       <div class="field"><label>E-mail</label><input id="authEmail" type="email" autocomplete="email" placeholder="seu@email.com"></div>
       <div class="field"><label>Senha</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="Mínimo de 6 caracteres"></div>
       <button class="btn primary auth-submit" id="authSubmit" type="button">Entrar</button>
-      <button class="auth-local" id="authLocal" type="button">Continuar somente neste aparelho</button>
+      <button class="auth-local" id="authCheckAccess" type="button" hidden>Verificar aprovação</button>
+      <button class="auth-local" id="authPendingLogout" type="button" hidden>Sair desta conta</button>
       <div class="auth-msg" id="authMsg"></div>
-      <p class="auth-privacy">Cada conta possui seus próprios dados financeiros.</p>
+      <p class="auth-privacy">Cada conta possui seus próprios dados financeiros. Novos cadastros dependem de aprovação.</p>
     </section>
   </div>
 </div>
@@ -1247,7 +1248,7 @@ let editingRecId=null;
 const SUPABASE_URL='https://xdgxjvlyiiqxubmxsrir.supabase.co';
 const SUPABASE_KEY='sb_publishable_mv2g3vGhw9VSs5w3Ws-AyQ_cvQapvL1';
 const cloud=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let cloudUser=null,cloudSaveTimer=null,cloudBusy=false,localOnly=false;
+let cloudUser=null,cloudSaveTimer=null,cloudBusy=false,localOnly=false,accessApproved=false;
 let sessionEpoch=0,cloudPushPending=false;
 let cloudConflict=false;
 let isAdmin=false,uberEnabled=false;
@@ -1328,9 +1329,19 @@ function setAuthMode(mode){
  const m=$('#authMsg');if(m){m.textContent='';m.className='auth-msg'}
 }
 function showAuth(show,msg=''){const el=$('#authOverlay');if(el)el.hidden=!show;if(show)resetScenarioConversation();const m=$('#authMsg');if(m){m.textContent=msg;m.className='auth-msg'}}
+async function verifyApproval(userId){
+ const {data,error}=await cloud.from('app_users').select('access_status').eq('user_id',userId).maybeSingle();
+ if(cloudUser?.id!==userId)return false;
+ if(error||!data){console.error('Falha ao verificar aprovação:',error);accessApproved=false;showAuth(true,'Não foi possível confirmar sua autorização. Verifique a conexão e tente novamente.');}
+ else if(data.access_status!=='approved'){
+  accessApproved=false;resetCloudSession();showOnboarding(false);applyState(emptyState());renderAll();
+  showAuth(true,data.access_status==='rejected'?'Seu acesso não foi aprovado. Entre em contato com o administrador.':'Seu cadastro aguarda aprovação do administrador. Após a aprovação, clique em Verificar aprovação.');
+ }else{accessApproved=true;$('#authCheckAccess').hidden=true;$('#authPendingLogout').hidden=true;return true}
+ $('#authCheckAccess').hidden=false;$('#authPendingLogout').hidden=false;setCloudStatus('','Aguardando aprovação');return false;
+}
 function replaceState(data){const migrated=applyState(data);cacheState();renderAll();if(migrated)scheduleCloudPush()}
 async function pushCloud(){
- if(!cloudUser||localOnly||cloudConflict)return;
+ if(!cloudUser||localOnly||cloudConflict||!accessApproved)return;
  if(cloudBusy){cloudPushPending=true;return}
  const userId=cloudUser.id,epoch=sessionEpoch,snapshot=JSON.parse(JSON.stringify(state));
  const stampKey='meuFinanceiroCloudUpdatedAt:'+userId,expected=localStorage.getItem(stampKey);
@@ -1349,9 +1360,9 @@ async function pushCloud(){
  }catch(e){if(currentSession(userId,epoch)){console.error(e);setCloudStatus('err','Erro de sincronização')}}
  finally{if(currentSession(userId,epoch)){cloudBusy=false;if(cloudPushPending&&!cloudConflict){cloudPushPending=false;scheduleCloudPush()}}}
 }
-function scheduleCloudPush(){if(!cloudUser||localOnly||cloudConflict)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(pushCloud,500)}
+function scheduleCloudPush(){if(!cloudUser||localOnly||cloudConflict||!accessApproved)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(pushCloud,500)}
 async function pullCloud(force=false){
- if(!cloudUser||localOnly||cloudBusy)return;
+ if(!cloudUser||localOnly||cloudBusy||!accessApproved)return;
  const userId=cloudUser.id,epoch=sessionEpoch;
  if(cloudConflict||localStorage.getItem(dirtyKey(userId))==='1'){
    if(!cloudConflict)await pushCloud();
@@ -1379,16 +1390,23 @@ async function pullCloud(force=false){
 async function enterSession(session){
  if(currentSession(session.user.id,sessionEpoch))return;
  resetCloudSession();clearUserCaches(session.user.id);
- cloudUser=session.user;localOnly=false;isAdmin=false;uberEnabled=false;onboardingProfile=null;onboardingCompleted=false;onboardingRecordExists=false;onboardingResendRequested=false;applyAccessUI();loadUserCache(cloudUser.id);displayUser();showAuth(false);showOnboarding(true,true);await Promise.all([pullCloud(true),loadAccess(cloudUser.id),checkOnboarding(cloudUser.id)]);
+ cloudUser=session.user;localOnly=false;accessApproved=false;isAdmin=false;uberEnabled=false;onboardingProfile=null;onboardingCompleted=false;onboardingRecordExists=false;onboardingResendRequested=false;applyAccessUI();displayUser();
+ if(!await verifyApproval(cloudUser.id))return;
+ await openApprovedSession(cloudUser.id);
+}
+async function openApprovedSession(userId){
+ if(cloudUser?.id!==userId||!accessApproved)return;
+ loadUserCache(userId);displayUser();showAuth(false);showOnboarding(true,true);
+ await Promise.all([pullCloud(true),loadAccess(userId),checkOnboarding(userId)]);
 }
 async function initCloud(){
  try{
    const {data:{session}}=await cloud.auth.getSession();
    if(session)await enterSession(session);
-   else{clearUserCaches();loadLocalOnlyCache();setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true)}
+   else{clearUserCaches();applyState(emptyState());renderAll();setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true)}
    cloud.auth.onAuthStateChange(async(event,session)=>{
      if(session&&(!cloudUser||cloudUser.id!==session.user.id)){await enterSession(session)}
-     else if(!session&&event==='SIGNED_OUT'){resetCloudSession();cloudUser=null;localOnly=false;clearUserCaches();isAdmin=false;uberEnabled=false;onboardingProfile=null;onboardingCompleted=false;onboardingRecordExists=false;onboardingResendRequested=false;showOnboarding(false);renderOnboardingSummary();applyAccessUI();loadLocalOnlyCache();setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true,'Você saiu da sua conta.')}
+     else if(!session&&event==='SIGNED_OUT'){resetCloudSession();cloudUser=null;localOnly=false;accessApproved=false;clearUserCaches();applyState(emptyState());renderAll();isAdmin=false;uberEnabled=false;onboardingProfile=null;onboardingCompleted=false;onboardingRecordExists=false;onboardingResendRequested=false;showOnboarding(false);renderOnboardingSummary();applyAccessUI();$('#authCheckAccess').hidden=true;$('#authPendingLogout').hidden=true;setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true,'Você saiu da sua conta.')}
    });
  }catch(e){console.error('Falha ao iniciar Supabase:',e);setCloudStatus('err','Nuvem indisponível');setAuthMode('login');const detail=(e&&e.message)?e.message:String(e||'erro desconhecido');showAuth(true,'Não foi possível conectar à nuvem: '+detail)}
 }
@@ -1455,12 +1473,19 @@ async function loadAccess(userId){
 async function renderAdmin(){
  if(!isAdmin||!cloudUser)return;
  const status=$('#adminStatus'),list=$('#adminUsers');status.textContent='Carregando usuários…';list.innerHTML='';
- const [{data,error},{data:profiles,error:profileError}]=await Promise.all([cloud.from('app_users').select('user_id,email,display_name,uber_enabled,created_at,onboarding_requested_at').order('created_at',{ascending:false}),cloud.from('user_onboarding').select('user_id,answers,completed_at')]);
+ const [{data,error},{data:profiles,error:profileError}]=await Promise.all([cloud.from('app_users').select('user_id,email,display_name,uber_enabled,created_at,onboarding_requested_at,access_status').order('created_at',{ascending:false}),cloud.from('user_onboarding').select('user_id,answers,completed_at')]);
  if(error||profileError){status.textContent='Não foi possível carregar os usuários. Tente atualizar.';console.error(error||profileError);return}
  const byUser=new Map(profiles.map(p=>[p.user_id,p]));
  const incomeLabel={fixed:'Salário ou renda fixa',self:'Trabalho autônomo',mei:'MEI',business:'Empresa / PJ',other:'Outro / ainda sem renda'},extraLabel={none:'Não, por enquanto',sales:'Venda de produtos',services:'Prestação de serviços',apps:'Trabalho por aplicativos',other:'Outra renda extra'},rangeLabel={up2:'Até R$ 2 mil','2to5':'De R$ 2 mil a R$ 5 mil','5to10':'De R$ 5 mil a R$ 10 mil',over10:'Acima de R$ 10 mil',variable:'Varia muito a cada mês'},cardsLabel={yes:'Sim',no:'Não'},goalLabel={spending:'Entender meus gastos',debt:'Controlar dívidas e parcelas',savings:'Guardar dinheiro',business:'Acompanhar vendas ou renda extra'};
- status.textContent=`${data.length} conta${data.length===1?'':'s'} cadastrada${data.length===1?'':'s'}. O Uber fica desativado por padrão para novas contas.`;
- list.innerHTML=data.map(u=>{const profile=byUser.get(u.user_id),answers=profile?.answers||{},pending=!!u.onboarding_requested_at&&(!profile?.completed_at||new Date(profile.completed_at)<new Date(u.onboarding_requested_at)),summary=pending?'Novo questionário solicitado':answers.income?`${incomeLabel[answers.income]||'Renda informada'} · ${extraLabel[answers.extra]||'Renda extra informada'}`:'Questionário pendente ou não aplicado';const fields=[['Renda principal',incomeLabel[answers.income]],['Renda extra',extraLabel[answers.extra]],['Faixa de renda',rangeLabel[answers.range]||'Não informada'],['Cartão de crédito',cardsLabel[answers.cards]],['Objetivo principal',goalLabel[answers.goal]]];return `<div class="admin-user"><div class="admin-user-top"><div><strong>${esc(u.display_name||u.email||'Usuário')}</strong><small>${esc(u.email||'Sem e-mail')} ${u.user_id===cloudUser.id?'· Você (administrador)':''}</small><small>${esc(summary)}</small></div><label><input type="checkbox" data-admin-uber="${esc(u.user_id)}" ${u.uber_enabled?'checked':''} ${u.user_id===cloudUser.id?'disabled':''}> Uber ativo</label></div><details><summary>Ver perfil e questionário</summary><dl class="admin-profile-grid">${fields.map(([name,value])=>`<div><dt>${name}</dt><dd>${esc(value||'Ainda não respondeu')}</dd></div>`).join('')}<div><dt>Cadastro</dt><dd>${esc(new Date(u.created_at).toLocaleDateString('pt-BR'))}</dd></div><div><dt>Últimas respostas</dt><dd>${profile?.completed_at?esc(new Date(profile.completed_at).toLocaleDateString('pt-BR')):'Ainda não respondeu'}</dd></div></dl><div class="admin-profile-actions"><button class="btn" type="button" data-admin-onboarding="${esc(u.user_id)}" ${pending?'disabled':''}>${pending?'Questionário solicitado':'Solicitar novo questionário'}</button><p class="note">A solicitação aparece quando a pessoa abrir ou voltar ao app.</p></div></details></div>`}).join('');
+ const sorted=[...data].sort((a,b)=>(a.access_status==='pending'?0:1)-(b.access_status==='pending'?0:1)||new Date(b.created_at)-new Date(a.created_at));
+ status.textContent=`${data.length} conta${data.length===1?'':'s'} cadastrada${data.length===1?'':'s'} · ${data.filter(u=>u.access_status==='pending').length} aguardando aprovação.`;
+ list.innerHTML=sorted.map(u=>{const profile=byUser.get(u.user_id),answers=profile?.answers||{},pending=!!u.onboarding_requested_at&&(!profile?.completed_at||new Date(profile.completed_at)<new Date(u.onboarding_requested_at)),summary=pending?'Novo questionário solicitado':answers.income?`${incomeLabel[answers.income]||'Renda informada'} · ${extraLabel[answers.extra]||'Renda extra informada'}`:'Questionário pendente ou não aplicado';const fields=[['Renda principal',incomeLabel[answers.income]],['Renda extra',extraLabel[answers.extra]],['Faixa de renda',rangeLabel[answers.range]||'Não informada'],['Cartão de crédito',cardsLabel[answers.cards]],['Objetivo principal',goalLabel[answers.goal]]];return `<div class="admin-user"><div class="admin-user-top"><div><strong>${esc(u.display_name||u.email||'Usuário')}</strong><small>${esc(u.email||'Sem e-mail')} ${u.user_id===cloudUser.id?'· Você (administrador)':''}</small><small>${esc(summary)}</small><small> acesso: ${u.access_status==='approved'?'Aprovado':u.access_status==='rejected'?'Recusado':'Aguardando aprovação'}</small>${u.user_id!==cloudUser.id?`<div class="admin-profile-actions"><button class="btn" type="button" data-admin-access="${esc(u.user_id)}" data-access-status="${u.access_status==='approved'?'rejected':'approved'}">${u.access_status==='approved'?'Suspender acesso':'Aprovar acesso'}</button>${u.access_status==='pending'?`<button class="btn" type="button" data-admin-access="${esc(u.user_id)}" data-access-status="rejected">Recusar</button>`:''}</div>`:''}</div><label><input type="checkbox" data-admin-uber="${esc(u.user_id)}" ${u.uber_enabled?'checked':''} ${u.user_id===cloudUser.id||u.access_status!=='approved'?'disabled':''}> Uber ativo</label></div><details><summary>Ver perfil e questionário</summary><dl class="admin-profile-grid">${fields.map(([name,value])=>`<div><dt>${name}</dt><dd>${esc(value||'Ainda não respondeu')}</dd></div>`).join('')}<div><dt>Cadastro</dt><dd>${esc(new Date(u.created_at).toLocaleDateString('pt-BR'))}</dd></div><div><dt>Últimas respostas</dt><dd>${profile?.completed_at?esc(new Date(profile.completed_at).toLocaleDateString('pt-BR')):'Ainda não respondeu'}</dd></div></dl><div class="admin-profile-actions"><button class="btn" type="button" data-admin-onboarding="${esc(u.user_id)}" ${pending?'disabled':''}>${pending?'Questionário solicitado':'Solicitar novo questionário'}</button><p class="note">A solicitação aparece quando a pessoa abrir ou voltar ao app.</p></div></details></div>`}).join('');
+ list.querySelectorAll('[data-admin-access]').forEach(button=>button.onclick=async()=>{
+  const id=button.dataset.adminAccess,next=button.dataset.accessStatus;button.disabled=true;
+  const {data:updated,error:updateError}=await cloud.from('app_users').update({access_status:next}).eq('user_id',id).select('user_id,access_status').single();
+  if(updateError||!updated){button.disabled=false;status.textContent='Não foi possível atualizar a aprovação.';console.error(updateError);return}
+  await renderAdmin();
+ });
  list.querySelectorAll('[data-admin-uber]').forEach(input=>input.onchange=async()=>{
   input.disabled=true;const enabled=input.checked,id=input.dataset.adminUber;
   const {data:updated,error:updateError}=await cloud.from('app_users').update({uber_enabled:enabled}).eq('user_id',id).select('user_id,uber_enabled').single();
@@ -1998,7 +2023,8 @@ $('#authSubmit').onclick=async()=>{
    }
  }catch(e){console.error('Falha no login Supabase:',e);const detail=(e&&e.message)?e.message:String(e||'erro desconhecido');showAuth(true,'Falha ao conectar: '+detail)}
 };
-$('#authLocal').onclick=async()=>{if(cloudUser)await cloud.auth.signOut();resetCloudSession();cloudUser=null;clearUserCaches();localOnly=true;isAdmin=false;uberEnabled=false;onboardingProfile=null;onboardingCompleted=false;onboardingRecordExists=false;onboardingResendRequested=false;showOnboarding(false);renderOnboardingSummary();applyAccessUI();loadLocalOnlyCache();showAuth(false);setCloudStatus('','Somente neste aparelho');displayUser()};
+$('#authCheckAccess').onclick=async()=>{if(!cloudUser)return;$('#authCheckAccess').disabled=true;try{if(await verifyApproval(cloudUser.id))await openApprovedSession(cloudUser.id)}finally{$('#authCheckAccess').disabled=false}};
+$('#authPendingLogout').onclick=()=>cloud.auth.signOut();
 $('#adminRefresh').onclick=()=>{renderAdmin();renderReports()};
 $('#reportsRefresh').onclick=renderReports;
 $('#issueForm').addEventListener('submit',async event=>{
@@ -2032,8 +2058,9 @@ $('#previewDesktopLayout').onclick=()=>setManualLayoutPreview('desktop');
 if(localStorage.getItem('mfLayoutPreview')==='mobile')setManualLayoutPreview('mobile');
 $('#logoutBtn').onclick=async()=>{if(cloudUser){await cloud.auth.signOut()}else{localOnly=false;setAuthMode('login');showAuth(true,'Você saiu da conta.')}};
 $('#syncNow').onclick=()=>pullCloud(true);$('#syncTop').onclick=()=>cloudUser?pullCloud(true):showAuth(true,'Entre para sincronizar.');
-window.addEventListener('focus',()=>{if(cloudUser&&!localOnly){pullCloud(false);loadAccess(cloudUser.id)}});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&cloudUser&&!localOnly){pullCloud(false);loadAccess(cloudUser.id)}});
+async function refreshSessionAccess(){if(!cloudUser||localOnly)return;const id=cloudUser.id,wasApproved=accessApproved;if(await verifyApproval(id)){if(!wasApproved)await openApprovedSession(id);else{pullCloud(false);loadAccess(id)}}}
+window.addEventListener('focus',refreshSessionAccess);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshSessionAccess()});
 
 populateTxTaxonomy();$('#uberForm [name=date]').value=today();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
