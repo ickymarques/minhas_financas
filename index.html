@@ -1415,7 +1415,14 @@ async function pullCloud(force=false){
  finally{if(currentSession(userId,epoch)){cloudBusy=false;if(cloudPushPending){cloudPushPending=false;scheduleCloudPush()}}}
 }
 async function enterSession(session){
- if(currentSession(session.user.id,sessionEpoch))return;
+ if(currentSession(session.user.id,sessionEpoch)){
+  const wasApproved=accessApproved;
+  if(await verifyApproval(session.user.id)){
+   if(!wasApproved)await openApprovedSession(session.user.id);
+   else showAuth(false);
+  }
+  return;
+ }
  resetCloudSession();clearUserCaches(session.user.id);
  cloudUser=session.user;localOnly=false;accessApproved=false;isAdmin=false;uberEnabled=false;onboardingProfile=null;onboardingCompleted=false;onboardingRecordExists=false;onboardingResendRequested=false;applyAccessUI();displayUser();
  if(!await verifyApproval(cloudUser.id))return;
