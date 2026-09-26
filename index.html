@@ -1454,7 +1454,7 @@ $('#onboardingForm').addEventListener('submit',async event=>{
 $('#onboardingRetry').onclick=()=>{if(cloudUser)checkOnboarding(cloudUser.id)};
 $('#editOnboarding').onclick=()=>{if(cloudUser)showOnboarding(true)};
 $('#onboardingSummaryAction').onclick=()=>go($('#onboardingSummaryAction').dataset.target||'transactions');
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cloudUser&&$('#onboardingOverlay').hidden)checkOnboarding(cloudUser.id)});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cloudUser&&accessApproved&&$('#onboardingOverlay').hidden)checkOnboarding(cloudUser.id)});
 
 function applyAccessUI(){
  const showUber=localOnly||uberEnabled;
