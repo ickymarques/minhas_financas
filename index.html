@@ -58,7 +58,7 @@
     .auth-card{background:transparent;padding:48px 52px;display:flex;flex-direction:column;justify-content:center;box-shadow:none}
     .auth-card h2{margin:0 0 7px;font-size:28px;letter-spacing:-.03em}.auth-card>p{color:var(--muted);font-size:14px;line-height:1.5;margin:0 0 22px}.auth-card .field{margin-top:13px}.auth-card .field[hidden]{display:none!important}.auth-card .field input{min-height:50px;border-radius:14px;font-size:16px}
     .auth-tabs{display:grid;grid-template-columns:1fr 1fr;background:#edf2f8;padding:4px;border-radius:14px;margin-bottom:20px}.auth-tab{border:0;background:transparent;padding:10px;border-radius:11px;color:#69788d;font-weight:750;cursor:pointer}.auth-tab.active{background:#fff;color:#1265f3;box-shadow:0 4px 14px rgba(30,55,90,.08)}
-    .auth-submit{width:100%;margin-top:18px;min-height:50px;border-radius:14px;font-size:15px}.auth-local{border:0;background:transparent;color:#718096;margin:12px auto 0;cursor:pointer;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+    .auth-submit{width:100%;margin-top:18px;min-height:50px;border-radius:14px;font-size:15px}.auth-local{border:0;background:transparent;color:#718096;margin:12px auto 0;cursor:pointer;font-size:12px;text-decoration:underline;text-underline-offset:3px}.auth-local[hidden],.recovery-panel[hidden],#recoveryPasswordFields[hidden]{display:none!important}.auth-card.recovering>*:not(.recovery-panel){display:none!important}.auth-card.recovering>.recovery-panel{display:block}
     .auth-msg{min-height:20px;margin-top:12px;font-size:13px;line-height:1.45;color:#b42318}.auth-msg.success{color:#087a4f}
     .auth-privacy{font-size:11px!important;color:#94a3b8!important;text-align:center;margin:14px 0 0!important}
     @media(max-width:760px){.auth-overlay{padding:0;align-items:stretch}.auth-shell{display:block;min-height:100dvh;border-radius:0;border:0}.auth-brand-panel{min-height:205px;padding:calc(28px + env(safe-area-inset-top)) 24px 24px}.auth-brand-copy h1{font-size:29px;margin-bottom:8px}.auth-brand-copy p{margin:0;font-size:13px}.auth-benefits{display:none}.auth-card{padding:28px 22px calc(28px + env(safe-area-inset-bottom))}.auth-logo{font-size:18px}.auth-logo-mark{width:38px;height:38px}.auth-brand-copy{margin-top:24px}}.cloud-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;margin-right:6px}.cloud-dot.ok{background:#10b981}.cloud-dot.sync{background:#f59e0b}.cloud-dot.err{background:#ef4444}
@@ -805,10 +805,20 @@ html[data-theme="dark"] .projection-flow-track{background:#34465e}
       <div class="field"><label>E-mail</label><input id="authEmail" type="email" autocomplete="email" placeholder="seu@email.com"></div>
       <div class="field"><label>Senha</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="Mínimo de 6 caracteres"></div>
       <button class="btn primary auth-submit" id="authSubmit" type="button">Entrar</button>
+      <button class="auth-local" id="forgotPassword" type="button">Esqueci minha senha</button>
       <button class="auth-local" id="authCheckAccess" type="button" hidden>Verificar aprovação</button>
       <button class="auth-local" id="authPendingLogout" type="button" hidden>Sair desta conta</button>
       <div class="auth-msg" id="authMsg"></div>
       <p class="auth-privacy">Cada conta possui seus próprios dados financeiros. Novos cadastros dependem de aprovação.</p>
+      <div class="recovery-panel" id="recoveryPanel" hidden>
+        <h2 id="recoveryTitle">Recuperar senha</h2>
+        <p id="recoveryIntro">Informe o e-mail da sua conta para receber um link de recuperação.</p>
+        <div class="field" id="recoveryEmailField"><label for="recoveryEmail">E-mail</label><input id="recoveryEmail" type="email" autocomplete="email" placeholder="seu@email.com"></div>
+        <div id="recoveryPasswordFields" hidden><div class="field"><label for="recoveryPassword">Nova senha</label><input id="recoveryPassword" type="password" autocomplete="new-password" minlength="10" placeholder="Mínimo de 10 caracteres"></div><div class="field"><label for="recoveryConfirm">Confirme a nova senha</label><input id="recoveryConfirm" type="password" autocomplete="new-password" minlength="10"></div></div>
+        <button class="btn primary auth-submit" id="recoverySubmit" type="button">Enviar link</button>
+        <button class="auth-local" id="recoveryBack" type="button">Voltar para entrar</button>
+        <div class="auth-msg" id="recoveryMsg" role="status"></div>
+      </div>
     </section>
   </div>
 </div>
@@ -1318,6 +1328,22 @@ function setCloudStatus(mode,text){
  displayUser();
 }
 let authMode='login';
+let recoveryMode='request';
+let recoveryLinkOpened=/(?:[?#&])type=recovery(?:&|$)/.test(location.href);
+function showRecovery(mode){
+ recoveryMode=mode==='set'?'set':'request';
+ $('#authOverlay').hidden=false;$('#authOverlay .auth-card').classList.add('recovering');$('#recoveryPanel').hidden=false;
+ $('#recoveryTitle').textContent=recoveryMode==='set'?'Definir nova senha':'Recuperar senha';
+ $('#recoveryIntro').textContent=recoveryMode==='set'?'Crie uma nova senha para sua conta.':'Informe o e-mail da sua conta para receber um link de recuperação.';
+ $('#recoveryEmailField').hidden=recoveryMode==='set';$('#recoveryPasswordFields').hidden=recoveryMode!=='set';
+ $('#recoverySubmit').textContent=recoveryMode==='set'?'Salvar nova senha':'Enviar link';
+ $('#recoveryBack').hidden=recoveryMode==='set';$('#recoveryMsg').textContent='';
+ if(recoveryMode==='request')$('#recoveryEmail').value=$('#authEmail').value.trim();
+}
+function closeRecovery(){
+ $('#authOverlay .auth-card').classList.remove('recovering');$('#recoveryPanel').hidden=true;
+ $('#recoveryPassword').value='';$('#recoveryConfirm').value='';
+}
 function setAuthMode(mode){
  authMode=mode==='signup'?'signup':'login';
  $('#authTabLogin')?.classList.toggle('active',authMode==='login');$('#authTabSignup')?.classList.toggle('active',authMode==='signup');
@@ -1326,6 +1352,7 @@ function setAuthMode(mode){
  if($('#authSubtitle'))$('#authSubtitle').textContent=authMode==='login'?'Entre para acessar suas finanças sincronizadas.':'Comece com uma base financeira vazia e só sua.';
  if($('#authSubmit'))$('#authSubmit').textContent=authMode==='login'?'Entrar':'Criar minha conta';
  const p=$('#authPassword');if(p)p.autocomplete=authMode==='login'?'current-password':'new-password';
+ $('#forgotPassword').hidden=authMode!=='login';
  const m=$('#authMsg');if(m){m.textContent='';m.className='auth-msg'}
 }
 function showAuth(show,msg=''){const el=$('#authOverlay');if(el)el.hidden=!show;if(show)resetScenarioConversation();const m=$('#authMsg');if(m){m.textContent=msg;m.className='auth-msg'}}
@@ -1402,12 +1429,16 @@ async function openApprovedSession(userId){
 async function initCloud(){
  try{
    const {data:{session}}=await cloud.auth.getSession();
-   if(session)await enterSession(session);
+   if(session&&!recoveryLinkOpened)await enterSession(session);
+   else if(session&&recoveryLinkOpened){cloudUser=session.user;showRecovery('set')}
    else{clearUserCaches();applyState(emptyState());renderAll();setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true)}
    cloud.auth.onAuthStateChange(async(event,session)=>{
+     if(event==='PASSWORD_RECOVERY'){recoveryLinkOpened=true;if(session)cloudUser=session.user;showRecovery('set');return}
+     if(recoveryLinkOpened&&session)return;
      if(session&&(!cloudUser||cloudUser.id!==session.user.id)){await enterSession(session)}
      else if(!session&&event==='SIGNED_OUT'){resetCloudSession();cloudUser=null;localOnly=false;accessApproved=false;clearUserCaches();applyState(emptyState());renderAll();isAdmin=false;uberEnabled=false;onboardingProfile=null;onboardingCompleted=false;onboardingRecordExists=false;onboardingResendRequested=false;showOnboarding(false);renderOnboardingSummary();applyAccessUI();$('#authCheckAccess').hidden=true;$('#authPendingLogout').hidden=true;setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true,'Você saiu da sua conta.')}
    });
+   if(recoveryLinkOpened)showRecovery('set');
  }catch(e){console.error('Falha ao iniciar Supabase:',e);setCloudStatus('err','Nuvem indisponível');setAuthMode('login');const detail=(e&&e.message)?e.message:String(e||'erro desconhecido');showAuth(true,'Não foi possível conectar à nuvem: '+detail)}
 }
 
@@ -2007,6 +2038,28 @@ $('#removeProfileAvatar').onclick=()=>{const p=readProfile();delete p.avatar;wri
 $('#saveProfile').onclick=()=>{const p=readProfile();p.displayName=(profileNameEl.value||'').trim();writeProfile(p);displayUser()};
 $('#authTabLogin').onclick=()=>setAuthMode('login');
 $('#authTabSignup').onclick=()=>setAuthMode('signup');
+$('#forgotPassword').onclick=()=>showRecovery('request');
+$('#recoveryBack').onclick=()=>{closeRecovery();setAuthMode('login');showAuth(true)};
+$('#recoverySubmit').onclick=async()=>{
+ const button=$('#recoverySubmit'),message=$('#recoveryMsg');message.textContent='';message.className='auth-msg';
+ button.disabled=true;
+ try{
+  if(recoveryMode==='request'){
+   const email=$('#recoveryEmail').value.trim();if(!/^\S+@\S+\.\S+$/.test(email)){message.textContent='Informe um e-mail válido.';return}
+   const {error}=await cloud.auth.resetPasswordForEmail(email,{redirectTo:'https://ickymarques.github.io/minhas_financas/'});
+   if(error)throw error;
+   message.className='auth-msg success';message.textContent='Se houver uma conta com esse e-mail, você receberá um link para criar uma nova senha. Confira também a pasta de spam.';
+  }else{
+   const password=$('#recoveryPassword').value,confirmPassword=$('#recoveryConfirm').value;
+   if(password.length<10){message.textContent='Use uma senha com pelo menos 10 caracteres.';return}
+   if(password!==confirmPassword){message.textContent='As senhas não coincidem.';return}
+   const {error}=await cloud.auth.updateUser({password});if(error)throw error;
+   recoveryLinkOpened=false;history.replaceState(null,'',location.pathname+location.search);
+   closeRecovery();await cloud.auth.signOut();setAuthMode('login');showAuth(true,'Senha alterada. Entre com sua nova senha.');$('#authMsg').className='auth-msg success';
+  }
+ }catch(error){console.error('Falha na recuperação de senha:',error);message.textContent='Não foi possível concluir. Verifique o link ou tente novamente em instantes.'}
+ finally{button.disabled=false}
+};
 $('#authSubmit').onclick=async()=>{
  const email=$('#authEmail').value.trim(),password=$('#authPassword').value,name=$('#authName').value.trim(),msg=$('#authMsg');
  if(!email||password.length<6){showAuth(true,'Informe um e-mail válido e uma senha com pelo menos 6 caracteres.');return}
