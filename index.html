@@ -214,7 +214,10 @@
       .kpi .label{font-size:12px}
       .kpi .value{font-size:22px;letter-spacing:-.03em;line-height:1.15}
       .kpi .sub{font-size:11px;line-height:1.35}
-      .mobile-quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 14px}
+      .mobile-quick-actions{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:0 0 14px}
+      .mobile-quick-actions>.quick-action{grid-column:span 2}
+      .mobile-quick-actions>.quick-action:nth-child(-n+2){grid-column:span 3}
+      .mobile-quick-actions:has(.qa-uber[hidden])>.quick-action{grid-column:span 3}
       .quick-action{border:0;border-radius:20px;padding:12px 4px;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.05);display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;color:#0f172a}
       .quick-action .qa-icon{width:50px;height:50px;border-radius:17px;display:flex;align-items:center;justify-content:center}
       .quick-action .qa-icon svg{width:28px;height:28px;stroke:currentColor;stroke-width:2.15;fill:none;stroke-linecap:round;stroke-linejoin:round}
