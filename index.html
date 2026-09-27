@@ -783,6 +783,45 @@ html[data-theme="dark"] .projection-flow-track{background:#34465e}
 #investmentCdiField[hidden]{display:none!important}.investment-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.investment-summary>div{background:var(--surface2);border:1px solid var(--line);border-radius:16px;padding:16px}.investment-summary span,.investment-summary small{display:block;color:var(--muted);font-size:12px}.investment-summary strong{display:block;font-size:22px;margin:6px 0}.investment-visuals{margin:16px 0}.investment-allocation-row{display:grid;grid-template-columns:minmax(100px,1fr) 2fr auto;align-items:center;gap:10px;margin:12px 0;font-size:13px}.investment-track{background:var(--line);height:12px;border-radius:20px;overflow:hidden}.investment-track i{display:block;height:100%;border-radius:20px}.investment-chart{width:100%;height:220px;display:block;margin:12px 0}.investment-chart .gridline{stroke:var(--line);stroke-width:1}.investment-chart .fill{fill:#10b981;opacity:.14}.investment-chart .line{fill:none;stroke:#059669;stroke-width:3}.investment-chart .principal{fill:none;stroke:#64748b;stroke-width:2;stroke-dasharray:5 4}.investment-legend{display:flex;gap:18px;font-size:12px;color:var(--muted)}.investment-legend b{color:#059669}.investment-list-item{padding:16px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:12px}.investment-list-item:last-child{border:0}.investment-list-item strong{display:block}.investment-list-item small{color:var(--muted);display:block;margin-top:4px}.investment-list-actions{display:flex;gap:6px;align-items:center}#investmentDialog{width:min(560px,calc(100% - 24px));border:1px solid var(--line);border-radius:20px;padding:24px;background:var(--surface);color:var(--text)}#investmentDialog::backdrop{background:#10213b99}#investmentDialog .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}#investmentDialog .full{grid-column:1/-1}@media(max-width:760px){.investment-summary{grid-template-columns:1fr 1fr}.investment-summary>div:first-child{grid-column:1/-1}.investment-summary strong{font-size:18px}.investment-list-item{grid-template-columns:1fr}.investment-allocation-row{grid-template-columns:1fr 1fr}.investment-allocation-row .investment-track{grid-column:1/-1;grid-row:2}.investment-list-actions{justify-content:flex-start}}
 </style>
 <style>.recent-link{width:100%;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}.recent-link:hover,.recent-link:focus-visible{background:var(--surface2);outline:2px solid #059669;outline-offset:-2px;border-radius:12px}.tx-target{outline:3px solid #059669!important;outline-offset:-3px;background:rgba(16,185,129,.12)!important}</style>
+<style>
+.mobile-menu-control,.menu-backdrop,.drawer-profile-links,.mobile-projection-entry{display:none}
+body .mobile-nav{display:none!important}
+.mobile-avatar{border:0;cursor:pointer}.topbar .mobile-avatar{display:none}
+@media(max-width:760px){
+ body main{padding:calc(78px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))!important}
+ .topbar{padding:calc(10px + env(safe-area-inset-top)) 16px 10px;gap:12px;align-items:center}
+ .topbar .mobile-avatar{display:grid;width:42px;height:42px;font-size:15px}
+ .topbar>div:first-of-type{flex:1;min-width:0}.topbar h1{font-size:21px}
+ body:has(#dashboard.active) #viewTitle{visibility:hidden}
+ .mobile-menu-control{display:grid;place-items:center;width:44px;height:44px;flex-shrink:0;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--text);cursor:pointer}
+ .mobile-menu-control svg{width:22px;height:22px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
+ .menu-backdrop:not([hidden]){display:block;position:fixed;inset:0;z-index:150;background:rgba(8,20,40,.42);border:0;backdrop-filter:blur(3px)}
+ #appSidebar{display:none;position:fixed;inset:0 auto 0 0;width:min(86vw,350px);height:100dvh;z-index:151;background:var(--surface);color:var(--text);padding:calc(28px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));overflow-y:auto;box-shadow:12px 0 40px #07142826}
+ body.menu-open{overflow:hidden}body.menu-open #appSidebar{display:block;animation:drawerIn .2s ease-out}
+ #appSidebar .brand{font-size:22px;padding-right:40px;margin-bottom:24px}#appSidebar .brand small{display:none}
+ .menu-close{position:absolute;right:14px;top:calc(17px + env(safe-area-inset-top));border:0;font-size:28px}
+ #sideNav{gap:5px}#sideNav button{display:flex;align-items:center;gap:14px;min-height:50px;font-size:15px;color:var(--text);padding:12px;border-radius:14px}
+ #sideNav button.active{background:#eaf2ff;color:#1764dc}#sideNav button:hover{background:var(--surface2)}
+ #sideNav .side-icon{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+ .drawer-profile-links{display:grid;gap:4px;border-top:1px solid var(--line);margin-top:18px;padding-top:14px}
+ .drawer-profile-links button{display:flex;justify-content:space-between;align-items:center;min-height:48px;border:0;background:transparent;color:var(--text);padding:12px;text-align:left;font-size:15px}
+ #appSidebar .aside-bottom{position:static;margin:22px 12px 0;font-size:11px;overflow-wrap:anywhere;color:var(--muted)}
+ .mobile-app-head{margin:4px 2px 16px}.mobile-app-head h1{font-size:28px}.mobile-app-head p{font-size:13px}
+ .mobile-balance-hero{padding:20px;border-radius:23px;margin-bottom:12px;box-shadow:0 8px 20px #112d5414}
+ .mobile-balance-big{font-size:36px}.mobile-balance-note{font-size:12px;line-height:1.5}
+ .mobile-quick-actions{gap:9px;margin-bottom:12px}
+ .mobile-quick-actions .quick-action{border-radius:18px;padding:12px 4px;gap:6px;box-shadow:0 4px 14px #152b4610;background:var(--surface);color:var(--text)}
+ .mobile-quick-actions .qa-income,.mobile-quick-actions .qa-expense{flex-direction:row;justify-content:center;gap:10px;padding:10px 8px;min-height:66px}
+ .qa-income{background:#e7f8ef!important}.qa-expense{background:#fdecef!important}
+ .mobile-quick-actions .qa-icon{width:44px;height:44px;border-radius:14px}.mobile-quick-actions strong{font-size:11px}
+ .mobile-projection-entry{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;text-align:left;border:1px solid var(--line);border-radius:20px;padding:17px;background:var(--surface);color:var(--text);margin:0 0 14px;cursor:pointer}
+ .mobile-projection-entry strong{display:block;font-size:14px;max-width:205px}.mobile-projection-entry small{display:block;font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}.projection-entry-link{color:#1764dc;font-size:11px;font-weight:750;white-space:nowrap}
+ .recent-card{box-shadow:0 5px 18px #152b4609}.recent-card h2{font-size:17px}
+ html[data-theme="dark"] .qa-income{background:#193b30!important}html[data-theme="dark"] .qa-expense{background:#422b35!important}html[data-theme="dark"] #sideNav button.active{background:#213756;color:#83b7ff}
+ @keyframes drawerIn{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+ @media(prefers-reduced-motion:reduce){body.menu-open #appSidebar{animation:none}}
+}
+</style>
 </head>
 <body>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="uberFrontIcon" viewBox="0 0 48 48">
@@ -843,7 +882,9 @@ html[data-theme="dark"] .projection-flow-track{background:#34465e}
   </div>
 </div>
 <div class="app">
-  <aside>
+  <button id="menuBackdrop" class="menu-backdrop" aria-label="Fechar menu" hidden></button>
+  <aside id="appSidebar" aria-label="Menu principal">
+    <button id="menuClose" class="mobile-menu-control menu-close" aria-label="Fechar menu" type="button">×</button>
     <div class="brand">Meu Financeiro<small>Controle e projeção pessoal · V5</small></div>
     <div class="nav" id="sideNav">
       <button data-view="dashboard" class="active"><svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9h13v-9"/><path d="M9.5 19v-5h5v5"/></svg><span>Início</span></button>
@@ -855,19 +896,21 @@ html[data-theme="dark"] .projection-flow-track{background:#34465e}
       <button data-view="settings"><svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21h-4v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H3v-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3h4a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg><span>Configurações</span></button>
       <button data-view="admin" id="adminNav" hidden><svg class="side-icon" viewBox="0 0 24 24" style="fill:currentColor;stroke:none" aria-hidden="true"><circle cx="12" cy="6.5" r="4.5"/><path d="M12 12c-5.2 0-8.8 2.8-8.8 6.4v2c2.4 1.8 5.5 2.7 8.8 2.7s6.4-.9 8.8-2.7v-2C20.8 14.8 17.2 12 12 12Z"/></svg><span>Administrador</span></button>
     </div>
+    <div class="drawer-profile-links"><button type="button" data-profile-section="profile-settings">Meu perfil <span>›</span></button><button type="button" data-profile-section="appearance-settings">Aparência <span>›</span></button></div>
     <div class="aside-bottom"><span class="cloud-dot" id="cloudDot"></span><span id="cloudText">Modo local</span><br><span id="cloudEmail"></span></div>
   </aside>
 
   <main>
     <div class="topbar">
+      <button id="menuOpen" class="mobile-menu-control" type="button" aria-label="Abrir menu" aria-controls="appSidebar" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <div><h1 id="viewTitle">Início</h1><p id="viewSubtitle">Visão geral das suas finanças.</p></div>
-      <div class="actions"><button class="notification-button" id="notificationButton" type="button" aria-label="Abrir central de notificações"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span class="notification-badge" id="notificationBadge" hidden>0</span></button><button class="btn" id="syncTop">☁ Sincronizar</button><button class="btn" id="backupTop">Backup</button><button class="desktop-top-launch income" id="desktopIncome"><span>↗</span> Entrada</button><button class="desktop-top-launch expense" id="desktopExpense"><span>↘</span> Saída</button></div>
+      <div class="actions"><button type="button" class="mobile-avatar" id="mobileAvatar" aria-label="Abrir meu perfil" data-profile-section="profile-settings">MF</button><button class="notification-button" id="notificationButton" type="button" aria-label="Abrir central de notificações"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span class="notification-badge" id="notificationBadge" hidden>0</span></button><button class="btn" id="syncTop">☁ Sincronizar</button><button class="btn" id="backupTop">Backup</button><button class="desktop-top-launch income" id="desktopIncome"><span>↗</span> Entrada</button><button class="desktop-top-launch expense" id="desktopExpense"><span>↘</span> Saída</button></div>
     </div>
 
     <section class="view active" id="dashboard">
       <div class="mobile-app-head">
         <div><h1 id="mobileGreeting">Olá! 👋</h1><p>Suas finanças, no seu ritmo.</p></div>
-        <div class="mobile-avatar" id="mobileAvatar">MF</div>
+        
       </div>
       <div class="mobile-balance-hero">
         <div class="mobile-balance-label">Saldo atual</div>
@@ -883,12 +926,13 @@ html[data-theme="dark"] .projection-flow-track{background:#34465e}
       </div>
 
       <div class="mobile-quick-actions">
-        <button class="quick-action qa-income" id="qaIncome"><span class="qa-icon"><svg viewBox="0 0 24 24"><path d="M5 19 19 5"/><path d="M10 5h9v9"/></svg></span><strong>Receita</strong></button>
-        <button class="quick-action qa-expense" id="qaExpense"><span class="qa-icon"><svg viewBox="0 0 24 24"><path d="m5 5 14 14"/><path d="M10 19h9v-9"/></svg></span><strong>Despesa</strong></button>
+        <button class="quick-action qa-income" id="qaIncome"><span class="qa-icon"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><strong>Receita</strong></button>
+        <button class="quick-action qa-expense" id="qaExpense"><span class="qa-icon"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></span><strong>Despesa</strong></button>
         <button class="quick-action qa-cards" data-go="cards"><span class="qa-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg></span><strong>Cartões</strong></button>
         <button class="quick-action qa-uber" data-go="uber"><span class="qa-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><use href="#uberFrontIcon"/></svg></span><strong>Uber</strong></button>
-        <button class="quick-action" data-go="investments"><span class="qa-icon"><svg viewBox="0 0 24 24"><path d="M3 19h18M5 16l5-5 4 3 5-8M16 6h3v3"/></svg></span><strong>Investir</strong></button>
+        <button class="quick-action" data-go="investments"><span class="qa-icon"><svg viewBox="0 0 24 24"><path d="M3 19h18M5 16l5-5 4 3 5-8M16 6h3v3"/></svg></span><strong>Investimentos</strong></button>
       </div>
+      <button class="mobile-projection-entry" type="button" data-go="projection"><span><strong>Como ficam os próximos meses?</strong><small>Veja sua projeção de saldo mês a mês.</small></span><span class="projection-entry-link">Ver projeção →</span></button>
       <div class="local-mode-banner" id="localModeBanner" hidden><strong>Dados somente deste aparelho</strong>Para ver os mesmos lançamentos no navegador e no app instalado, entre com a mesma conta nos dois. <button class="btn" type="button" id="localModeLogin">Entrar na conta</button></div>
 
       <div class="grid two">
@@ -1629,6 +1673,7 @@ function selectProjectionPane(pane){
 $('#projectionFinanceTab').onclick=()=>selectProjectionPane('finance');
 $('#projectionInvestmentsTab').onclick=()=>selectProjectionPane('investments');
 function go(view){
+ closeMobileMenu(false);
  const requestedInvestment=view==='investments';
  if(requestedInvestment)view='projection';
  if(view==='admin'&&!isAdmin||view==='uber'&&!uberEnabled&&!localOnly)return;
@@ -1648,6 +1693,29 @@ function go(view){
  window.scrollTo({top:0,behavior:'smooth'});
 }
 $$('[data-view]').forEach(b=>b.onclick=()=>go(b.dataset.view));$$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+function closeMobileMenu(restoreFocus=true){
+ const wasOpen=document.body.classList.contains('menu-open');
+ document.body.classList.remove('menu-open');$('#menuBackdrop').hidden=true;$('#menuOpen').setAttribute('aria-expanded','false');
+ $('main').inert=false;$('#appSidebar').removeAttribute('role');$('#appSidebar').removeAttribute('aria-modal');
+ if(wasOpen&&restoreFocus)$('#menuOpen').focus();
+}
+$('#menuOpen').onclick=()=>{
+ document.body.classList.add('menu-open');$('#menuBackdrop').hidden=false;$('#menuOpen').setAttribute('aria-expanded','true');
+ $('#appSidebar').setAttribute('role','dialog');$('#appSidebar').setAttribute('aria-modal','true');$('main').inert=true;$('#menuClose').focus();
+};
+$('#menuClose').onclick=()=>closeMobileMenu();$('#menuBackdrop').onclick=()=>closeMobileMenu();
+$$('[data-profile-section]').forEach(button=>button.onclick=()=>{go('settings');requestAnimationFrame(()=>$('.'+button.dataset.profileSection)?.scrollIntoView({behavior:'smooth',block:'start'}))});
+document.addEventListener('keydown',event=>{
+ if(!document.body.classList.contains('menu-open'))return;
+ if(event.key==='Escape'){event.preventDefault();closeMobileMenu()}
+ if(event.key==='Tab'){
+  const buttons=[...$('#appSidebar').querySelectorAll('button')].filter(b=>!b.hidden&&!b.disabled&&b.getClientRects().length);
+  const first=buttons[0],last=buttons[buttons.length-1];
+  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+ }
+});
+window.addEventListener('resize',()=>{if(innerWidth>760)closeMobileMenu(false)});
 
 function currentMonth(){return new Date().toISOString().slice(0,7)}
 function totals(){
