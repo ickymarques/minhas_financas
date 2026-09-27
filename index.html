@@ -822,6 +822,27 @@ body .mobile-nav{display:none!important}
  @media(prefers-reduced-motion:reduce){body.menu-open #appSidebar{animation:none}}
 }
 </style>
+<style>
+@media(min-width:761px){
+ body:not(.force-mobile-preview) .app{grid-template-columns:76px minmax(0,1fr)}
+ body:not(.force-mobile-preview) #appSidebar{width:76px;padding:22px 14px;overflow:hidden;z-index:70;transition:width .2s ease,box-shadow .2s ease;background:var(--surface);color:var(--text)}
+ body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)){width:244px;box-shadow:10px 0 30px #10213b20}
+ body:not(.force-mobile-preview) #appSidebar .brand{height:50px;margin:2px 0 26px;font-size:0;white-space:nowrap;color:var(--text)}
+ body:not(.force-mobile-preview) #appSidebar .brand::before{content:'MF';display:grid;place-items:center;width:48px;height:44px;border-radius:13px;background:#eaf3ff;color:#1265f3;font-size:17px;letter-spacing:-1px}
+ body:not(.force-mobile-preview) #appSidebar .brand small{display:none}
+ body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)) .brand{font-size:19px;margin-left:8px}
+ body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)) .brand::before{display:none}
+ body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)) .brand small{display:block}
+ body:not(.force-mobile-preview) #sideNav button{width:48px;min-height:44px;gap:13px;padding:12px 14px;overflow:hidden;white-space:nowrap;transition:width .2s ease,background .15s ease}
+ body:not(.force-mobile-preview) #sideNav button span{opacity:0;transition:opacity .12s ease}
+ body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)) #sideNav button{width:216px}
+ body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)) #sideNav button span{opacity:1}
+ body:not(.force-mobile-preview) #appSidebar .aside-bottom{opacity:0;pointer-events:none;width:200px;overflow-wrap:anywhere;transition:opacity .15s ease}
+ body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)) .aside-bottom{opacity:1;pointer-events:auto}
+ html[data-theme="dark"] #appSidebar .brand::before{background:#213756;color:#83b7ff}
+ @media(prefers-reduced-motion:reduce){body:not(.force-mobile-preview) #appSidebar,body:not(.force-mobile-preview) #sideNav button,body:not(.force-mobile-preview) #sideNav button span{transition:none}}
+}
+</style>
 </head>
 <body>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="uberFrontIcon" viewBox="0 0 48 48">
