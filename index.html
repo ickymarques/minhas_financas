@@ -857,6 +857,18 @@ body .mobile-nav{display:none!important}
  body.sidebar-pinned:not(.force-mobile-preview) #appSidebar .aside-bottom{opacity:1;pointer-events:auto}
  html[data-theme="dark"] body.sidebar-pinned .sidebar-pin{background:#213756!important;border-color:#365f8f!important;color:#83b7ff!important}
  html[data-theme="dark"] #appSidebar .brand::before{background:#213756;color:#83b7ff}
+ #appSidebar .brand{display:flex;align-items:center;gap:10px}
+ #appSidebar .brand::before{display:none!important}
+ #appSidebar .brand-mark{display:grid;place-items:center;flex:0 0 48px;width:48px;height:44px;border-radius:13px;background:linear-gradient(145deg,#3286ff,#1265f3);color:#fff;font-size:25px;font-weight:800;line-height:1;box-shadow:0 5px 14px #1265f32a}
+ #appSidebar .brand-wordmark{display:none;white-space:nowrap;font-size:19px;line-height:1.1;letter-spacing:-.02em}
+ #appSidebar .brand-wordmark small{font-size:10px;letter-spacing:0;font-weight:500;margin-top:4px}
+ body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)) .brand-wordmark,
+ body.sidebar-pinned:not(.force-mobile-preview) #appSidebar .brand-wordmark{display:block}
+ body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)) .brand,
+ body.sidebar-pinned:not(.force-mobile-preview) #appSidebar .brand{margin-left:0;margin-bottom:40px}
+ body:not(.force-mobile-preview) #appSidebar .sidebar-pin{top:78px!important}
+ body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)) .brand small,
+ body.sidebar-pinned:not(.force-mobile-preview) #appSidebar .brand small{display:block}
  @media(prefers-reduced-motion:reduce){body:not(.force-mobile-preview) #appSidebar,body:not(.force-mobile-preview) #sideNav button,body:not(.force-mobile-preview) #sideNav button span{transition:none}}
 }
 </style>
@@ -924,7 +936,7 @@ body .mobile-nav{display:none!important}
   <aside id="appSidebar" aria-label="Menu principal">
     <button id="menuClose" class="mobile-menu-control menu-close" aria-label="Fechar menu" type="button">×</button>
     <button id="sidebarPin" class="sidebar-pin" type="button" aria-label="Fixar menu aberto" aria-pressed="false" title="Fixar menu aberto"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8l-1 6 3 3v2H6v-2l3-3-1-6Z"/><path d="M12 14v7"/></svg></button>
-    <div class="brand">Meu Financeiro<small>Controle e projeção pessoal · V5</small></div>
+    <div class="brand"><span class="brand-mark" aria-hidden="true">₿</span><span class="brand-wordmark">Meu Financeiro<small>Controle e projeção pessoal · V5</small></span></div>
     <div class="nav" id="sideNav">
       <button data-view="dashboard" class="active"><svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9h13v-9"/><path d="M9.5 19v-5h5v5"/></svg><span>Início</span></button>
       <button data-view="transactions"><svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h11"/><path d="m15 4 3 3-3 3"/><path d="M17 17H6"/><path d="m9 14-3 3 3 3"/></svg><span>Transações</span></button>
