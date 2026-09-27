@@ -1879,9 +1879,9 @@ function scenarioResult(scenario,baseline){
  const deficitText=a.negativeAfter>a.negativeBefore?`Os meses com resultado negativo passam de ${a.negativeBefore} para ${a.negativeAfter}.`:a.negativeAfter<a.negativeBefore?`Os meses com resultado negativo caem de ${a.negativeBefore} para ${a.negativeAfter}.`:`A quantidade de meses com resultado negativo permanece em ${a.negativeAfter}.`;
  return `<div class="scenario-reply"><p class="scenario-intro">${expense?"Vamos ver como essa compra pesa no seu planejamento. 🧮":"Vamos ver como essa entrada pode ajudar. ✨"}</p><div class="scenario-reply-head"><strong>${esc(title)}</strong><span>${esc(first.label)} · ${active} ${active===1?'mês considerado':'meses considerados'}</span></div><div class="scenario-summary"><div><span>Primeiro mês</span><strong class="${expense?'bad':'good'}">${firstDifference<0?'−':'+'} ${fmt(Math.abs(firstDifference))}</strong></div><div><span>${direction} em ${horizon} meses</span><strong>${fmt(Math.abs(within))}</strong></div></div><p>${monthlyText} ${remainingText}</p><div class="scenario-compare"><span>Resultado em ${esc(first.label)}</span><strong>${fmt(first.before)} → ${fmt(first.after)}</strong><span>Saldo ao fim de ${horizon} meses</span><strong>${fmt(end.balanceBefore)} → ${fmt(end.balanceAfter)}</strong></div>${scenarioChart(months)}<p>${deficitText}</p><details class="scenario-months"><summary>Ver impacto mês a mês</summary><div class="scenario-month-list">${months.map(m=>`<div><span>${esc(m.label)}</span><span>${m.impact<0?'−':m.impact>0?'+':''}${fmt(Math.abs(m.impact))}</span><strong>${fmt(m.after)}</strong></div>`).join('')}</div><small>Última coluna: resultado mensal com a simulação.</small></details>${adviceHtml}<small>Simulação informativa. Nenhum lançamento, saldo ou resultado apurado foi alterado.</small></div>`;
 }
-const scenarioConversation={purchase:null,income:null};
+const scenarioConversation={purchase:null,income:null,last:null,draft:''};
 let scenarioReplyEpoch=0;
-function resetScenarioConversation(){scenarioReplyEpoch++;scenarioConversation.purchase=null;scenarioConversation.income=null;const form=$('#scenarioForm');if(form){form.querySelector('button[type="submit"]').disabled=false;$('#scenarioQuestion').disabled=false}const log=$('#scenarioMessages');if(log)log.innerHTML='<div class="scenario-message assistant">Oi! 👋 Me conte uma ideia de compra ou renda extra. Também posso mostrar seus gastos: pergunte “Quanto gastei este mês?”.</div>';const dock=$('#scenarioDock');if(dock)dock.hidden=true;const launcher=$('#scenarioLauncher');if(launcher)launcher.setAttribute('aria-expanded','false')}
+function resetScenarioConversation(){scenarioReplyEpoch++;scenarioConversation.purchase=null;scenarioConversation.income=null;scenarioConversation.last=null;scenarioConversation.draft='';const form=$('#scenarioForm');if(form){form.querySelector('button[type="submit"]').disabled=false;$('#scenarioQuestion').disabled=false}const log=$('#scenarioMessages');if(log)log.innerHTML='<div class="scenario-message assistant">Oi! 👋 Me conte uma ideia de compra ou renda extra. Também posso mostrar seus gastos: pergunte “Quanto gastei este mês?”.</div>';const dock=$('#scenarioDock');if(dock)dock.hidden=true;const launcher=$('#scenarioLauncher');if(launcher)launcher.setAttribute('aria-expanded','false')}
 function combinedScenarioResult(purchase,income){
  const horizon=Math.max(scenarioHorizon(purchase),scenarioHorizon(income)),baseline=projectionData(horizon),buy=scenarioAnalysis(purchase,baseline),extra=scenarioAnalysis(income,baseline);
  const months=baseline.map((row,i)=>{const impact=buy.months[i].impact+extra.months[i].impact;return{label:row.label,before:row.net,after:row.net+impact,impact,balanceBefore:row.balance,balanceAfter:row.balance+buy.months[i].balanceAfter-buy.months[i].balanceBefore+extra.months[i].balanceAfter-extra.months[i].balanceBefore}});
@@ -1895,16 +1895,57 @@ function scenarioSpendingAnswer(question){
  const sorted=[...categories].sort((a,b)=>b[1]-a[1]),total=rows.reduce((sum,t)=>sum+(+t.amount||0),0),category=sorted.find(([name])=>q.includes(name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()))?.[0],selected=category?rows.filter(t=>t.category===category):rows,selectedTotal=selected.reduce((sum,t)=>sum+(+t.amount||0),0),title=category?`Gastos em ${esc(category)} — ${names[month-1]}/${year}`:`Gastos de ${names[month-1]}/${year}`;
  return `<div class="scenario-reply"><p class="scenario-intro">Olhei os lançamentos desse período para você. 📊</p><div class="scenario-reply-head"><strong>${title}</strong><span>${selected.length} ${selected.length===1?'lançamento':'lançamentos'} registrado(s)</span></div><div class="scenario-summary"><div><span>${category?'Nesta categoria':'Total de despesas'}</span><strong>${fmt(selectedTotal)}</strong></div><div><span>${category?'Todas as despesas do mês':'Maior categoria'}</span><strong>${category?fmt(total):esc(sorted[0]?.[0]||'—')}</strong></div></div>${!category&&sorted.length?`<div class="scenario-spending-bars">${sorted.slice(0,5).map(([name,value])=>`<div><span>${esc(name)}</span><span class="scenario-spending-track"><i style="width:${total?Math.min(100,value/total*100):0}%"></i></span><strong>${fmt(value)}</strong></div>`).join('')}</div>`:''}<p>${rows.length?'Esses valores vêm dos lançamentos registrados para esse mês. Simulações não foram somadas.':'Não há despesas registradas nesse mês.'}</p></div>`;
 }
+function currentScenarioReply(intro=''){
+ const c=scenarioConversation,scenario=c.purchase||c.income;
+ if(!scenario)return{error:'Qual compra ou renda você quer simular? Me diga o valor e, se houver, o prazo.'};
+ const html=c.purchase&&c.income?combinedScenarioResult(c.purchase,c.income):scenarioResult(scenario,projectionData(scenarioHorizon(scenario)));
+ return{html:(intro?`<p class="scenario-intro">${esc(intro)}</p>`:'')+html};
+}
 function answerScenarioChat(question){
- const q=question.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(),spending=/\b(quanto gastei|quanto gasto|meus gastos|minhas despesas|gastos por|gasto com|despesa com)\b/.test(q);
- if(spending)return{html:scenarioSpendingAnswer(question)};
- if(scenarioConversation.purchase&&/\b(a vista|sem parcelar)\b/.test(q)&&!/\b(renda extra|ganhar|receber)\b/.test(q)){scenarioConversation.purchase={...scenarioConversation.purchase,installments:1};scenarioConversation.income=null;const purchase=scenarioConversation.purchase;return{html:scenarioResult(purchase,projectionData(scenarioHorizon(purchase)))}}
- if(scenarioConversation.purchase&&/\b(recomenda|recomendaria|vale a pena|e agora|quanto sobra|resultado)\b/.test(q)&&!/[0-9]/.test(q)){const purchase=scenarioConversation.purchase,income=scenarioConversation.income;return{html:income?combinedScenarioResult(purchase,income):scenarioResult(purchase,projectionData(scenarioHorizon(purchase)))}}
- const preferred=scenarioConversation.purchase&&/\b(renda extra|ganhar|receber|vender|venda|freela)\b/.test(q)?'income':'',scenario=parseScenario(question,new Date(),preferred);
- if(scenario.error)return{error:scenarioConversation.purchase?'Posso continuar a simulação da compra. Por exemplo: “E se eu ganhar R$ 350 por mês durante 8 meses?”, “E à vista?” ou “Você recomendaria agora?”. Também posso mostrar “Quanto gastei este mês?”.':scenario.error+' Também posso responder “Quanto gastei este mês?”.'};
- if(scenario.type==='expense'){scenarioConversation.purchase=scenario;scenarioConversation.income=null;return{html:scenarioResult(scenario,projectionData(scenarioHorizon(scenario)))}}
- if(scenarioConversation.purchase){scenarioConversation.income=scenario;return{html:combinedScenarioResult(scenarioConversation.purchase,scenario)}}
- return{html:scenarioResult(scenario,projectionData(scenarioHorizon(scenario)))};
+ const q=question.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(),c=scenarioConversation;
+ if(/\b(nova simulacao|recomecar|comecar de novo|limpar simulacao)\b/.test(q)){c.purchase=null;c.income=null;c.last=null;c.draft='';return{error:'Vamos começar outra simulação. Qual compra ou renda você está considerando?'}}
+ if(/\b(quanto gastei|quanto gasto|meus gastos|minhas despesas|gastos por|gasto com|despesa com)\b/.test(q))return{html:scenarioSpendingAnswer(question)};
+ if(/\b(sem a renda|desconsidere a renda|retire a renda|tirar a renda)\b/.test(q)){c.income=null;c.last=c.purchase?'purchase':null;return currentScenarioReply('Retirei a renda extra desta hipótese.')}
+ const incomeIntent=/\b(renda|ganhar|ganhasse|receber|recebesse|vender|venda|freela|bonus)\b/.test(q);
+ const purchaseIntent=/\b(compra|comprar|comprasse|celular|parcelas?|parcelad[oa]|parcelamento|a vista)\b/.test(q);
+ const installments=q.match(/\b(\d{1,3})\s*(?:x|vezes|parcelas)\b/);
+ let target=incomeIntent?'income':purchaseIntent||installments?'purchase':c.last||(c.purchase?'purchase':c.income?'income':null);
+ const previous=target&&c[target];
+ const valueMatch=q.match(/r\$\s*([\d.]+(?:,\d{1,2})?)/)||q.match(/\b(?:valor(?: total)?(?: de)?|custar|custasse|custaria|ficar|ficasse|fosse|for|de|por)\s+([\d.]+(?:,\d{1,2})?)(?![\d.,]|\s*(?:x\b|vezes|parcelas|meses|anos))/)||q.match(/^\s*([\d.]+(?:,\d{1,2})?)\s*(?:reais)?[?.!]?\s*$/);
+ const value=valueMatch?Number(valueMatch[1].replace(/\./g,'').replace(',','.')):null;
+ const duration=q.match(/\b(?:durante|por|pelos proximos)\s+(\d{1,3})\s*(meses|mes|anos|ano)\b/);
+ const monthly=/\b(por mes|mensal|mensalmente|todo mes|todos os meses)\b/.test(q);
+ const oneTime=/\b(uma vez|unica vez|unico|pontual)\b/.test(q);
+ const cash=/\b(a vista|sem parcelar)\b/.test(q);
+ const dateText=q.match(/\b(?:daqui a|apos)\s+\d{1,2}\s+mes(?:es)?\b|\bproximo mes\b|\bmes que vem\b|\b(?:janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)(?:\s+(?:de\s+)?20\d{2})?\b|\b(?:0?[1-9]|1[0-2])\/20\d{2}\b/);
+ const now=/\b(este mes|esse mes|neste mes|agora mesmo)\b/.test(q);
+ const fresh=/\b(outra compra|nova compra|outra renda|nova renda)\b/.test(q);
+ if(previous&&!fresh&&(installments||value!==null||duration||monthly||oneTime||cash||dateText||now)){
+  const updated={...previous};
+  if(value!==null){if(!Number.isFinite(value)||value<=0||value>100000000)return{error:'Qual é o valor em reais? Preciso de um valor maior que zero.'};updated.amount=value}
+  if(installments){const count=Number(installments[1]);if(count<1||count>120)return{error:'Consigo simular de 1 a 120 parcelas. Quantas seriam?'};updated.installments=count;updated.recurring=false;updated.duration=null}
+  if(cash){updated.installments=1;updated.recurring=false;updated.duration=null}
+  if(duration){const months=Number(duration[1])*(duration[2].startsWith('ano')?12:1);if(months<1||months>120)return{error:'Qual seria a duração, entre 1 e 120 meses?'};updated.duration=months;updated.recurring=true;updated.installments=1}
+  if(monthly){updated.recurring=true;updated.installments=1}
+  if(oneTime){updated.recurring=false;updated.duration=null;updated.installments=1}
+  if(dateText){const parsed=parseScenario('Comprar por R$ 1 '+dateText[0]);if(parsed.error)return{error:parsed.error};updated.offset=parsed.offset}
+  if(now)updated.offset=0;
+  if(value!==null&&/\b(cada parcela|por parcela|parcela de|parcelas de)\b/.test(q))updated.amount=value*updated.installments;
+  c[target]=updated;c.last=target;
+  const intro=installments?`Entendi! Mantive o valor total de ${fmt(updated.amount)} e ajustei a compra para ${updated.installments}x. Vou considerar até a última parcela. 🧮`:'Atualizei essa hipótese com o que você acabou de informar. Os demais valores e prazos continuam como estavam.';
+  return currentScenarioReply(intro);
+ }
+ if(previous&&/\b(por que|porque|explique|explica|entender|recomenda|recomendaria|vale a pena|e agora|quanto sobra|resultado|resumo)\b/.test(q))return currentScenarioReply('Estou considerando os valores e prazos que combinamos nesta conversa. A recomendação abaixo leva em conta os meses em que o resultado projetado fica negativo.');
+ if(c.purchase&&/\b(quanto|qual|valor)\b.*\b(parcela|mensalidade)\b/.test(q))return{html:`<div class="scenario-reply"><p>A compra de <strong>${fmt(c.purchase.amount)}</strong> em <strong>${c.purchase.installments}x</strong> fica em cerca de <strong>${fmt(c.purchase.amount/c.purchase.installments)} por parcela</strong>, considerando o total informado, sem acrescentar juros não informados. 😊</p><small>Continuo usando essa compra nas próximas perguntas.</small></div>`};
+ if(installments&&!c.purchase&&!value){const count=Number(installments[1]);if(count<1||count>120)return{error:'Quantas parcelas seriam? Consigo simular de 1 a 120.'};c.draft='Comprar em '+count+'x';return{error:'Certo, em '+count+' vezes. Qual é o valor total da compra?'}};
+ const normalized=question.replace(/comprasse|compraria/gi,'comprar').replace(/ganhasse|ganharia/gi,'ganhar').replace(/recebesse|receberia/gi,'receber');
+ const request=!previous&&c.draft?c.draft+' '+(value!==null?'por R$ '+value.toFixed(2).replace('.',',')+' ':'')+normalized:normalized;
+ const scenario=parseScenario(request,new Date(),incomeIntent?'income':'');
+ if(scenario.error){if(!previous&&!c.draft&&(incomeIntent||purchaseIntent))c.draft=normalized;return{error:previous?'Continuo com a simulação anterior. Você quer mudar o valor, as parcelas, a data de início ou a renda extra? Pode dizer, por exemplo, “seria em 21x” ou “começa no próximo mês”.':scenario.error};}
+ c.draft='';
+ if(scenario.type==='expense'){c.purchase=scenario;c.last='purchase';if(fresh)c.income=null}
+ else{c.income=scenario;c.last='income'}
+ return currentScenarioReply();
 }
 $('#scenarioForm').addEventListener('submit',async event=>{event.preventDefault();const input=$('#scenarioQuestion'),question=input.value.trim();if(!question||input.disabled)return;const log=$('#scenarioMessages'),button=event.currentTarget.querySelector('button[type="submit"]'),user=document.createElement('div'),typing=document.createElement('div'),epoch=++scenarioReplyEpoch;user.className='scenario-message user';user.textContent=question;log.appendChild(user);typing.className='scenario-message assistant scenario-typing';typing.setAttribute('role','status');typing.innerHTML='<span>Conferindo os números</span><span class="scenario-typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';log.appendChild(typing);input.value='';input.disabled=true;button.disabled=true;log.scrollTop=log.scrollHeight;await new Promise(resolve=>setTimeout(resolve,window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:650));if(epoch!==scenarioReplyEpoch)return;const reply=document.createElement('div');try{const answer=answerScenarioChat(question);reply.className='scenario-message assistant'+(answer.error?'':' scenario-rich');if(answer.error)reply.textContent=answer.error;else reply.innerHTML=answer.html}catch(error){console.error('Falha no simulador:',error);reply.className='scenario-message assistant';reply.textContent='Não consegui concluir esse cálculo. Tente reformular a pergunta.'}typing.remove();log.appendChild(reply);input.disabled=false;button.disabled=false;log.scrollTop=log.scrollHeight;input.focus()});
 const scenarioScreen=window.matchMedia('(min-width:761px)');
