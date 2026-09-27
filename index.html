@@ -823,6 +823,7 @@ body .mobile-nav{display:none!important}
 }
 </style>
 <style>
+.sidebar-pin{display:none}
 @media(min-width:761px){
  body:not(.force-mobile-preview) .app{grid-template-columns:76px minmax(0,1fr)}
  body:not(.force-mobile-preview) #appSidebar{width:76px;padding:22px 14px;overflow:hidden;z-index:70;transition:width .2s ease,box-shadow .2s ease;background:var(--surface);color:var(--text)}
@@ -839,6 +840,22 @@ body .mobile-nav{display:none!important}
  body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)) #sideNav button span{opacity:1}
  body:not(.force-mobile-preview) #appSidebar .aside-bottom{opacity:0;pointer-events:none;width:200px;overflow-wrap:anywhere;transition:opacity .15s ease}
  body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)) .aside-bottom{opacity:1;pointer-events:auto}
+ .sidebar-pin{display:none}
+ body:not(.force-mobile-preview) #appSidebar:is(:hover,:has(:focus-visible)) .sidebar-pin,
+ body.sidebar-pinned:not(.force-mobile-preview) #appSidebar .sidebar-pin{display:grid;place-items:center;position:absolute;right:12px;top:20px;width:34px;height:34px;border:1px solid var(--line);border-radius:11px;background:var(--surface2);color:var(--muted);cursor:pointer;z-index:1}
+ .sidebar-pin svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;transform:rotate(35deg);transition:transform .2s ease}
+ body.sidebar-pinned .sidebar-pin{color:#1265f3!important;background:#eaf3ff!important;border-color:#bed9ff!important}
+ body.sidebar-pinned .sidebar-pin svg{transform:rotate(0deg)}
+ .sidebar-pin:hover,.sidebar-pin:focus-visible{outline:2px solid #93c5fd;outline-offset:2px}
+ body.sidebar-pinned:not(.force-mobile-preview) .app{grid-template-columns:244px minmax(0,1fr)}
+ body.sidebar-pinned:not(.force-mobile-preview) #appSidebar{width:244px;box-shadow:none}
+ body.sidebar-pinned:not(.force-mobile-preview) #appSidebar .brand{font-size:19px;margin-left:8px}
+ body.sidebar-pinned:not(.force-mobile-preview) #appSidebar .brand::before{display:none}
+ body.sidebar-pinned:not(.force-mobile-preview) #appSidebar .brand small{display:block}
+ body.sidebar-pinned:not(.force-mobile-preview) #sideNav button{width:216px}
+ body.sidebar-pinned:not(.force-mobile-preview) #sideNav button span{opacity:1}
+ body.sidebar-pinned:not(.force-mobile-preview) #appSidebar .aside-bottom{opacity:1;pointer-events:auto}
+ html[data-theme="dark"] body.sidebar-pinned .sidebar-pin{background:#213756!important;border-color:#365f8f!important;color:#83b7ff!important}
  html[data-theme="dark"] #appSidebar .brand::before{background:#213756;color:#83b7ff}
  @media(prefers-reduced-motion:reduce){body:not(.force-mobile-preview) #appSidebar,body:not(.force-mobile-preview) #sideNav button,body:not(.force-mobile-preview) #sideNav button span{transition:none}}
 }
@@ -906,6 +923,7 @@ body .mobile-nav{display:none!important}
   <button id="menuBackdrop" class="menu-backdrop" aria-label="Fechar menu" hidden></button>
   <aside id="appSidebar" aria-label="Menu principal">
     <button id="menuClose" class="mobile-menu-control menu-close" aria-label="Fechar menu" type="button">×</button>
+    <button id="sidebarPin" class="sidebar-pin" type="button" aria-label="Fixar menu aberto" aria-pressed="false" title="Fixar menu aberto"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8l-1 6 3 3v2H6v-2l3-3-1-6Z"/><path d="M12 14v7"/></svg></button>
     <div class="brand">Meu Financeiro<small>Controle e projeção pessoal · V5</small></div>
     <div class="nav" id="sideNav">
       <button data-view="dashboard" class="active"><svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9h13v-9"/><path d="M9.5 19v-5h5v5"/></svg><span>Início</span></button>
@@ -1725,6 +1743,15 @@ $('#menuOpen').onclick=()=>{
  $('#appSidebar').setAttribute('role','dialog');$('#appSidebar').setAttribute('aria-modal','true');$('main').inert=true;$('#menuClose').focus();
 };
 $('#menuClose').onclick=()=>closeMobileMenu();$('#menuBackdrop').onclick=()=>closeMobileMenu();
+function setSidebarPinned(pinned){
+ document.body.classList.toggle('sidebar-pinned',pinned);
+ const pin=$('#sidebarPin');pin.setAttribute('aria-pressed',String(pinned));
+ pin.setAttribute('aria-label',pinned?'Desafixar menu lateral':'Fixar menu aberto');
+ pin.title=pinned?'Desafixar menu lateral':'Fixar menu aberto';
+ try{localStorage.setItem('mfSidebarPinned',pinned?'1':'0')}catch(error){console.error('Não foi possível salvar a preferência do menu:',error)}
+}
+try{if(localStorage.getItem('mfSidebarPinned')==='1')setSidebarPinned(true)}catch(error){console.error('Não foi possível ler a preferência do menu:',error)}
+$('#sidebarPin').onclick=()=>setSidebarPinned(!document.body.classList.contains('sidebar-pinned'));
 $$('[data-profile-section]').forEach(button=>button.onclick=()=>{go('settings');requestAnimationFrame(()=>$('.'+button.dataset.profileSection)?.scrollIntoView({behavior:'smooth',block:'start'}))});
 document.addEventListener('keydown',event=>{
  if(!document.body.classList.contains('menu-open'))return;
