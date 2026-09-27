@@ -1115,6 +1115,7 @@ document.querySelectorAll('input[name="appearance"]').forEach(input=>input.addEv
   if(!input.checked)return;
   try{localStorage.setItem('mfAppearance',input.value)}catch(e){}
   applyAppearance(input.value);
+  if(cloudUser&&accessApproved){localStorage.setItem('mfAppearanceUser:'+cloudUser.id,input.value);localStorage.setItem('mfAppearanceOwner',cloudUser.id);queuePreferenceChange({appearance:input.value})}
 }));
 systemTheme.addEventListener('change',()=>{if(document.documentElement.dataset.appearance==='auto')applyAppearance('auto')});
 const CATS = {
@@ -1320,6 +1321,68 @@ function displayUser(){
  [avatar,preview].forEach(el=>{if(!el)return;if(p.avatar){el.textContent='';el.style.backgroundImage='url("'+p.avatar+'")';el.classList.add('has-photo')}else{el.textContent=initials;el.style.backgroundImage='';el.classList.remove('has-photo')}});
  if(nameInput&&document.activeElement!==nameInput)nameInput.value=p.displayName||pretty;
 }
+let preferencesBusy=false;
+function preferencePendingKey(userId){return 'mf_pref_pending:'+userId}
+function queuePreferenceChange(patch){
+ if(!cloudUser||!accessApproved||localOnly)return;
+ const key=preferencePendingKey(cloudUser.id),pending=readLocalState(key)||{};
+ localStorage.setItem(key,JSON.stringify({...pending,...patch}));
+ syncPendingPreferences(cloudUser.id);
+}
+async function syncPendingPreferences(userId){
+ if(preferencesBusy||cloudUser?.id!==userId||!accessApproved)return;
+ preferencesBusy=true;
+ try{
+  while(cloudUser?.id===userId&&accessApproved){
+   const key=preferencePendingKey(userId),patch=readLocalState(key);
+   if(!patch||!Object.keys(patch).length)break;
+   const created=await cloud.from('account_preferences').insert({user_id:userId});
+   if(created.error&&created.error.code!=='23505')throw created.error;
+   const {error}=await cloud.from('account_preferences').update({...patch,updated_at:new Date().toISOString()}).eq('user_id',userId);
+   if(error)throw error;
+   const latest=readLocalState(key)||{};
+   for(const [field,value] of Object.entries(patch))if(latest[field]===value)delete latest[field];
+   if(Object.keys(latest).length)localStorage.setItem(key,JSON.stringify(latest));else localStorage.removeItem(key);
+  }
+ }catch(error){console.error('Falha ao sincronizar preferências:',error);setCloudStatus('err','Preferências não sincronizadas')}
+ finally{preferencesBusy=false}
+}
+function applyAccountPreferences(userId,remote){
+ if(cloudUser?.id!==userId||!accessApproved)return;
+ const pending=readLocalState(preferencePendingKey(userId))||{},p=readProfile();
+ const displayName=Object.hasOwn(pending,'display_name')?pending.display_name:remote?.display_name;
+ const avatar=Object.hasOwn(pending,'avatar')?pending.avatar:remote?.avatar;
+ if(displayName)p.displayName=displayName;else delete p.displayName;
+ if(avatar)p.avatar=avatar;else delete p.avatar;
+ writeProfile(p);displayUser();
+ const appearance=pending.appearance||remote?.appearance||'auto';
+ localStorage.setItem('mfAppearanceUser:'+userId,appearance);localStorage.setItem('mfAppearanceOwner',userId);
+ localStorage.setItem('mfAppearance',appearance);applyAppearance(appearance);
+}
+async function loadAccountPreferences(userId){
+ if(cloudUser?.id!==userId||!accessApproved)return;
+ try{
+  let {data,error}=await cloud.from('account_preferences').select('display_name,avatar,appearance').eq('user_id',userId).maybeSingle();
+  if(error)throw error;
+  if(!data){
+   const local=readLocalState(profileKey())||{},owner=localStorage.getItem('mfAppearanceOwner');
+   const theme=localStorage.getItem('mfAppearanceUser:'+userId)||(!owner||owner===userId?localStorage.getItem('mfAppearance'):null);
+   const seed={user_id:userId};
+   if(local.displayName)seed.display_name=local.displayName;
+   if(local.avatar)seed.avatar=local.avatar;
+   if(['auto','light','dark'].includes(theme)&&theme!=='auto')seed.appearance=theme;
+   if(Object.keys(seed).length>1){
+    const created=await cloud.from('account_preferences').insert(seed);
+    if(created.error&&created.error.code!=='23505')throw created.error;
+    const latest=await cloud.from('account_preferences').select('display_name,avatar,appearance').eq('user_id',userId).single();
+    if(latest.error)throw latest.error;data=latest.data;
+   }
+  }
+  if(cloudUser?.id!==userId||!accessApproved)return;
+  applyAccountPreferences(userId,data||{appearance:'auto'});
+  await syncPendingPreferences(userId);
+ }catch(error){console.error('Falha ao carregar preferências:',error);setCloudStatus('err','Preferências não sincronizadas')}
+}
 function setCloudStatus(mode,text){
  const dot=$('#cloudDot'),txt=$('#cloudText'),email=$('#cloudEmail'),settings=$('#cloudSettingsText');
  if(dot){dot.className='cloud-dot '+(mode||'');}
@@ -1434,7 +1497,7 @@ async function enterSession(session){
 async function openApprovedSession(userId){
  if(cloudUser?.id!==userId||!accessApproved)return;
  loadUserCache(userId);displayUser();showAuth(false);showOnboarding(true,true);
- await Promise.all([pullCloud(true),loadAccess(userId),checkOnboarding(userId)]);
+ await Promise.all([pullCloud(true),loadAccess(userId),checkOnboarding(userId),loadAccountPreferences(userId)]);
 }
 async function initCloud(){
  try{
@@ -2043,9 +2106,9 @@ $('#clearData').onclick=()=>{if(confirm('Isso apagará todos os dados deste nave
 const profileNameEl=$('#profileDisplayName'),profileFileEl=$('#profileAvatarFile');
 $('#chooseProfileAvatar').onclick=()=>profileFileEl.click();
 $('#profileAvatarPreview').onclick=()=>profileFileEl.click();
-profileFileEl.onchange=()=>{const file=profileFileEl.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const size=256,c=document.createElement('canvas');c.width=size;c.height=size;const ctx=c.getContext('2d'),scale=Math.max(size/img.width,size/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);const p=readProfile();p.avatar=c.toDataURL('image/jpeg',.82);writeProfile(p);displayUser()};img.src=reader.result};reader.readAsDataURL(file)};
-$('#removeProfileAvatar').onclick=()=>{const p=readProfile();delete p.avatar;writeProfile(p);profileFileEl.value='';displayUser()};
-$('#saveProfile').onclick=()=>{const p=readProfile();p.displayName=(profileNameEl.value||'').trim();writeProfile(p);displayUser()};
+profileFileEl.onchange=()=>{const file=profileFileEl.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const size=256,c=document.createElement('canvas');c.width=size;c.height=size;const ctx=c.getContext('2d'),scale=Math.max(size/img.width,size/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);const p=readProfile();p.avatar=c.toDataURL('image/jpeg',.82);writeProfile(p);displayUser();queuePreferenceChange({avatar:p.avatar})};img.src=reader.result};reader.readAsDataURL(file)};
+$('#removeProfileAvatar').onclick=()=>{const p=readProfile();delete p.avatar;writeProfile(p);profileFileEl.value='';displayUser();queuePreferenceChange({avatar:null})};
+$('#saveProfile').onclick=()=>{const p=readProfile();p.displayName=(profileNameEl.value||'').trim();writeProfile(p);displayUser();queuePreferenceChange({display_name:p.displayName||null})};
 $('#authTabLogin').onclick=()=>setAuthMode('login');
 $('#authTabSignup').onclick=()=>setAuthMode('signup');
 $('#forgotPassword').onclick=()=>showRecovery('request');
@@ -2121,7 +2184,7 @@ $('#previewDesktopLayout').onclick=()=>setManualLayoutPreview('desktop');
 if(localStorage.getItem('mfLayoutPreview')==='mobile')setManualLayoutPreview('mobile');
 $('#logoutBtn').onclick=async()=>{if(cloudUser){await cloud.auth.signOut()}else{localOnly=false;setAuthMode('login');showAuth(true,'Você saiu da conta.')}};
 $('#syncNow').onclick=()=>pullCloud(true);$('#syncTop').onclick=()=>cloudUser?pullCloud(true):showAuth(true,'Entre para sincronizar.');
-async function refreshSessionAccess(){if(!cloudUser||localOnly)return;const id=cloudUser.id,wasApproved=accessApproved;if(await verifyApproval(id)){if(!wasApproved)await openApprovedSession(id);else{pullCloud(false);loadAccess(id)}}}
+async function refreshSessionAccess(){if(!cloudUser||localOnly)return;const id=cloudUser.id,wasApproved=accessApproved;if(await verifyApproval(id)){if(!wasApproved)await openApprovedSession(id);else{pullCloud(false);loadAccess(id);loadAccountPreferences(id)}}}
 window.addEventListener('focus',refreshSessionAccess);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshSessionAccess()});
 
