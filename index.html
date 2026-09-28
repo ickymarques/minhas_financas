@@ -1830,7 +1830,42 @@ function renderDashboard(){const t=totals();if($('#mobileBalanceBig'))$('#mobile
 function empty(txt){return `<div class="empty">${txt}</div>`}
 function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function renderRecentTransactions(rows){return rows.map(t=>{const future=isPlannedTx(t),date=new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR'),merchant=t.establishment&&t.establishment!=='-'?`<span>${esc(t.establishment)}</span>`:'',account=t.account?`<span>${esc(t.account)}</span>`:'',installment=t.installmentLabel?`<span class="tx-installments">${esc(t.installmentLabel)}</span>`:'';return `<button type="button" class="recent-item recent-link" data-recent-tx-id="${esc(t.id)}" aria-label="Ver lançamento: ${esc(t.description)}"><span class="recent-icon" aria-hidden="true">${esc(txIcon(t))}</span><span class="recent-content"><span class="recent-item-head"><strong>${esc(t.description)}</strong><span class="recent-item-amount ${t.type}">${t.type==='income'?'+':'−'} ${fmt(t.amount)}</span></span><span class="recent-item-meta"><span>${date}</span>${merchant}${account}</span><span class="recent-item-footer"><span class="tx-status ${future?'planned-status':'posted-status'}">${future?'Previsto':'Lançado'}</span>${installment}</span></span></button>`}).join('')}
-function txIcon(t){const q=[t.category,t.subcategory,t.description,t.establishment].filter(Boolean).join(' ').toLowerCase();const rules=[[/uber|corrida|99 app/,'🚗'],[/seguro auto|seguro.*carro|apólice/,'🛡️'],[/combust|gasolina|etanol|posto/,'⛽'],[/mec[aâ]nic|manuten|oficina|freio|pneu|carro|ve[ií]culo/,'🚘'],[/supermerc|mercado|alimenta|restaurante|lanche|comida|ifood/,'🛒'],[/fog[aã]o|geladeira|eletrodom|eletr[oô]nic|celular|iphone|notebook|computador/,'💻'],[/moradia|aluguel|condom[ií]nio|casa|apartamento/,'🏠'],[/farm[aá]cia|medic|sa[uú]de/,'💊'],[/sal[aá]rio|benef[ií]cio|vale refei|vr\b/,'💰'],[/assinatura|streaming|netflix|spotify/,'▶️'],[/roupa|cal[cç]ado|vestu[aá]rio/,'👕'],[/educa|curso|faculdade|escola/,'📚'],[/viagem|hotel|passagem/,'✈️']];for(const [re,icon] of rules)if(re.test(q))return icon;return t.type==='income'?'↗':'•'}
+function txIcon(t){
+ const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ const description=normalize(t.description),category=normalize(t.category),subcategory=normalize(t.subcategory);
+ const match=(value,rules)=>{for(const [pattern,icon] of rules)if(pattern.test(value))return icon;return ''};
+ if(t.type==='income')return match(description,[[/salario|pagamento mensal|holerite/,'💰'],[/reembolso|estorno|devolucao/,'↩️'],[/investimento|rendimento|juros/,'📈'],[/uber|corrida|99 app/,'🚗'],[/venda|freelance|renda extra|servico/,'💵']])||match(category,[[/salario|beneficio/,'💰'],[/reembolso/,'↩️'],[/investimento/,'📈'],[/renda extra/,'💵']])||'↗';
+ const specific=[
+  [/brigadeiro|chocolate|doce|sobremesa|bolo|sorvete|bombom|confeito|bala\b/,'🍫'],
+  [/bebida|refrigerante|suco|cerveja|vinho|drink|agua mineral|cafe\b/,'🥤'],
+  [/carne|churrasco|frango|peixe|acougue|linguica|bife/,'🥩'],
+  [/racao|petisco.*pet|veterinari|pet shop/,'🐾'],
+  [/seguro.*(auto|carro|veiculo)|apolice/,'🛡️'],
+  [/combustivel|gasolina|etanol|abastec|posto de combustivel/,'⛽'],
+  [/farmacia|remedio|medicamento/,'💊'],
+  [/uber|corrida|99 app|taxi/,'🚕'],
+  [/supermercado|mercado|hortifruti|feira/,'🛒'],
+  [/restaurante|lanche|hamburg|marmita|pizza|ifood|delivery/,'🍽️'],
+  [/padaria|pao\b|salgado/,'🥖'],
+  [/aluguel|condominio|prestacao.*imovel/,'🏠'],
+  [/energia eletrica|conta de luz/,'💡'],
+  [/internet|telefone|celular.*plano/,'🌐'],
+  [/mecanica|manutencao.*carro|oficina|pneu|freio/,'🔧'],
+  [/celular|iphone|smartphone/,'📱'],
+  [/notebook|computador|informatic/,'💻'],
+  [/roupa|vestuario/,'👕'],[/calcado|tenis|sapato/,'👟'],
+  [/streaming|netflix|spotify/,'▶️'],
+  [/curso|faculdade|escola|livro/,'📚'],
+  [/viagem|passagem aerea/,'✈️'],[/hotel|hospedagem/,'🏨'],
+  [/tarifa|taxa.*bancaria|transferencia instantanea/,'🏦']
+ ];
+ const described=match(description,specific);if(described)return described;
+ // As subcategorias do app já possuem um ícone escolhido para cada tipo de gasto.
+ const subIcon=String(t.subcategory||'').trim().match(/^(\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*)/u)?.[1];
+ if(subIcon)return subIcon;
+ const classified=match(subcategory,specific);if(classified)return classified;
+ return match(category,[[/alimentacao/,'🍽️'],[/carro/,'🚘'],[/transporte/,'🚌'],[/moradia/,'🏠'],[/eletronicos/,'💻'],[/saude/,'🩺'],[/educacao/,'📚'],[/pessoais/,'👤'],[/lazer/,'🎭'],[/financeiro|credito/,'💳'],[/pets/,'🐾'],[/familia|presentes/,'🎁'],[/servicos/,'🛠️'],[/documentacao/,'📄']])||'•'
+}
 function isInstallmentTx(t){return !!t.installmentGroup||(+t.installmentTotal||+t.installments||1)>1||/(?:parcela\s*)?\d+\s*\/\s*\d+/i.test(String(t.installmentLabel||''))}
 function isPlannedTx(t){return t.date>today()&&!isInstallmentTx(t)}
 function tableTx(rows,actions=true){return `<div class="table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Estabelecimento</th><th>Categoria</th><th>Conta</th><th>Status</th><th>Parcelas</th><th>Valor</th>${actions?'<th></th>':''}</tr></thead><tbody>${rows.map(t=>{const future=isPlannedTx(t),status=future?'Previsto':'Lançado',parcelas=t.installmentLabel||((+t.installmentTotal||+t.installments||1)>1?String(+t.installmentTotal||+t.installments)+'x':'À vista');return `<tr data-tx-id="${esc(t.id)}"><td data-icon="${esc(txIcon(t))}">${new Date(transactionHistoryDate(t)+'T12:00:00').toLocaleDateString('pt-BR')}</td><td>${esc(t.description)}</td><td>${esc(t.establishment||'-')}</td><td><span class="pill">${esc(t.category)}</span></td><td>${esc(t.account||'-')}</td><td><span class="tx-status ${future?'planned-status':'posted-status'}">${status}</span></td><td><span class="tx-installments">${esc(parcelas)}</span></td><td class="amount ${t.type}">${t.type==='income'?'+':'-'} ${fmt(t.amount)}</td>${actions?`<td><div class="row-actions"><button class="btn" onclick="editTx('${t.id}')">Editar</button><button class="btn danger" onclick="removeTx('${t.id}')">Excluir</button></div></td>`:''}</tr>`}).join('')}</tbody></table></div>`}
