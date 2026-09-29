@@ -1056,7 +1056,8 @@ body .mobile-nav{display:none!important}
       </div>
       <div class="grid two">
         <div class="card section">
-          <div class="section-head"><h2>Lançar corridas</h2><span class="pill">Uber</span></div>
+          <div class="section-head"><h2 id="uberFormTitle">Lançar corridas</h2><span class="pill" id="uberFormMode">Uber</span></div>
+          <p id="uberEditNotice" class="note" hidden></p>
           <form id="uberForm" class="form-grid uber-form-compact">
             <div class="field full"><label>Data</label><input name="date" type="date" required></div>
             <div class="uber-form-row full"><div class="field"><label>Nº de viagens</label><input name="trips" type="number" min="0" step="1" value="0"></div><div class="field"><label>KM rodados</label><input name="km" type="number" min="0" step="0.1" value="0"></div></div>
@@ -2166,8 +2167,18 @@ window.editUber=id=>{
  f.elements.piggy.checked=!!u.piggy;
  f.elements.linkIncome.value=u.linkedTxId?'yes':'no';
  const btn=f.querySelector('button[type="submit"]'); if(btn)btn.textContent='Salvar alterações';
- f.scrollIntoView({behavior:'smooth',block:'start'});
+ const date=new Date(u.date+'T12:00:00').toLocaleDateString('pt-BR');
+ $('#uberFormTitle').textContent='Editar corridas · '+date;
+ $('#uberFormMode').textContent='Em edição';
+ $('#uberEditNotice').hidden=false;
+ $('#uberEditNotice').textContent='Você está editando o registro de '+date+'. Altere os campos abaixo e clique em Salvar alterações.';
+ $('#cancelUberEdit').hidden=false;
+ const card=f.closest('.card');card.style.scrollMarginTop='90px';card.style.outline='2px solid #3286ff';
+ f.elements.trips.focus({preventScroll:true});
+ card.scrollIntoView({behavior:'smooth',block:'start'});
 };
+function resetUberForm(){const f=$('#uberForm');editingUberId=null;f.reset();f.elements.date.value=today();f.elements.maintenancePct.value=12;f.querySelector('button[type="submit"]').textContent='Registrar dia';$('#uberFormTitle').textContent='Lançar corridas';$('#uberFormMode').textContent='Uber';$('#uberEditNotice').hidden=true;$('#cancelUberEdit').hidden=true;f.closest('.card').style.outline=''}
+const cancelUberEdit=document.createElement('button');cancelUberEdit.id='cancelUberEdit';cancelUberEdit.type='button';cancelUberEdit.className='btn full';cancelUberEdit.textContent='Cancelar edição';cancelUberEdit.hidden=true;cancelUberEdit.onclick=resetUberForm;$('#uberForm').appendChild(cancelUberEdit);
 window.removeUber=id=>{if(confirm('Excluir este registro do Uber?')){const u=state.uber.find(x=>x.id===id);if(u?.linkedTxId)state.transactions=state.transactions.filter(t=>t.id!==u.linkedTxId);state.uber=state.uber.filter(x=>x.id!==id);save()}}
 
 function renderAll(){renderDashboard();renderTransactions();renderCards();renderBudget();renderUberBudgetNote();renderProjection();renderInvestments();renderUber();renderNotificationCenter()}
@@ -2302,7 +2313,7 @@ $('#uberForm').addEventListener('submit',e=>{e.preventDefault();const f=new Form
    if(f.get('linkIncome')==='yes'){const txId=uid();u.linkedTxId=txId;state.transactions.push({id:txId,type:'income',amount:Math.max(0,u.net),description:'Uber — lucro líquido',category:'Renda extra',subcategory:'Uber',expenseKind:'Variável',date:u.date,account:'Uber',payment:'Pix',cardId:'',installments:1,tags:['Uber']})}
    state.uber.push(u);
  }
- e.currentTarget.reset();e.currentTarget.date.value=today();e.currentTarget.maintenancePct.value=12;const btn=e.currentTarget.querySelector('button[type="submit"]');if(btn)btn.textContent='Registrar dia';save();go('uber')});
+ resetUberForm();save();go('uber')});
 $('#exportUberCsv').onclick=()=>{const head=['Data','Viagens','Minutos online','Receita bruta','Extra','KM','Consumo km/L','Combustivel R$/L','Custo combustivel','Reserva manutencao','Seguro 1,6%','Outros custos','Liquido'];const rows=state.uber.map(u=>{const c=uberCalc(u);return [u.date,u.trips,u.minutesOnline,u.gross,u.extra,u.km,u.consumption,u.fuelPrice,c.fuel,c.maintenance,c.insurance,u.otherCosts,c.net]});const csv='\ufeff'+[head,...rows].map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n');dl(`uber-${today()}.csv`,csv,'text/csv;charset=utf-8')};
 
 function dl(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
