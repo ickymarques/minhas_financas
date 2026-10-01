@@ -877,6 +877,8 @@ body .mobile-nav{display:none!important}
 
 .category-pie-slice{transition:opacity .22s ease,transform .22s ease,filter .22s ease;transform-origin:110px 110px;cursor:pointer}.category-pie-layout.has-active .category-pie-slice:not(.is-active){opacity:.4}.category-pie-slice.is-active{transform:scale(1.025);filter:drop-shadow(0 3px 4px #17255422)}.category-pie-row{transition:background .22s ease,transform .22s ease,box-shadow .22s ease,opacity .22s ease;cursor:pointer}.category-pie-row.is-active{transform:translateY(-2px);box-shadow:0 4px 12px #17255414;background:var(--surface)}.category-pie-row:focus-visible{outline:2px solid #2875ff;outline-offset:2px}.category-pie-center span{max-width:150px;text-align:center;overflow-wrap:anywhere}.category-pie-layout.has-active .category-pie-center span{font-style:normal;letter-spacing:0;font-weight:700;color:var(--text)}@media(prefers-reduced-motion:reduce){.category-pie-slice,.category-pie-row{transition:none}.category-pie-slice.is-active,.category-pie-row.is-active{transform:none}}
 
+.recent-card{display:flex;flex-direction:column;min-height:0}.recent-card #recentTx{flex:1 1 0;height:0;min-height:280px;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;scrollbar-width:thin;scrollbar-color:#b6c6db transparent;padding-right:8px}.recent-card #recentTx::-webkit-scrollbar{width:5px}.recent-card #recentTx::-webkit-scrollbar-thumb{background:#b6c6db;border-radius:8px}.recent-card #recentTx .recent-item:last-child{padding-bottom:15px}@media(max-width:760px){.recent-card #recentTx{flex:none;height:320px;min-height:0}}
+
 </style>
 </head>
 <body>
@@ -1828,7 +1830,7 @@ function recentTransactionPurchases(transactions,asOf){
   const current=groups.get(key);
   if(!current||number<current.number||number===current.number&&t.date<current.transaction.date)groups.set(key,{transaction:t,purchaseDate,number,total});
  }
- return [...groups.values()].sort((a,b)=>b.purchaseDate.localeCompare(a.purchaseDate)||String(b.transaction.id||'').localeCompare(String(a.transaction.id||''))).slice(0,3).map(({transaction,purchaseDate,total})=>({...transaction,date:purchaseDate,installmentLabel:total>1?`Compra parcelada · ${total}x`:transaction.installmentLabel}));
+ return [...groups.values()].sort((a,b)=>b.purchaseDate.localeCompare(a.purchaseDate)||String(b.transaction.id||'').localeCompare(String(a.transaction.id||''))).slice(0,15).map(({transaction,purchaseDate,total})=>({...transaction,date:purchaseDate,installmentLabel:total>1?`Compra parcelada · ${total}x`:transaction.installmentLabel}));
 }
 function renderDashboard(){const t=totals(),projection=projectionData(6),closingBalance=projection[0].balance;if($('#mobileBalanceBig'))$('#mobileBalanceBig').textContent=fmt(t.balance);if($('#mobileBalanceNote'))$('#mobileBalanceNote').textContent='Saldo previsto no fim do mês: '+fmt(closingBalance);$('#kpiBalance').textContent=fmt(t.balance);$('#kpiIncome').textContent=fmt(t.mi);$('#kpiExpense').textContent=fmt(t.me);$('#kpiNet').textContent=fmt(closingBalance);$('#kpiNet').className='value '+(closingBalance>=0?'good':'bad');$('#kpiIncomeSub').textContent=t.futureMonthIncome?`Neste mês até hoje · ${fmt(t.futureMonthIncome)} em lançamentos futuros`:'Neste mês até hoje';$('#kpiExpenseSub').textContent=t.futureMonthExpense?`Neste mês até hoje · ${fmt(t.futureMonthExpense)} em lançamentos futuros`:'Neste mês até hoje';
  const recent=recentTransactionPurchases(state.transactions,today());$('#recentTx').innerHTML=recent.length?renderRecentTransactions(recent):empty('Nenhuma transação ainda.');
