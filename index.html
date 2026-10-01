@@ -872,6 +872,9 @@ body .mobile-nav{display:none!important}
  @media(prefers-reduced-motion:reduce){body:not(.force-mobile-preview) #appSidebar,body:not(.force-mobile-preview) #sideNav button,body:not(.force-mobile-preview) #sideNav button span{transition:none}}
 }
 </style>
+<style>
+.category-pie-layout{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(0,1.2fr);gap:22px;align-items:center;margin-top:20px}.category-pie-visual svg{display:block;width:100%;max-width:220px;margin:auto}.category-pie-visual p{text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0}.category-pie-visual p strong{display:block;margin-top:4px;font-size:17px;color:var(--text)}.category-pie-legend{display:grid;gap:13px}.category-pie-row{display:grid;grid-template-columns:10px minmax(0,1fr) auto;align-items:center;gap:9px;font-size:12px}.category-pie-row i{width:10px;height:10px;border-radius:50%}.category-pie-row span{overflow-wrap:anywhere}.category-pie-row small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.category-pie-row strong{font-size:12px;white-space:nowrap}@media(max-width:1100px){.category-pie-layout{grid-template-columns:1fr}.category-pie-visual svg{max-width:190px}}
+</style>
 </head>
 <body>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="uberFrontIcon" viewBox="0 0 48 48">
@@ -988,7 +991,7 @@ body .mobile-nav{display:none!important}
 
       <div class="grid two">
         <div class="card section recent-card"><div class="section-head"><h2>Transações recentes</h2><button class="btn" data-go="transactions">Ver todas</button></div><div id="recentTx"></div></div>
-        <div class="card section"><h2>Gastos por categoria</h2><div class="bars" id="categoryBars"></div></div>
+        <div class="card section"><h2>Gastos por categoria</h2><div id="categoryBars"></div></div>
       </div>
 
       <div class="card section" style="margin-top:16px"><div class="section-head"><h2>Projeção rápida</h2><button class="btn" data-go="projection">Detalhar</button></div><div class="projection" id="quickProjection"></div></div>
@@ -1826,9 +1829,15 @@ function recentTransactionPurchases(transactions,asOf){
 }
 function renderDashboard(){const t=totals(),projection=projectionData(6),closingBalance=projection[0].balance;if($('#mobileBalanceBig'))$('#mobileBalanceBig').textContent=fmt(t.balance);if($('#mobileBalanceNote'))$('#mobileBalanceNote').textContent='Saldo previsto no fim do mês: '+fmt(closingBalance);$('#kpiBalance').textContent=fmt(t.balance);$('#kpiIncome').textContent=fmt(t.mi);$('#kpiExpense').textContent=fmt(t.me);$('#kpiNet').textContent=fmt(closingBalance);$('#kpiNet').className='value '+(closingBalance>=0?'good':'bad');$('#kpiIncomeSub').textContent=t.futureMonthIncome?`Neste mês até hoje · ${fmt(t.futureMonthIncome)} em lançamentos futuros`:'Neste mês até hoje';$('#kpiExpenseSub').textContent=t.futureMonthExpense?`Neste mês até hoje · ${fmt(t.futureMonthExpense)} em lançamentos futuros`:'Neste mês até hoje';
  const recent=recentTransactionPurchases(state.transactions,today());$('#recentTx').innerHTML=recent.length?renderRecentTransactions(recent):empty('Nenhuma transação ainda.');
- const cm=currentMonth(),cats={};state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===cm).forEach(x=>cats[x.category]=(cats[x.category]||0)+(+x.amount));const arr=Object.entries(cats).sort((a,b)=>b[1]-a[1]);const max=arr[0]?.[1]||1;$('#categoryBars').innerHTML=arr.length?arr.slice(0,6).map(([c,v])=>`<div class="bar-row"><span>${esc(c)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,v/max*100)}%"></div></div><strong>${fmt(v)}</strong></div>`).join(''):empty('Sem despesas neste mês.');
+ const cm=currentMonth(),cats={};state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===cm).forEach(x=>cats[x.category||'Outros']=(cats[x.category||'Outros']||0)+(+x.amount||0));const arr=Object.entries(cats).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);$('#categoryBars').innerHTML=arr.length?categoryPie(arr):empty('Sem despesas neste mês.');
  $('#quickProjection').innerHTML=projection.map(monthCard).join('');}
 function empty(txt){return `<div class="empty">${txt}</div>`}
+function categoryPie(rows){
+ const total=rows.reduce((sum,[,value])=>sum+value,0),colors=['#2563eb','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#ef4444','#84cc16','#6366f1','#f97316'];let angle=-Math.PI/2;
+ const color=i=>i<colors.length?colors[i]:`hsl(${Math.round(i*137.508)%360} 65% 48%)`;
+ const slices=rows.map(([category,value],i)=>{const portion=value/total,start=angle;angle+=portion*2*Math.PI;const title=esc(`${category}: ${fmt(value)} (${(portion*100).toLocaleString('pt-BR',{maximumFractionDigits:1})}%)`);if(rows.length===1)return `<circle cx="110" cy="110" r="100" fill="${color(i)}"><title>${title}</title></circle>`;const x=a=>(110+100*Math.cos(a)).toFixed(4),y=a=>(110+100*Math.sin(a)).toFixed(4);return `<path d="M110 110 L${x(start)} ${y(start)} A100 100 0 ${portion>0.5?1:0} 1 ${x(angle)} ${y(angle)} Z" fill="${color(i)}" stroke="var(--surface)" stroke-width="2"><title>${title}</title></path>`}).join('');
+ return `<div class="category-pie-layout"><div class="category-pie-visual"><svg viewBox="0 0 220 220" role="img" aria-label="Distribuição dos gastos do mês por categoria"><title>Gastos por categoria · total ${esc(fmt(total))}</title>${slices}</svg><p>Total do mês <strong>${fmt(total)}</strong></p></div><div class="category-pie-legend">${rows.map(([category,value],i)=>`<div class="category-pie-row"><i style="background:${color(i)}" aria-hidden="true"></i><span>${esc(category)}<small>${(value/total*100).toLocaleString('pt-BR',{maximumFractionDigits:1})}% dos gastos</small></span><strong>${fmt(value)}</strong></div>`).join('')}</div></div>`
+}
 function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function renderRecentTransactions(rows){return rows.map(t=>{const future=isPlannedTx(t),date=new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR'),merchant=t.establishment&&t.establishment!=='-'?`<span>${esc(t.establishment)}</span>`:'',account=t.account?`<span>${esc(t.account)}</span>`:'',installment=t.installmentLabel?`<span class="tx-installments">${esc(t.installmentLabel)}</span>`:'';return `<button type="button" class="recent-item recent-link" data-recent-tx-id="${esc(t.id)}" aria-label="Ver lançamento: ${esc(t.description)}"><span class="recent-icon" aria-hidden="true">${esc(txIcon(t))}</span><span class="recent-content"><span class="recent-item-head"><strong>${esc(t.description)}</strong><span class="recent-item-amount ${t.type}">${t.type==='income'?'+':'−'} ${fmt(t.amount)}</span></span><span class="recent-item-meta"><span>${date}</span>${merchant}${account}</span><span class="recent-item-footer"><span class="tx-status ${future?'planned-status':'posted-status'}">${future?'Previsto':'Lançado'}</span>${installment}</span></span></button>`}).join('')}
 function txIcon(t){
