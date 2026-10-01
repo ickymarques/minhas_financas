@@ -1106,6 +1106,7 @@ body .mobile-nav{display:none!important}
       <div class="card section" style="margin-top:16px"><h2>Dados locais</h2><p class="note">O navegador mantém uma cópia local para o app continuar utilizável. O backup manual continua recomendado.</p><button class="btn danger" id="clearData">Apagar todos os dados</button></div>
     </section>
     <section class="view" id="admin">
+      <div class="card section" style="margin-bottom:16px"><div class="section-head"><div><h2>Convide alguém 💙</h2><p class="note">Compartilhe o cadastro do Meu Financeiro. O acesso será liberado somente após sua aprovação.</p></div></div><div class="actions"><button type="button" class="btn primary" id="shareSignup">Compartilhar cadastro ↗</button><button type="button" class="btn" id="copySignup">Copiar link</button></div><p class="note" id="signupShareStatus" role="status" style="margin-top:10px"></p><input id="signupShareLink" readonly aria-label="Link de cadastro" hidden style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text)"></div>
       <div class="card section"><div class="section-head"><div><h2>Administrador</h2><p class="note">Consulte as respostas de perfil e gerencie o acesso aos módulos. Os lançamentos financeiros de cada usuário continuam privados.</p></div><button class="btn" id="adminRefresh" type="button">Atualizar</button></div><div id="adminStatus" class="note">Carregando usuários…</div><div class="admin-list" id="adminUsers"></div></div>
       <div class="card section" style="margin-top:16px"><div class="section-head"><div><h2>Erros relatados</h2><p class="note">Relatos enviados pelos usuários do app.</p></div><button class="btn" id="reportsRefresh" type="button">Atualizar</button></div><div id="reportsStatus" class="note">Carregando relatos…</div><div class="issue-report-list" id="reportsList"></div></div>
     </section>
@@ -1610,7 +1611,7 @@ async function initCloud(){
    const {data:{session}}=await cloud.auth.getSession();
    if(session&&!recoveryLinkOpened)await enterSession(session);
    else if(session&&recoveryLinkOpened){cloudUser=session.user;showRecovery('set')}
-   else{clearUserCaches();applyState(emptyState());renderAll();setCloudStatus('','Não conectado');setAuthMode('login');showAuth(true)}
+   else{clearUserCaches();applyState(emptyState());renderAll();setCloudStatus('','Não conectado');setAuthMode(location.hash==='#cadastro'?'signup':'login');showAuth(true)}
    cloud.auth.onAuthStateChange(async(event,session)=>{
      if(event==='PASSWORD_RECOVERY'){recoveryLinkOpened=true;if(session)cloudUser=session.user;showRecovery('set');return}
      if(recoveryLinkOpened&&session)return;
@@ -2399,6 +2400,11 @@ $('#authSubmit').onclick=async()=>{
 $('#authCheckAccess').onclick=async()=>{if(!cloudUser)return;$('#authCheckAccess').disabled=true;try{if(await verifyApproval(cloudUser.id))await openApprovedSession(cloudUser.id)}finally{$('#authCheckAccess').disabled=false}};
 $('#authPendingLogout').onclick=()=>cloud.auth.signOut();
 $('#adminRefresh').onclick=()=>{renderAdmin();renderReports()};
+const signupInviteUrl='https://ickymarques.github.io/minhas_financas/#cadastro';
+async function copySignupInvite(){if(!isAdmin)return;const status=$('#signupShareStatus');try{await navigator.clipboard.writeText(signupInviteUrl);status.textContent='Link copiado! Envie para a pessoa que deseja convidar.'}catch{const field=$('#signupShareLink');field.value=signupInviteUrl;field.hidden=false;field.focus();field.select();status.textContent='Selecione e copie o link abaixo para enviar o convite.'}}
+$('#copySignup').onclick=copySignupInvite;
+$('#shareSignup').onclick=async()=>{if(!isAdmin)return;if(!navigator.share){await copySignupInvite();return}try{await navigator.share({title:'Meu Financeiro',text:'Você está convidado a organizar suas finanças no Meu Financeiro! Crie sua conta; o acesso depende da aprovação do administrador.',url:signupInviteUrl});$('#signupShareStatus').textContent='Convite compartilhado.'}catch(error){if(error.name!=='AbortError')await copySignupInvite()}};
+
 $('#reportsRefresh').onclick=renderReports;
 $('#issueForm').addEventListener('submit',async event=>{
  event.preventDefault();const form=event.currentTarget,message=String(form.elements.message.value||'').trim(),status=$('#issueFormStatus'),button=form.querySelector('button[type="submit"]');
