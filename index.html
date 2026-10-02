@@ -2427,6 +2427,7 @@ $('#markNotificationsReviewed').onclick=()=>{localStorage.setItem(notificationRe
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#notificationLayer').hidden)closeNotificationCenter()});
 
 function setManualLayoutPreview(mode){
+ if(window.innerWidth<=760){document.body.classList.remove('force-mobile-preview');localStorage.removeItem('mfLayoutPreview');const st=$('#layoutPreviewStatus');if(st)st.textContent='Layout de celular automático';return}
  const mobile=mode==='mobile';document.body.classList.toggle('force-mobile-preview',mobile);
  localStorage.setItem('mfLayoutPreview',mobile?'mobile':'desktop');
  const st=$('#layoutPreviewStatus');if(st)st.textContent=mobile?'Prévia de celular ativa':'Layout de computador ativo';
@@ -2434,7 +2435,8 @@ function setManualLayoutPreview(mode){
 }
 $('#previewMobileLayout').onclick=()=>setManualLayoutPreview('mobile');
 $('#previewDesktopLayout').onclick=()=>setManualLayoutPreview('desktop');
-if(localStorage.getItem('mfLayoutPreview')==='mobile')setManualLayoutPreview('mobile');
+if(window.innerWidth<=760){document.body.classList.remove('force-mobile-preview');localStorage.removeItem('mfLayoutPreview')}else if(localStorage.getItem('mfLayoutPreview')==='mobile')setManualLayoutPreview('mobile');
+window.addEventListener('resize',()=>{if(window.innerWidth<=760&&document.body.classList.contains('force-mobile-preview')){document.body.classList.remove('force-mobile-preview');localStorage.removeItem('mfLayoutPreview')}});
 $('#logoutBtn').onclick=async()=>{if(cloudUser){await cloud.auth.signOut()}else{localOnly=false;setAuthMode('login');showAuth(true,'Você saiu da conta.')}};
 $('#syncNow').onclick=()=>pullCloud(true);$('#syncTop').onclick=()=>cloudUser?pullCloud(true):showAuth(true,'Entre para sincronizar.');
 async function refreshSessionAccess(){if(!cloudUser||localOnly)return;const id=cloudUser.id,wasApproved=accessApproved;if(await verifyApproval(id)){if(!wasApproved)await openApprovedSession(id);else{pullCloud(false);loadAccess(id);loadAccountPreferences(id)}}}
