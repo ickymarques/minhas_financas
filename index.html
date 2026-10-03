@@ -915,6 +915,28 @@ body .mobile-nav{display:none!important}
 .projection-month.neutral .projection-overlay-track{background:#e5ebf2}
 @media(prefers-reduced-motion:reduce){.projection-overlay-expense{transition:none}}
 </style>
+<style id="soft-appearance">
+:root{--bg:#f3f5f8;--surface:#fff;--surface2:#f1f4f8;--text:#253449;--muted:#69788b;--line:#e3e9f0;--good:#367f69;--bad:#ad5a53;--warn:#997342;--shadow:0 4px 12px #243b5310,0 12px 32px #243b5308;--soft-blue:#557fba;--soft-green:#6d9e8b;--soft-red:#c57c73}
+html[data-theme="dark"]{--bg:#151d29;--surface:#1e2938;--surface2:#253244;--text:#e0e7f0;--muted:#a4b2c5;--line:#344357;--good:#8bc5ae;--bad:#e2a199;--warn:#d7ba84;--shadow:0 5px 16px #00000020,0 14px 32px #00000014;--soft-blue:#85a5d0;--soft-green:#78a993;--soft-red:#c68c82}
+:is(.card,.projection-month,.projection-kpi,.quick-action,.mobile-tx-card,.investment-summary-card,.uber-visual,.budget-summary-kpi){box-shadow:var(--shadow);border-color:var(--line)}
+:is(.btn,.notification-button,.mobile-menu-control,.scenario-launcher){box-shadow:0 3px 9px #243b5310}
+:is(.good,.amount.income,.recent-item-amount.income){color:var(--good)}
+:is(.bad,.amount.expense,.recent-item-amount.expense){color:var(--bad)}
+.income-bar,.projection-overlay-track{background:var(--soft-green)}
+.expense-bar,.projection-overlay-expense{background:var(--soft-red)}
+.projection-month.current{border-color:var(--soft-blue);box-shadow:0 0 0 1px #557fba25,var(--shadow)}
+.projection-month-symbol{background:#e8f1ec;color:var(--good)}
+.projection-month.negative .projection-month-symbol{background:#f6ebe8;color:var(--bad)}
+.mobile-balance-hero{background:linear-gradient(135deg,#355577,#294563);box-shadow:0 8px 24px #29456322}
+.mobile-balance-note{color:#c3dfd1}
+.qa-income{background:#eaf3ee;color:var(--good)}.qa-expense{background:#f8eeec;color:var(--bad)}
+.qa-income .qa-icon{background:#e4efe8;color:var(--good)}.qa-expense .qa-icon{background:#f5e7e4;color:var(--bad)}
+.qa-cards .qa-icon{background:#eaf0f8;color:#557fba}.qa-uber .qa-icon{background:#f7f0e2;color:#526b83}
+:is(.scenario-panel,.notification-panel,dialog){box-shadow:0 12px 38px #243b5324}
+html[data-theme="dark"] :is(.qa-income,.qa-expense,.quick-action){background:var(--surface)}
+html[data-theme="dark"] :is(.qa-income .qa-icon,.qa-expense .qa-icon,.qa-cards .qa-icon,.qa-uber .qa-icon,.projection-month-symbol){background:var(--surface2)}
+html[data-theme="dark"] .mobile-balance-hero{background:linear-gradient(135deg,#314965,#263b53)}
+</style>
 </head>
 <body>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="uberFrontIcon" viewBox="0 0 48 48">
