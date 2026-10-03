@@ -894,6 +894,20 @@ body .mobile-nav{display:none!important}
 .recent-card #recentTx{scrollbar-color:transparent transparent}.recent-card #recentTx::-webkit-scrollbar-thumb{background:transparent}.recent-card #recentTx.is-scrolling{scrollbar-color:#b6c6db transparent}.recent-card #recentTx.is-scrolling::-webkit-scrollbar-thumb{background:#b6c6db}.recent-older{display:block;width:100%;margin:14px 0 4px;padding:12px;text-align:center;color:var(--accent);background:var(--surface2)}
 
 </style>
+<style>
+/* A página inicial compartilha as mesmas informações em todas as telas. */
+@media(max-width:760px){
+ #dashboard>.card.section:not([hidden]){display:block}
+ #dashboard>.grid.two{grid-template-columns:minmax(0,1fr)}
+ #dashboard>.home-month-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ #quickProjection{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;overflow:visible;padding-bottom:0}
+ #quickProjection>.projection-month{width:100%;min-width:0;scroll-snap-align:none}
+ #quickProjection .projection-month-balance{font-size:24px}
+ #dashboard .mobile-projection-entry{display:none}
+ #dashboard .section-head{flex-wrap:wrap}
+ #dashboard .section-head .btn{flex-shrink:0}
+}
+</style>
 </head>
 <body>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="uberFrontIcon" viewBox="0 0 48 48">
