@@ -6,7 +6,7 @@ const vm=require('node:vm');
 
 test('o app instalado armazena apenas arquivos presentes e preserva o HTML publicado',async()=>{
  const root=path.join(__dirname,'..'),handlers={},cached=[];
- const cache={addAll:async assets=>{for(const asset of assets){assert.ok(fs.existsSync(path.join(root,asset)),'Arquivo ausente no cache: '+asset);cached.push(asset)}},put:async()=>{}};
+ const cache={addAll:async assets=>{for(const asset of assets){assert.ok(fs.existsSync(path.join(root,asset.split(/[?#]/)[0])),'Arquivo ausente no cache: '+asset);cached.push(asset)}},put:async()=>{}};
  const context={self:{addEventListener:(name,handler)=>{handlers[name]=handler},skipWaiting:async()=>{},clients:{claim:async()=>{}}},caches:{open:async()=>cache,keys:async()=>[],match:async()=>null},fetch:async()=>({ok:true,clone(){return this}}),Promise};
  vm.runInNewContext(fs.readFileSync(path.join(root,'sw.js'),'utf8'),context);
  let install;handlers.install({waitUntil:p=>{install=p}});await install;
