@@ -986,6 +986,13 @@ html[data-theme="dark"] #admin [data-access-status="rejected"]{color:var(--bad)}
 #admin [data-report-resolve]::before{-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m5%2012%204%204%2010-10%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m5%2012%204%204%2010-10%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat}
 #admin [data-report-email]::before{-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%205h18v14H3zM3%205l9%208%209-8%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%205h18v14H3zM3%205l9%208%209-8%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat}
 </style>
+<style id="secondary-icon-system">
+.view:not(#dashboard) .ui-action-icon{width:19px;height:19px;flex:0 0 19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.view:not(#dashboard) .btn.has-ui-icon{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:42px;font-size:13px;width:auto;height:auto;padding:10px 14px;border-radius:12px}
+.view:not(#dashboard) .actions .btn.has-ui-icon::before{content:none}
+:is(#sideNav .side-icon,.mobile-menu-control svg,.notification-button svg){stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:760px){.view:not(#dashboard) .actions .btn.has-ui-icon{display:inline-flex;font-size:13px;width:auto;height:auto;min-height:44px;padding:11px 14px}.view:not(#dashboard) .actions{flex-wrap:wrap}}
+</style>
 </head>
 <body>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="uberFrontIcon" viewBox="0 0 48 48">
@@ -2564,5 +2571,18 @@ renderAll();initCloud();
 <script src="./invoice-import.js"></script>
 <!-- integration-write-check-20260913b -->
 <!-- integration-write-check-20260913d -->
+<script>
+(function(){
+ const paths={add:'M12 5v14M5 12h14',edit:'m4 16 11-11 4 4-11 11-5 1zM13 7l4 4',remove:'M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7',save:'M4 3h14l3 3v15H3V3zM7 3v6h10V3M7 21v-8h10v8',close:'M6 6l12 12M18 6 6 18',download:'M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4',send:'m3 3 18 9-18 9 4-9-4-9zM7 12h14',view:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7zM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',refresh:'M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 12-2l2 2M18 17a7 7 0 0 1-12 2l-2-2'};
+ function decorate(){document.querySelectorAll('.view:not(#dashboard):not(#settings):not(#admin) .btn').forEach(button=>{
+ if(button.querySelector('svg')||button.dataset.uiIcon)return;
+ const label=button.textContent.trim(),key=/^(\+|Novo|Nova|Adicionar|Registrar)/i.test(label)?'add':/^Editar/i.test(label)?'edit':/^(Excluir|Remover|Apagar)/i.test(label)?'remove':/^Salvar/i.test(label)?'save':/^(Cancelar|Fechar)/i.test(label)?'close':/^(Exportar|Baixar)/i.test(label)?'download':/^Enviar/i.test(label)?'send':/^(Ver|Detalhar|Revisar)/i.test(label)?'view':/^(Atualizar|Recalcular)/i.test(label)?'refresh':null;
+ if(!key)return;button.dataset.uiIcon=key;button.classList.add('has-ui-icon');
+ const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('class','ui-action-icon');svg.setAttribute('aria-hidden','true');const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',paths[key]);svg.appendChild(path);
+ if(label.startsWith('+')&&button.firstChild?.nodeType===3)button.firstChild.textContent=button.firstChild.textContent.replace(/^\s*\+\s*/,'');button.prepend(svg);
+ })}
+ decorate();let scheduled=false;new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;decorate()})}).observe(document.querySelector('main'),{childList:true,subtree:true});
+})();
+</script>
 </body>
 </html>
