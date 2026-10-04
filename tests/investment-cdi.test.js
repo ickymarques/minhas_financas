@@ -47,3 +47,23 @@ test('percentual do CDI incide sobre taxa diária e investimento não modifica e
  ctx.investmentForecast([item],24);assert.equal(JSON.stringify(item),before);
  assert.equal(ctx.investmentMonthlyRate({rateType:'monthly',rate:1}),0.01);
 });
+
+test('resumo exibe rendimento e gráfico responde ao seletor sem alterar investimentos',async()=>{
+ const {ctx}=context();await ctx.refreshCdiRate(true);
+ const nodes=new Map(),node=id=>{if(!nodes.has(id))nodes.set(id,{innerHTML:'',value:id==='#investmentHorizon'?'12':'',attrs:{},setAttribute(k,v){this.attrs[k]=v},querySelectorAll(){return []},getBoundingClientRect(){return {left:0,width:600}}});return nodes.get(id)};
+ ctx.$=node;ctx.state={investments:[{id:'sample',name:'Reserva',balance:6850,asOf:new Date().toISOString().slice(0,10),rateType:'cdi',rate:100,contribution:100,taxType:'taxable'}]};
+ ctx.fmt=v=>'R$ '+v.toFixed(2);ctx.esc=v=>String(v);const before=JSON.stringify(ctx.state);
+ vm.runInContext(html.slice(html.indexOf('function renderInvestments(){'),html.indexOf('function updateInvestmentRateFields()')),ctx);
+ ctx.renderInvestments();
+ assert.match(node('#investmentSummary').innerHTML,/Quanto rende em 1 mês/);
+ assert.match(node('#investmentSummary').innerHTML,/Líquido estimado/);
+ assert.match(node('#investmentProjection').innerHTML,/investmentInteractiveChart/);
+ node('#investmentChartMonth').oninput({target:{value:'3'}});
+ assert.match(node('#investmentChartDetails').innerHTML,/Em 3 meses/);
+ assert.match(node('#investmentChartDetails').innerHTML,/Tributos estimados/);
+ assert.match(node('#investmentChartDetails').innerHTML,/Ganho líquido/);
+ assert.equal(node('#investmentChartCursor').attrs.x1,189);
+ node('#investmentInteractiveChart').onclick({clientX:576});
+ assert.match(node('#investmentChartDetails').innerHTML,/Em 12 meses/);
+ assert.equal(JSON.stringify(ctx.state),before);
+});
