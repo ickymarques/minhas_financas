@@ -1,4 +1,4 @@
-const CACHE='meu-financeiro-v5-9-84-profile-avatars';
+const CACHE='meu-financeiro-v5-9-85-avatar-proportions';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./invoice-import.js','./push.js','./cdi-reference.json','./profile-avatars.js'];
 
 self.addEventListener('install',event=>{
