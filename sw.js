@@ -1,5 +1,5 @@
-const CACHE='meu-financeiro-v5-9-82-web-push';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./invoice-import.js','./push.js'];
+const CACHE='meu-financeiro-v5-9-83-cdi-reference';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./invoice-import.js','./push.js','./cdi-reference.json'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
