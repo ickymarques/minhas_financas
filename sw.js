@@ -1,5 +1,5 @@
 const CACHE='meu-financeiro-v5-9-85-avatar-proportions';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./invoice-import.js','./push.js','./cdi-reference.json','./profile-avatars.js'];
+const ASSETS=['./','./index.html','./manifest.webmanifest','./invoice-import.js','./push.js','./cdi-reference.json','./profile-avatars.js?v=2'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
