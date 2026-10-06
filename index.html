@@ -44,7 +44,14 @@
     .filters{display:flex;gap:8px;flex-wrap:wrap}.filters input,.filters select{border:1px solid var(--line);padding:10px 12px;border-radius:11px;background:#fff}.exact-duplicate-filter{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:11px 13px;border:1px solid #f2d39c;border-radius:12px;background:#fff8e8;color:#7a4300;font-size:12px;line-height:1.4}.exact-duplicate-filter strong{display:block}.exact-duplicate-filter button{flex:0 0 auto;border:0;border-radius:9px;background:#fff;color:#89571b;padding:7px 10px;font-size:11px;font-weight:800;cursor:pointer}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:6px;align-content:start}.installment-toggle{display:flex!important;align-items:center;justify-content:space-between;gap:18px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#f8fafc;cursor:pointer}
 .installment-toggle>span:first-child{display:block}.installment-toggle strong{display:block;font-size:13px;color:var(--text)}.installment-toggle small{display:block;margin-top:4px;font-size:11px;font-weight:500;color:var(--muted)}
 .switch{position:relative;flex:0 0 auto;width:46px;height:27px}.switch input{position:absolute;opacity:0;pointer-events:none}.switch-track{position:absolute;inset:0;border-radius:999px;background:#cbd5e1;transition:.2s ease}.switch-track:after{content:"";position:absolute;width:21px;height:21px;left:3px;top:3px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(15,23,42,.18);transition:.2s ease}.switch input:checked+.switch-track{background:#1672f3}.switch input:checked+.switch-track:after{transform:translateX(19px)}
-.installment-fields[hidden]{display:none!important}
+.installment-fields[hidden],#txForm .pay-later-fields[hidden]{display:none!important}
+#txForm .tx-payment-row{display:flex;align-items:end;gap:12px;min-width:0}
+#txForm .tx-payment-method{flex:1;min-width:0}
+#txForm .tx-payment-method select{width:100%;min-width:0}
+#txForm .tx-installment-compact{min-height:42px;padding:9px 11px;gap:10px;border-radius:11px;box-sizing:border-box}
+#txForm .tx-installment-compact strong{font-size:12px;font-weight:600}
+#txForm .tx-installment-compact .switch{flex-shrink:0}
+@media(max-width:480px){#txForm .tx-payment-row{gap:8px}#txForm .tx-installment-compact{padding:9px 8px;gap:6px}#txForm .tx-installment-compact strong{max-width:65px;line-height:1.3}}
 .field-help{display:block;margin-top:0;font-size:11px;line-height:16px;color:var(--muted)}.field:has(.field-help) input{height:46px}.field:has(.field-help){grid-template-rows:auto 46px 16px}
 .field label{font-size:12px;color:var(--muted);font-weight:700}.field input,.field select{border:1px solid var(--line);padding:11px 12px;border-radius:10px;background:#fff;width:100%}.full{grid-column:1/-1}
     dialog{border:0;border-radius:20px;padding:0;max-width:620px;width:calc(100% - 28px);box-shadow:0 30px 80px rgba(15,23,42,.3)}dialog::backdrop{background:rgba(15,23,42,.45)}.modal{padding:22px}.modal h3{margin:0 0 18px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.pill{font-size:12px;padding:5px 8px;border-radius:999px;background:#e2e8f0;color:#334155;font-weight:700}.good{color:var(--good)}.bad{color:var(--bad)}.planned{color:var(--warn);font-weight:700}.row-actions{display:flex;gap:6px;justify-content:flex-end}
@@ -1335,8 +1342,10 @@ html[data-theme="dark"] #admin [data-access-status="rejected"]{color:var(--bad)}
   <div class="field"><label>Tipo do gasto</label><select name="expenseKind"><option>Variável</option><option>Fixo</option></select></div>
   <div class="field"><label>Data</label><input name="date" type="date" required></div>
   <input type="hidden" name="account">
-  <div class="field"><label>Meio de pagamento</label><select name="payment" id="txPayment"></select></div>
-  <div class="field full expense-only" id="installmentToggleField"><label class="installment-toggle"><span><strong>Compra parcelada</strong><small>Ative para informar as parcelas da compra.</small></span><span class="switch"><input type="checkbox" name="isInstallment" id="txIsInstallment"><span class="switch-track"></span></span></label></div>
+  <div class="tx-payment-row full">
+    <div class="field tx-payment-method"><label for="txPayment">Meio de pagamento</label><select name="payment" id="txPayment"></select></div>
+    <div class="field expense-only" id="installmentToggleField"><label class="installment-toggle tx-installment-compact"><strong>Compra parcelada</strong><span class="switch"><input type="checkbox" name="isInstallment" id="txIsInstallment"><span class="switch-track"></span></span></label></div>
+  </div>
   <div class="field full expense-only"><label class="installment-toggle"><span><strong>Pagar depois</strong><small>Compra feita agora, com pagamento em outra data.</small></span><span class="switch"><input type="checkbox" name="payLater" id="txPayLater"><span class="switch-track"></span></span></label></div>
   <div class="field full pay-later-fields" hidden><label>Data prevista para pagamento</label><input name="paymentDate" type="date"><small class="field-help">Até lá, a despesa aparecerá como prevista.</small></div>
   <div class="field installment-fields" hidden><label>Total de parcelas</label><input name="installments" type="number" min="2" max="60" value="2"></div>
