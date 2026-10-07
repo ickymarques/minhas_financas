@@ -1352,11 +1352,11 @@ html[data-theme="dark"] #admin [data-access-status="rejected"]{color:var(--bad)}
   <div class="field"><label>Subcategoria</label><select name="subcategory" id="txSubcategory"></select></div>
   <div class="field"><label>Tipo do gasto</label><select name="expenseKind"><option>Variável</option><option>Fixo</option></select></div>
   <div class="field"><label>Data</label><input name="date" type="date" required></div>
-  <div class="field"><label for="txBank">Banco</label><select name="account" id="txBank"></select></div>
   <div class="tx-payment-row full">
+    <div class="field"><label for="txBank">Banco</label><select name="account" id="txBank"></select></div>
     <div class="field tx-payment-method"><label for="txPayment">Meio de pagamento</label><select name="payment" id="txPayment"></select></div>
-    <div class="field expense-only" id="installmentToggleField"><label class="installment-toggle tx-installment-compact"><strong>Compra parcelada</strong><span class="switch"><input type="checkbox" name="isInstallment" id="txIsInstallment"><span class="switch-track"></span></span></label></div>
   </div>
+  <div class="field full expense-only" id="installmentToggleField"><label class="installment-toggle"><span><strong>Compra parcelada</strong><small>Divida esta compra em parcelas mensais.</small></span><span class="switch"><input type="checkbox" name="isInstallment" id="txIsInstallment"><span class="switch-track"></span></span></label></div>
   <div class="field full"><label class="installment-toggle"><span><strong id="txDeferredLabel">Pagar depois</strong><small id="txDeferredHelp">Compra feita agora, com pagamento em outra data.</small></span><span class="switch"><input type="checkbox" name="payLater" id="txPayLater"><span class="switch-track"></span></span></label></div>
   <div class="field full pay-later-fields" hidden><label id="txDeferredDateLabel">Data prevista para pagamento</label><input name="paymentDate" type="date"><small class="field-help">Até lá, a despesa aparecerá como prevista.</small></div>
   <div class="field installment-fields" hidden><label>Total de parcelas</label><input name="installments" type="number" min="2" max="60" value="2"></div>
