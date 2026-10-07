@@ -1,5 +1,5 @@
-const CACHE='meu-financeiro-v5-9-86-bcb-bank-catalog';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./invoice-import.js','./push.js','./cdi-reference.json','./bcb-institutions.json','./profile-avatars.js?v=2'];
+const CACHE='meu-financeiro-v5-9-87-payment-reminders';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./invoice-import.js','./push.js','./payment-reminders-core.js','./cdi-reference.json','./bcb-institutions.json','./profile-avatars.js?v=2'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
@@ -10,17 +10,18 @@ self.addEventListener('push',event=>{
   event.waitUntil(self.registration.showNotification(String(payload.title||'Meu Financeiro').slice(0,100),{
     body:String(payload.body||'Há um novo aviso no app.').slice(0,240),
     tag:String(payload.tag||'mf-notification').slice(0,100),
-    data:{announcement:payload.announcement==='regularize'?'regularize':null}
+    data:{reminders:payload.reminders===true,announcement:payload.announcement==='regularize'?'regularize':null}
   }));
 });
 self.addEventListener('notificationclick',event=>{
   event.notification.close();
   const regularize=event.notification.data?.announcement==='regularize';
-  const target=new URL('./'+(regularize?'?announcement=regularize':''),self.registration.scope);
+  const reminders=event.notification.data?.reminders===true;
+  const target=new URL('./'+(regularize?'?announcement=regularize':reminders?'?reminders=1':''),self.registration.scope);
   event.waitUntil((async()=>{
     const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
     for(const client of windows){if(client.url.startsWith(self.registration.scope)){
-      await client.focus();if(regularize)client.postMessage({type:'open-regularize'});return;
+      await client.focus();if(regularize)client.postMessage({type:'open-regularize'});if(reminders)client.postMessage({type:'open-payment-reminders'});return;
     }}
     await self.clients.openWindow(target.href);
   })());
