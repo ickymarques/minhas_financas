@@ -1,5 +1,5 @@
-const CACHE='meu-financeiro-v5-9-87-payment-reminders';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./invoice-import.js','./push.js','./payment-reminders-core.js','./cdi-reference.json','./bcb-institutions.json','./profile-avatars.js?v=2'];
+const CACHE='meu-financeiro-v5-9-88-subcategory-labels';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./invoice-import.js?v=2','./push.js','./payment-reminders-core.js','./cdi-reference.json','./bcb-institutions.json','./profile-avatars.js?v=2'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
