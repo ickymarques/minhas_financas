@@ -110,7 +110,7 @@
         '<input class="inv-desc" value="'+escHtml(r.description)+'">'+
         '<input class="inv-inst" value="'+escHtml(r.installmentLabel||'')+'" placeholder="Ex.: 3/10">'+
         '<select class="inv-cat">'+cats.map(function(c){return '<option value="'+escHtml(c)+'" '+(c===r.category?'selected':'')+'>'+escHtml(c)+'</option>';}).join('')+'</select>'+
-        '<select class="inv-sub">'+subs.map(function(sub){return '<option value="'+escHtml(sub)+'" '+(sub===r.subcategory?'selected':'')+'>'+escHtml(sub)+'</option>';}).join('')+'</select>'+
+        '<select class="inv-sub">'+subs.map(function(sub){return '<option value="'+escHtml(sub)+'" '+(sub===r.subcategory?'selected':'')+'>'+escHtml(window.subcategoryLabel(sub))+'</option>';}).join('')+'</select>'+
         '<input class="inv-amount" type="number" min="0.01" step="0.01" value="'+Number(r.amount).toFixed(2)+'">'+
         '<div class="inv-dup note">'+statusText+'</div></div>';
     }).join('');
@@ -125,7 +125,7 @@
         var subs=Object.keys(CATS[draft[i].category]||{});
         draft[i].subcategory=subs[0]||'';
         var subSel=row.querySelector('.inv-sub');
-        subSel.innerHTML=subs.map(function(sub){return '<option value="'+escHtml(sub)+'">'+escHtml(sub)+'</option>';}).join('');
+        subSel.innerHTML=subs.map(function(sub){return '<option value="'+escHtml(sub)+'">'+escHtml(window.subcategoryLabel(sub))+'</option>';}).join('');
         subSel.value=draft[i].subcategory;
       };
       row.querySelector('.inv-sub').onchange=function(e){draft[i].subcategory=e.target.value;};
