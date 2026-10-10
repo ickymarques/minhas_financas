@@ -1,0 +1,12 @@
+create table public.push_config (id boolean primary key default true check(id), public_key text not null, private_key text not null);
+create table public.push_subscriptions (endpoint text primary key, user_id uuid not null references auth.users(id) on delete cascade, subscription jsonb not null, updated_at timestamptz not null default now());
+create index push_subscriptions_user_id_idx on public.push_subscriptions(user_id);
+create table public.push_deliveries (endpoint text not null references public.push_subscriptions(endpoint) on delete cascade, campaign text not null, created_at timestamptz not null default now(), primary key(endpoint,campaign));
+alter table public.push_config enable row level security;
+alter table public.push_subscriptions enable row level security;
+alter table public.push_deliveries enable row level security;
+revoke all on public.push_config,public.push_subscriptions,public.push_deliveries from public,anon,authenticated;
+grant all on public.push_config,public.push_subscriptions,public.push_deliveries to service_role;
+create policy push_config_backend on public.push_config to service_role using (true) with check (true);
+create policy push_subscriptions_backend on public.push_subscriptions to service_role using (true) with check (true);
+create policy push_deliveries_backend on public.push_deliveries to service_role using (true) with check (true);
