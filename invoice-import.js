@@ -266,8 +266,8 @@
     }
   }
 
-  // Layout Grid unificado com scroll horizontal garantido para nunca quebrar linhas
-  var GRID_LAYOUT = 'display:grid!important;grid-template-columns:30px 130px 150px 180px 75px 125px 145px 90px 140px!important;gap:8px!important;align-items:center!important;min-width:1065px!important;box-sizing:border-box!important;';
+  // Grid responsivo com frações proporcionais para ocupar 100% da largura do card
+  var GRID_LAYOUT = 'display:grid!important;grid-template-columns:28px 120px minmax(130px,1.4fr) minmax(140px,1.5fr) 60px 115px minmax(120px,1.3fr) 85px minmax(120px,1.2fr)!important;gap:8px!important;align-items:center!important;width:100%!important;box-sizing:border-box!important;';
 
   function render(){
     var box = el('invoicePreview'), sum = el('invoiceSummary'), actions = el('invoiceActions'); 
@@ -280,11 +280,11 @@
       return; 
     }
     
-    // Garante que o contêiner tenha rolagem horizontal caso a tela seja menor que 1065px
-    box.style.cssText = 'overflow-x:auto;width:100%;margin-top:14px;padding-bottom:10px;';
+    // Ocupa 100% do bloco do card e permite scroll suave em telas estreitas
+    box.style.cssText = 'overflow-x:auto;width:100%;margin-top:14px;padding-bottom:10px;box-sizing:border-box;';
 
     var cats = Object.keys(CATS);
-    box.innerHTML = '<div class="invoice-columns" style="' + GRID_LAYOUT + 'padding:0 10px 8px;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;">' + 
+    box.innerHTML = '<div class="invoice-columns" style="' + GRID_LAYOUT + 'padding:0 8px 8px;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;">' + 
       '<span style="text-align:center;">✓</span><span>Data</span><span>Estabelecimento</span><span>Descrição</span><span>Parcela</span><span>Categoria</span><span>Subcategoria</span><span style="text-align:right;">Valor</span><span style="text-align:center;">Status</span></div>' + 
       draft.map(function(r, i){
         var subs = Object.keys(CATS[r.category] || {});
@@ -292,16 +292,16 @@
         var styleBg = r.dupLevel === 'exact' ? 'opacity:0.65;background:#f8fafc;' : (r.dupLevel === 'suspect' ? 'background:#fffdf0;border-color:#f6e05e;' : 'background:#ffffff;');
         var statusColor = r.dupLevel === 'exact' ? 'color:#b42318;background:#fee2e2;border:1px solid #fecaca;' : (r.dupLevel === 'suspect' ? 'color:#b7791f;background:#fef3c7;border:1px solid #fde68a;' : 'color:#047857;background:#d1fae5;border:1px solid #a7f3d0;');
 
-        return '<div class="invoice-row ' + badgeClass + '" style="' + GRID_LAYOUT + styleBg + 'padding:8px 10px;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:6px;" data-i="' + i + '">' +
+        return '<div class="invoice-row ' + badgeClass + '" style="' + GRID_LAYOUT + styleBg + 'padding:8px;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:6px;" data-i="' + i + '">' +
           '<input class="inv-use" type="checkbox" ' + (r.selected ? 'checked' : '') + ' style="width:18px;height:18px;margin:0 auto;cursor:pointer;">' +
-          '<input class="inv-date" type="date" value="' + escHtml(r.date) + '" style="width:100%;padding:6px 8px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' +
-          '<input class="inv-est" value="' + escHtml(r.establishment) + '" placeholder="Estabelecimento" style="width:100%;padding:6px 8px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' +
-          '<input class="inv-desc" value="' + escHtml(r.description) + '" placeholder="Descrição" style="width:100%;padding:6px 8px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' +
-          '<input class="inv-inst" value="' + escHtml(r.installmentLabel || '') + '" placeholder="1x" style="width:100%;padding:6px 8px;font-size:12px;text-align:center;border:1px solid #cbd5e1;border-radius:8px;">' +
-          '<select class="inv-cat" style="width:100%;padding:6px 4px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' + cats.map(function(c){ return '<option value="' + escHtml(c) + '" ' + (c === r.category ? 'selected' : '') + '>' + escHtml(c) + '</option>'; }).join('') + '</select>' +
-          '<select class="inv-sub" style="width:100%;padding:6px 4px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' + subs.map(function(sub){ return '<option value="' + escHtml(sub) + '" ' + (sub === r.subcategory ? 'selected' : '') + '>' + escHtml(window.subcategoryLabel(sub)) + '</option>'; }).join('') + '</select>' +
-          '<input class="inv-amount" type="number" min="0.01" step="0.01" value="' + Number(r.amount).toFixed(2) + '" style="width:100%;padding:6px 8px;font-size:12px;text-align:right;font-weight:700;border:1px solid #cbd5e1;border-radius:8px;">' +
-          '<div class="inv-dup" style="font-size:10px;font-weight:800;padding:5px 6px;border-radius:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' + statusColor + '" title="' + escHtml(r.dupText) + '">' + escHtml(r.dupText) + '</div></div>';
+          '<input class="inv-date" type="date" value="' + escHtml(r.date) + '" style="width:100%;box-sizing:border-box;padding:6px 6px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' +
+          '<input class="inv-est" value="' + escHtml(r.establishment) + '" placeholder="Estabelecimento" style="width:100%;box-sizing:border-box;padding:6px 8px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' +
+          '<input class="inv-desc" value="' + escHtml(r.description) + '" placeholder="Descrição" style="width:100%;box-sizing:border-box;padding:6px 8px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' +
+          '<input class="inv-inst" value="' + escHtml(r.installmentLabel || '') + '" placeholder="1x" style="width:100%;box-sizing:border-box;padding:6px 4px;font-size:12px;text-align:center;border:1px solid #cbd5e1;border-radius:8px;">' +
+          '<select class="inv-cat" style="width:100%;box-sizing:border-box;padding:6px 4px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' + cats.map(function(c){ return '<option value="' + escHtml(c) + '" ' + (c === r.category ? 'selected' : '') + '>' + escHtml(c) + '</option>'; }).join('') + '</select>' +
+          '<select class="inv-sub" style="width:100%;box-sizing:border-box;padding:6px 4px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' + subs.map(function(sub){ return '<option value="' + escHtml(sub) + '" ' + (sub === r.subcategory ? 'selected' : '') + '>' + escHtml(window.subcategoryLabel(sub)) + '</option>'; }).join('') + '</select>' +
+          '<input class="inv-amount" type="number" min="0.01" step="0.01" value="' + Number(r.amount).toFixed(2) + '" style="width:100%;box-sizing:border-box;padding:6px 6px;font-size:12px;text-align:right;font-weight:700;border:1px solid #cbd5e1;border-radius:8px;">' +
+          '<div class="inv-dup" style="font-size:11px;font-weight:800;padding:6px 8px;border-radius:8px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;box-sizing:border-box;' + statusColor + '" title="' + escHtml(r.dupText) + '">' + escHtml(r.dupText) + '</div></div>';
       }).join('');
 
     Array.from(box.querySelectorAll('.invoice-row')).forEach(function(row){
