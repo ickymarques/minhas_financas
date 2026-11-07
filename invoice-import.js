@@ -2,7 +2,7 @@
   var draft = [];
   function el(id){ return document.getElementById(id); }
   function escHtml(v){ return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function normalize(v){ return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
+  function normalize(v){ return String(v||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
   function money(v){ var n=String(v||'').replace(/R\$/gi,'').replace(/\s/g,'').replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''); return Number(n)||0; }
 
   function guessCategory(desc){
@@ -51,6 +51,61 @@
     return common.length / Math.min(at.length, bt.length);
   }
 
+  // Identificação e separação de parcelas e estabelecimentos
+  // Exemplos reais da fatura: "ITAUSHOP 15/18", "FLEXPAG*CPFLRE 02/03", "UBER *TRIP"
+  function parseInstallmentAndEstablishment(rawDescription){
+    var desc = String(rawDescription || '').trim();
+    var inst = { isInstallment: false, current: null, total: null, label: '' };
+    
+    // 1. Procura padrão explícito de parcelas: XX/YY (ex: 15/18, 02/03, 1/10)
+    var m = desc.match(/\b(\d{1,2})\s*\/\s*(\d{1,2})\b/);
+    if(m){
+      var cur = parseInt(m[1], 10);
+      var tot = parseInt(m[2], 10);
+      // Validação: a parcela atual deve ser menor ou igual ao total, e total >= 2
+      if(tot >= 2 && cur <= tot){
+        inst = { isInstallment: true, current: cur, total: tot, label: cur + '/' + tot };
+        desc = desc.replace(m[0], '').replace(/\s{2,}/g, ' ').trim();
+      }
+    } else {
+      // 2. Procura padrão "XX de YY" ou "XX deYY"
+      var mDe = desc.match(/\b(?:parcela\s*)?(\d{1,2})\s*de\s*(\d{1,2})\b/i);
+      if(mDe){
+        var curDe = parseInt(mDe[1], 10);
+        var totDe = parseInt(mDe[2], 10);
+        if(totDe >= 2 && curDe <= totDe){
+          inst = { isInstallment: true, current: curDe, total: totDe, label: curDe + '/' + totDe };
+          desc = desc.replace(mDe[0], '').replace(/\s{2,}/g, ' ').trim();
+        }
+      } else {
+        // 3. Procura padrão "XXx" isolado (ex: "10x")
+        var mX = desc.match(/\b(\d{1,2})\s*x\b/i);
+        if(mX && parseInt(mX[1], 10) >= 2){
+          var totX = parseInt(mX[1], 10);
+          inst = { isInstallment: true, current: 1, total: totX, label: '1/' + totX };
+          desc = desc.replace(mX[0], '').replace(/\s{2,}/g, ' ').trim();
+        }
+      }
+    }
+
+    // Limpeza de caracteres residuais nas pontas
+    desc = desc.replace(/^[-–—*•\s]+|[-–—*•\s]+$/g, '').trim();
+
+    // Extração do Estabelecimento: primeiro segmento antes de asterisco, traço ou barra
+    var cleanEst = desc;
+    if(cleanEst.indexOf('*') !== -1){
+      cleanEst = cleanEst.split('*')[0].trim();
+    } else if(cleanEst.indexOf(' - ') !== -1){
+      cleanEst = cleanEst.split(' - ')[0].trim();
+    }
+
+    return {
+      cleanDescription: desc || rawDescription,
+      establishment: cleanEst || desc || 'Não informado',
+      installment: inst
+    };
+  }
+
   // Motor de Desduplicação Inteligente (Exato vs Variação de +- 2 dias)
   function checkDuplicate(row){
     var rowDate = new Date(row.date + 'T12:00:00');
@@ -65,13 +120,13 @@
 
       var tDate = new Date(t.date + 'T12:00:00');
       var diffDays = Math.round(Math.abs((rowDate - tDate) / (1000 * 60 * 60 * 24)));
-      var sim = descriptionSimilarity(t.description, row.description);
+      var sim = descriptionSimilarity(t.description || t.establishment, row.description);
 
       // 1. Duplicata Exata: Mesmo valor e mesma data OU altíssima semelhança de nome na mesma data
       if(diffDays === 0 && (sim >= 0.35 || t.date === row.date)){
         exactMatch = t;
       }
-      // 2. Suspeito: Mesmo valor exato com até 2 dias de diferença (ex: compra no fim de semana)
+      // 2. Suspeito: Mesmo valor exato com até 2 dias de diferença
       else if(diffDays <= 2 && !exactMatch){
         suspectMatch = { tx: t, days: diffDays };
       }
@@ -92,7 +147,7 @@
       var dStr = suspectMatch.tx.date.split('-').reverse().join('/');
       return {
         level: 'suspect',
-        selected: false, // Desmarcado por segurança para conferência
+        selected: false,
         text: 'POSSÍVEL DUPLICIDADE (R$ ' + suspectMatch.tx.amount.toFixed(2) + ' em ' + dStr + ')',
         suggestedCategory: suspectMatch.tx.category,
         suggestedSubcategory: suspectMatch.tx.subcategory
@@ -101,21 +156,11 @@
 
     return {
       level: 'none',
-      selected: true, // Novo lançamento: marcado para importar
+      selected: true,
       text: 'NOVO LANÇAMENTO',
       suggestedCategory: guessCategory(row.description),
       suggestedSubcategory: ''
     };
-  }
-
-  function installmentInfo(text){
-    var raw = String(text||''), m;
-    m = raw.match(/\b(?:parcela\s*)?(\d{1,2})\s*(?:\/|de)\s*(\d{1,2})\b/i);
-    if(m) return {isInstallment:true, current:+m[1], total:+m[2], label:m[1]+'/'+m[2]};
-    m = raw.match(/\b(\d{1,2})\s*x\b/i);
-    if(m) return {isInstallment:true, current:null, total:+m[1], label:'?/'+m[1]};
-    if(/\bparcela(?:do|mento)?\b/i.test(raw)) return {isInstallment:true, current:null, total:null, label:'Parcelada'};
-    return {isInstallment:false, current:null, total:null, label:''};
   }
 
   async function extractLines(file){
@@ -149,16 +194,20 @@
       if(!amount) return;
       var yy = dm[3] ? Number(dm[3]) : year; if(yy < 100) yy += 2000;
       var date = yy + '-' + String(Number(dm[2])).padStart(2,'0') + '-' + String(Number(dm[1])).padStart(2,'0');
-      var description = line.replace(dm[0],'').replace(last[0],'').replace(/\s{2,}/g,' ').replace(/^[-–—•]+|[-–—•]+$/g,'').trim();
-      if(description.length < 2) return;
+      var rawDescription = line.replace(dm[0],'').replace(last[0],'').replace(/\s{2,}/g,' ').replace(/^[-–—•]+|[-–—•]+$/g,'').trim();
+      if(rawDescription.length < 2) return;
       
-      var context = [lines[idx-1]||'', line, lines[idx+1]||''].join(' ');
-      var inst = installmentInfo(context);
+      var parsed = parseInstallmentAndEstablishment(rawDescription);
+
       out.push({
         date: date,
-        description: description,
+        description: parsed.cleanDescription,
+        establishment: parsed.establishment,
         amount: amount,
-        installmentLabel: inst.label
+        installmentLabel: parsed.installment.label,
+        isInstallment: parsed.installment.isInstallment,
+        installmentTotal: parsed.installment.total || 1,
+        installmentPaid: parsed.installment.current ? (parsed.installment.current - 1) : 0
       });
     });
 
@@ -177,7 +226,7 @@
     if(!draft.length){ box.innerHTML = ''; sum.innerHTML = ''; actions.style.display = 'none'; return; }
     
     var cats = Object.keys(CATS);
-    box.innerHTML = '<div class="invoice-columns"><span>Importar</span><span>Data</span><span>Descrição da compra</span><span>Parcela</span><span>Categoria</span><span>Subcategoria</span><span>Valor</span><span>Status de Duplicidade</span></div>' + 
+    box.innerHTML = '<div class="invoice-columns"><span>Importar</span><span>Data</span><span>Estabelecimento</span><span>Descrição</span><span>Parcela</span><span>Categoria</span><span>Subcategoria</span><span>Valor</span><span>Status</span></div>' + 
       draft.map(function(r, i){
         var subs = Object.keys(CATS[r.category] || {});
         var badgeClass = r.dupLevel === 'exact' ? 'duplicate' : (r.dupLevel === 'suspect' ? 'suspect' : '');
@@ -187,8 +236,9 @@
         return '<div class="invoice-row ' + badgeClass + '" style="' + styleBg + '" data-i="' + i + '">' +
           '<input class="inv-use" type="checkbox" ' + (r.selected ? 'checked' : '') + '>' +
           '<input class="inv-date" type="date" value="' + escHtml(r.date) + '">' +
-          '<input class="inv-desc" value="' + escHtml(r.description) + '">' +
-          '<input class="inv-inst" value="' + escHtml(r.installmentLabel || '') + '" placeholder="Ex.: 3/10">' +
+          '<input class="inv-est" value="' + escHtml(r.establishment) + '" placeholder="Estabelecimento">' +
+          '<input class="inv-desc" value="' + escHtml(r.description) + '" placeholder="Descrição da compra">' +
+          '<input class="inv-inst" value="' + escHtml(r.installmentLabel || '') + '" placeholder="Ex.: 02/03">' +
           '<select class="inv-cat">' + cats.map(function(c){ return '<option value="' + escHtml(c) + '" ' + (c === r.category ? 'selected' : '') + '>' + escHtml(c) + '</option>'; }).join('') + '</select>' +
           '<select class="inv-sub">' + subs.map(function(sub){ return '<option value="' + escHtml(sub) + '" ' + (sub === r.subcategory ? 'selected' : '') + '>' + escHtml(window.subcategoryLabel(sub)) + '</option>'; }).join('') + '</select>' +
           '<input class="inv-amount" type="number" min="0.01" step="0.01" value="' + Number(r.amount).toFixed(2) + '">' +
@@ -199,8 +249,21 @@
       var i = Number(row.dataset.i);
       row.querySelector('.inv-use').onchange = function(e){ draft[i].selected = e.target.checked; updateSummary(); };
       row.querySelector('.inv-date').onchange = function(e){ draft[i].date = e.target.value; };
+      row.querySelector('.inv-est').oninput = function(e){ draft[i].establishment = e.target.value; };
       row.querySelector('.inv-desc').oninput = function(e){ draft[i].description = e.target.value; };
-      row.querySelector('.inv-inst').oninput = function(e){ draft[i].installmentLabel = e.target.value.trim(); };
+      row.querySelector('.inv-inst').oninput = function(e){ 
+        draft[i].installmentLabel = e.target.value.trim();
+        var m = draft[i].installmentLabel.match(/(\d+)\s*\/\s*(\d+)/);
+        if(m){
+          draft[i].isInstallment = true;
+          draft[i].installmentTotal = parseInt(m[2], 10);
+          draft[i].installmentPaid = parseInt(m[1], 10) - 1;
+        } else {
+          draft[i].isInstallment = false;
+          draft[i].installmentTotal = 1;
+          draft[i].installmentPaid = 0;
+        }
+      };
       row.querySelector('.inv-cat').onchange = function(e){
         draft[i].category = e.target.value;
         var subs = Object.keys(CATS[draft[i].category] || {});
@@ -256,8 +319,12 @@
           return {
             date: r.date,
             description: r.description,
+            establishment: r.establishment,
             amount: r.amount,
             installmentLabel: r.installmentLabel,
+            isInstallment: r.isInstallment,
+            installmentTotal: r.installmentTotal,
+            installmentPaid: r.installmentPaid,
             category: category,
             subcategory: subcategory,
             dupLevel: dup.level,
@@ -290,11 +357,13 @@
       rows.forEach(function(r){
         var kind = (CATS[r.category] || {})[r.subcategory] || 'Variável';
         var parcelTag = r.installmentLabel ? ['Parcela ' + r.installmentLabel] : [];
+        var totalInstallments = r.isInstallment ? r.installmentTotal : 1;
         state.transactions.push({
           id: uid(),
           type: 'expense',
           amount: +r.amount,
           description: r.description.trim(),
+          establishment: r.establishment.trim(),
           category: r.category,
           subcategory: r.subcategory || '',
           expenseKind: kind,
@@ -302,7 +371,9 @@
           account: card ? card.name : 'Cartão',
           payment: (card ? card.name : 'Cartão') + ' - Crédito',
           cardId: cardId,
-          installments: 1,
+          installments: totalInstallments,
+          installmentTotal: totalInstallments,
+          installmentPaid: r.installmentPaid || 0,
           installmentLabel: r.installmentLabel || '',
           tags: ['Importado da fatura'].concat(parcelTag)
         });
