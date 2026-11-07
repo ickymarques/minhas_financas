@@ -1,45 +1,3 @@
-(function(){
-  var draft = [];
-  function el(id){ return document.getElementById(id); }
-  function escHtml(v){ return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function normalize(v){ return String(v||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
-  function money(v){ var n=String(v||'').replace(/R\$/gi,'').replace(/\s/g,'').replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''); return Number(n)||0; }
-
-  function guessCategory(desc){
-    var d = normalize(desc);
-    if(/posto|combust|shell|ipiranga|petrobras|etanol|gasolina/.test(d)) return 'Carro';
-    if(/uber|99app|99|taxi|pedagio|estacion|zul/.test(d)) return 'Transporte';
-    if(/mercado|supermerc|carrefour|pao de acucar|dia|assai|atacad|padaria|restaur|ifood|lanche|pizza|kfc|mequi|mcdonald|burger|subway|cafe|sorvete|cacau|choc|doceria/.test(d)) return 'Alimentação';
-    if(/farm|droga|raia|drogasil|sp|clinica|medic|hospital|consulta|exame|laborat/.test(d)) return 'Saúde';
-    if(/amazon|shopee|magalu|mercado livre|eletron|celular|kabum|pichau|dell|samsung|apple/.test(d)) return 'Eletrônicos';
-    if(/netflix|spotify|youtube|google|icloud|apple com|assinatura|prime|disney|max/.test(d)) return 'Serviços';
-    if(/pet|racao|vet|veterin|cobasi|petz/.test(d)) return 'Pets';
-    if(/smart fit|academia|vestuario|roupa|tenis|shoes|zara|riachuelo|renner|c&a/.test(d)) return 'Pessoais';
-    return 'Outros';
-  }
-
-  function refreshCards(){
-    var select = el('invoiceCard'); if(!select) return;
-    var current = select.value;
-    if(!state.cards || !state.cards.length){ 
-      select.innerHTML = '<option value="">Cadastre um cartão primeiro</option>'; 
-      return; 
-    }
-    select.innerHTML = state.cards.map(function(c){ 
-      return '<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>'; 
-    }).join('');
-    if(state.cards.some(function(c){ return c.id === current; })) select.value = current;
-  }
-
-  function cleanDesc(v){
-    return normalize(v)
-      .replace(/\b(parcela|parcelado|parcelamento|compra|cartao|credito|debito|fatura)\b/g,' ')
-      .replace(/\b(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\b/g,' ')
-      .replace(/\b\d{1,2}\b/g,' ')
-      .replace(/\s+/g,' ').trim();
-  }
-
-  function descriptionSimilarity(a,b){
     var A = cleanDesc(a), B = cleanDesc(b);
     if(!A || !B) return 0;
     if(A === B) return 1;
@@ -52,23 +10,24 @@
   }
 
   // Identificação e separação de parcelas e estabelecimentos
-  // Exemplos reais da fatura: "ITAUSHOP 15/18", "FLEXPAG*CPFLRE 02/03", "UBER *TRIP"
-  function parseInstallmentAndEstablishment(rawDescription){
+  function parseInstallmentAndEstablishment(rawDescription, transactionDate){
     var desc = String(rawDescription || '').trim();
     var inst = { isInstallment: false, current: null, total: null, label: '' };
-    
-    // 1. Procura padrão explícito de parcelas: XX/YY (ex: 15/18, 02/03, 1/10)
+    var txMonth = transactionDate ? transactionDate.split('-')[1] : null;
+
     var m = desc.match(/\b(\d{1,2})\s*\/\s*(\d{1,2})\b/);
     if(m){
       var cur = parseInt(m[1], 10);
       var tot = parseInt(m[2], 10);
-      // Validação: a parcela atual deve ser menor ou igual ao total, e total >= 2
-      if(tot >= 2 && cur <= tot){
+      var isDateCollision = (txMonth && parseInt(m[2], 10) === parseInt(txMonth, 10) && parseInt(m[1], 10) <= 31);
+
+      if(!isDateCollision && tot >= 2 && cur <= tot){
         inst = { isInstallment: true, current: cur, total: tot, label: cur + '/' + tot };
+        desc = desc.replace(m[0], '').replace(/\s{2,}/g, ' ').trim();
+      } else if(isDateCollision) {
         desc = desc.replace(m[0], '').replace(/\s{2,}/g, ' ').trim();
       }
     } else {
-      // 2. Procura padrão "XX de YY" ou "XX deYY"
       var mDe = desc.match(/\b(?:parcela\s*)?(\d{1,2})\s*de\s*(\d{1,2})\b/i);
       if(mDe){
         var curDe = parseInt(mDe[1], 10);
@@ -77,26 +36,20 @@
           inst = { isInstallment: true, current: curDe, total: totDe, label: curDe + '/' + totDe };
           desc = desc.replace(mDe[0], '').replace(/\s{2,}/g, ' ').trim();
         }
-      } else {
-        // 3. Procura padrão "XXx" isolado (ex: "10x")
-        var mX = desc.match(/\b(\d{1,2})\s*x\b/i);
-        if(mX && parseInt(mX[1], 10) >= 2){
-          var totX = parseInt(mX[1], 10);
-          inst = { isInstallment: true, current: 1, total: totX, label: '1/' + totX };
-          desc = desc.replace(mX[0], '').replace(/\s{2,}/g, ' ').trim();
-        }
       }
     }
 
-    // Limpeza de caracteres residuais nas pontas
     desc = desc.replace(/^[-–—*•\s]+|[-–—*•\s]+$/g, '').trim();
 
-    // Extração do Estabelecimento: primeiro segmento antes de asterisco, traço ou barra
     var cleanEst = desc;
     if(cleanEst.indexOf('*') !== -1){
       cleanEst = cleanEst.split('*')[0].trim();
     } else if(cleanEst.indexOf(' - ') !== -1){
       cleanEst = cleanEst.split(' - ')[0].trim();
+    } else if(/\bFILIAL\b/i.test(cleanEst)){
+      cleanEst = cleanEst.split(/\bFILIAL\b/i)[0].trim();
+    } else if(/\bSUPERMERCADO/i.test(cleanEst)){
+      cleanEst = cleanEst.split(/\bSUPERMERCADO/i)[0].trim();
     }
 
     return {
@@ -106,7 +59,7 @@
     };
   }
 
-  // Motor de Desduplicação Inteligente (Exato vs Variação de +- 2 dias)
+  // Checagem inteligente de duplicidades
   function checkDuplicate(row){
     var rowDate = new Date(row.date + 'T12:00:00');
     var rowAmount = Math.abs(+row.amount);
@@ -116,18 +69,15 @@
     (state.transactions || []).forEach(function(t){
       if(t.type !== 'expense') return;
       var tAmount = Math.abs(+t.amount);
-      if(Math.abs(tAmount - rowAmount) >= 0.01) return; // Valores diferentes
+      if(Math.abs(tAmount - rowAmount) >= 0.01) return;
 
       var tDate = new Date(t.date + 'T12:00:00');
       var diffDays = Math.round(Math.abs((rowDate - tDate) / (1000 * 60 * 60 * 24)));
       var sim = descriptionSimilarity(t.description || t.establishment, row.description);
 
-      // 1. Duplicata Exata: Mesmo valor e mesma data OU altíssima semelhança de nome na mesma data
       if(diffDays === 0 && (sim >= 0.35 || t.date === row.date)){
         exactMatch = t;
-      }
-      // 2. Suspeito: Mesmo valor exato com até 2 dias de diferença
-      else if(diffDays <= 2 && !exactMatch){
+      } else if(diffDays <= 2 && !exactMatch){
         suspectMatch = { tx: t, days: diffDays };
       }
     });
@@ -197,7 +147,7 @@
       var rawDescription = line.replace(dm[0],'').replace(last[0],'').replace(/\s{2,}/g,' ').replace(/^[-–—•]+|[-–—•]+$/g,'').trim();
       if(rawDescription.length < 2) return;
       
-      var parsed = parseInstallmentAndEstablishment(rawDescription);
+      var parsed = parseInstallmentAndEstablishment(rawDescription, date);
 
       out.push({
         date: date,
@@ -220,20 +170,81 @@
     });
   }
 
+  function renderBatchDeletionSection(){
+    var section = el('batchDeletionSection');
+    if(!section){
+      section = document.createElement('div');
+      section.id = 'batchDeletionSection';
+      section.style.cssText = 'margin-top:20px;padding:16px;background:#fff5f5;border:1px solid #fed7d7;border-radius:14px;';
+      var container = el('invoiceActions');
+      if(container && container.parentNode){
+        container.parentNode.appendChild(section);
+      }
+    }
+
+    var cardId = el('invoiceCard') ? el('invoiceCard').value : '';
+    var card = (state.cards || []).find(function(c){ return c.id === cardId; });
+    var cardName = card ? card.name : '';
+
+    var importedTxs = (state.transactions || []).filter(function(t){
+      var isImp = (t.tags || []).includes('Importado da fatura');
+      var matchCard = !cardId || t.cardId === cardId || (cardName && t.account === cardName);
+      return isImp && matchCard;
+    });
+
+    if(!importedTxs.length){
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = 'block';
+    section.innerHTML = 
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+        '<div>' +
+          '<strong style="color:#c53030;font-size:14px;display:block;">Gerenciamento de Lançamentos Importados</strong>' +
+          '<span style="font-size:12px;color:#742a2a;">Existem <strong>' + importedTxs.length + '</strong> lançamentos deste cartão importados de faturas anteriores no seu sistema.</span>' +
+        '</div>' +
+        '<button type="button" id="btnDeleteImportedBatch" class="btn danger" style="background:#e53e3e;color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:700;cursor:pointer;">' +
+          '🗑️ Excluir Todos os Importados Deste Cartão (' + importedTxs.length + ')' +
+        '</button>' +
+      '</div>';
+
+    var btn = el('btnDeleteImportedBatch');
+    if(btn){
+      btn.onclick = function(){
+        if(confirm('Tem certeza que deseja apagar TODOS os ' + importedTxs.length + ' lançamentos importados deste cartão?\n\nIsso permite refazer a leitura e conferência do zero sem duplicidades.')){
+          var idsToRemove = new Set(importedTxs.map(function(t){ return t.id; }));
+          state.transactions = state.transactions.filter(function(t){ return !idsToRemove.has(t.id); });
+          save();
+          renderBatchDeletionSection();
+          if(el('invoiceStatus')) el('invoiceStatus').textContent = importedTxs.length + ' lançamentos importados foram removidos com sucesso.';
+          alert(importedTxs.length + ' lançamentos removidos. Você já pode reimportar a fatura limpa.');
+        }
+      };
+    }
+  }
+
   function render(){
     var box = el('invoicePreview'), sum = el('invoiceSummary'), actions = el('invoiceActions'); 
     if(!box) return;
-    if(!draft.length){ box.innerHTML = ''; sum.innerHTML = ''; actions.style.display = 'none'; return; }
+    if(!draft.length){ 
+      box.innerHTML = ''; 
+      sum.innerHTML = ''; 
+      actions.style.display = 'none'; 
+      renderBatchDeletionSection();
+      return; 
+    }
     
     var cats = Object.keys(CATS);
-    box.innerHTML = '<div class="invoice-columns"><span>Importar</span><span>Data</span><span>Estabelecimento</span><span>Descrição</span><span>Parcela</span><span>Categoria</span><span>Subcategoria</span><span>Valor</span><span>Status</span></div>' + 
+    box.innerHTML = '<div class="invoice-columns" style="display:grid;grid-template-columns:38px 125px 150px minmax(220px,1.5fr) 95px 140px 180px 110px minmax(130px,1fr);gap:8px;">' + 
+      '<span>Importar</span><span>Data</span><span>Estabelecimento</span><span>Descrição</span><span>Parcela</span><span>Categoria</span><span>Subcategoria</span><span>Valor</span><span>Status</span></div>' + 
       draft.map(function(r, i){
         var subs = Object.keys(CATS[r.category] || {});
         var badgeClass = r.dupLevel === 'exact' ? 'duplicate' : (r.dupLevel === 'suspect' ? 'suspect' : '');
         var styleBg = r.dupLevel === 'exact' ? 'opacity:0.6;' : (r.dupLevel === 'suspect' ? 'background:#fffdf0;border-color:#f6e05e;' : '');
         var statusColor = r.dupLevel === 'exact' ? 'color:#b42318;font-weight:bold;' : (r.dupLevel === 'suspect' ? 'color:#b7791f;font-weight:bold;' : 'color:#047857;font-weight:bold;');
 
-        return '<div class="invoice-row ' + badgeClass + '" style="' + styleBg + '" data-i="' + i + '">' +
+        return '<div class="invoice-row ' + badgeClass + '" style="display:grid;grid-template-columns:38px 125px 150px minmax(220px,1.5fr) 95px 140px 180px 110px minmax(130px,1fr);gap:8px;' + styleBg + '" data-i="' + i + '">' +
           '<input class="inv-use" type="checkbox" ' + (r.selected ? 'checked' : '') + '>' +
           '<input class="inv-date" type="date" value="' + escHtml(r.date) + '">' +
           '<input class="inv-est" value="' + escHtml(r.establishment) + '" placeholder="Estabelecimento">' +
@@ -278,6 +289,7 @@
 
     actions.style.display = 'flex'; 
     updateSummary();
+    renderBatchDeletionSection();
   }
 
   function updateSummary(){
@@ -298,7 +310,9 @@
   function init(){
     var analyze = el('analyzeInvoice'); if(!analyze) return;
     refreshCards();
-    el('invoiceCard').addEventListener('focus', refreshCards);
+    renderBatchDeletionSection();
+    el('invoiceCard').addEventListener('focus', function(){ refreshCards(); renderBatchDeletionSection(); });
+    el('invoiceCard').addEventListener('change', renderBatchDeletionSection);
 
     analyze.onclick = async function(){
       refreshCards();
