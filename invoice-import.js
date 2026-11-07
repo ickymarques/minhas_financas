@@ -1,3 +1,45 @@
+(function(){
+  var draft = [];
+  function el(id){ return document.getElementById(id); }
+  function escHtml(v){ return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function normalize(v){ return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
+  function money(v){ var n=String(v||'').replace(/R\$/gi,'').replace(/\s/g,'').replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''); return Number(n)||0; }
+
+  function guessCategory(desc){
+    var d = normalize(desc);
+    if(/posto|combust|shell|ipiranga|petrobras|etanol|gasolina|sewal/.test(d)) return 'Carro';
+    if(/uber|99app|99|taxi|pedagio|estacion|zul/.test(d)) return 'Transporte';
+    if(/mercado|supermerc|carrefour|pao de acucar|dia|assai|atacad|padaria|restaur|ifood|lanche|pizza|kfc|mequi|mcdonald|burger|subway|cafe|sorvete|cacau|choc|doceria|cogeb|jau serve|savegnago|franca/.test(d)) return 'Alimentação';
+    if(/farm|droga|raia|drogasil|sp|clinica|medic|hospital|consulta|exame|laborat/.test(d)) return 'Saúde';
+    if(/amazon|shopee|magalu|mercado livre|eletron|celular|kabum|pichau|dell|samsung|apple|itaushop|itau shop/.test(d)) return 'Eletrônicos';
+    if(/netflix|spotify|youtube|google|icloud|apple com|assinatura|prime|disney|max/.test(d)) return 'Serviços';
+    if(/pet|racao|vet|veterin|cobasi|petz|petlove/.test(d)) return 'Pets';
+    if(/smart fit|academia|vestuario|roupa|tenis|shoes|zara|riachuelo|renner|c&a|gympass|barbearia/.test(d)) return 'Pessoais';
+    return 'Outros';
+  }
+
+  function refreshCards(){
+    var select = el('invoiceCard'); if(!select) return;
+    var current = select.value;
+    if(!state.cards || !state.cards.length){ 
+      select.innerHTML = '<option value="">Cadastre um cartão primeiro</option>'; 
+      return; 
+    }
+    select.innerHTML = state.cards.map(function(c){ 
+      return '<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>'; 
+    }).join('');
+    if(state.cards.some(function(c){ return c.id === current; })) select.value = current;
+  }
+
+  function cleanDesc(v){
+    return normalize(v)
+      .replace(/\b(parcela|parcelado|parcelamento|compra|cartao|credito|debito|fatura)\b/g,' ')
+      .replace(/\b(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\b/g,' ')
+      .replace(/\b\d{1,2}\b/g,' ')
+      .replace(/\s+/g,' ').trim();
+  }
+
+  function descriptionSimilarity(a,b){
     var A = cleanDesc(a), B = cleanDesc(b);
     if(!A || !B) return 0;
     if(A === B) return 1;
@@ -9,7 +51,7 @@
     return common.length / Math.min(at.length, bt.length);
   }
 
-  // Identificação e separação de parcelas e estabelecimentos
+  // Identificação e separação rigorosa de parcelas e estabelecimentos
   function parseInstallmentAndEstablishment(rawDescription, transactionDate){
     var desc = String(rawDescription || '').trim();
     var inst = { isInstallment: false, current: null, total: null, label: '' };
@@ -87,7 +129,7 @@
       return {
         level: 'exact',
         selected: false,
-        text: isImported ? 'JÁ IMPORTADO DA FATURA' : 'JÁ CADASTRADO NO DIA ' + exactMatch.date.split('-').reverse().join('/'),
+        text: isImported ? 'JÁ IMPORTADO' : 'CADASTRADO EM ' + exactMatch.date.split('-').reverse().join('/'),
         suggestedCategory: exactMatch.category,
         suggestedSubcategory: exactMatch.subcategory
       };
@@ -98,7 +140,7 @@
       return {
         level: 'suspect',
         selected: false,
-        text: 'POSSÍVEL DUPLICIDADE (R$ ' + suspectMatch.tx.amount.toFixed(2) + ' em ' + dStr + ')',
+        text: 'POSSÍVEL DUPLICATA (' + dStr + ')',
         suggestedCategory: suspectMatch.tx.category,
         suggestedSubcategory: suspectMatch.tx.subcategory
       };
@@ -107,7 +149,7 @@
     return {
       level: 'none',
       selected: true,
-      text: 'NOVO LANÇAMENTO',
+      text: 'NOVO',
       suggestedCategory: guessCategory(row.description),
       suggestedSubcategory: ''
     };
@@ -202,7 +244,7 @@
       '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
         '<div>' +
           '<strong style="color:#c53030;font-size:14px;display:block;">Gerenciamento de Lançamentos Importados</strong>' +
-          '<span style="font-size:12px;color:#742a2a;">Existem <strong>' + importedTxs.length + '</strong> lançamentos deste cartão importados de faturas anteriores no seu sistema.</span>' +
+          '<span style="font-size:12px;color:#742a2a;">Existem <strong>' + importedTxs.length + '</strong> lançamentos deste cartão importados no sistema.</span>' +
         '</div>' +
         '<button type="button" id="btnDeleteImportedBatch" class="btn danger" style="background:#e53e3e;color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:700;cursor:pointer;">' +
           '🗑️ Excluir Todos os Importados Deste Cartão (' + importedTxs.length + ')' +
@@ -224,6 +266,9 @@
     }
   }
 
+  // Layout Grid unificado com scroll horizontal garantido para nunca quebrar linhas
+  var GRID_LAYOUT = 'display:grid!important;grid-template-columns:30px 130px 150px 180px 75px 125px 145px 90px 140px!important;gap:8px!important;align-items:center!important;min-width:1065px!important;box-sizing:border-box!important;';
+
   function render(){
     var box = el('invoicePreview'), sum = el('invoiceSummary'), actions = el('invoiceActions'); 
     if(!box) return;
@@ -235,25 +280,28 @@
       return; 
     }
     
+    // Garante que o contêiner tenha rolagem horizontal caso a tela seja menor que 1065px
+    box.style.cssText = 'overflow-x:auto;width:100%;margin-top:14px;padding-bottom:10px;';
+
     var cats = Object.keys(CATS);
-    box.innerHTML = '<div class="invoice-columns" style="display:grid;grid-template-columns:38px 125px 150px minmax(220px,1.5fr) 95px 140px 180px 110px minmax(130px,1fr);gap:8px;">' + 
-      '<span>Importar</span><span>Data</span><span>Estabelecimento</span><span>Descrição</span><span>Parcela</span><span>Categoria</span><span>Subcategoria</span><span>Valor</span><span>Status</span></div>' + 
+    box.innerHTML = '<div class="invoice-columns" style="' + GRID_LAYOUT + 'padding:0 10px 8px;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;">' + 
+      '<span style="text-align:center;">✓</span><span>Data</span><span>Estabelecimento</span><span>Descrição</span><span>Parcela</span><span>Categoria</span><span>Subcategoria</span><span style="text-align:right;">Valor</span><span style="text-align:center;">Status</span></div>' + 
       draft.map(function(r, i){
         var subs = Object.keys(CATS[r.category] || {});
         var badgeClass = r.dupLevel === 'exact' ? 'duplicate' : (r.dupLevel === 'suspect' ? 'suspect' : '');
-        var styleBg = r.dupLevel === 'exact' ? 'opacity:0.6;' : (r.dupLevel === 'suspect' ? 'background:#fffdf0;border-color:#f6e05e;' : '');
-        var statusColor = r.dupLevel === 'exact' ? 'color:#b42318;font-weight:bold;' : (r.dupLevel === 'suspect' ? 'color:#b7791f;font-weight:bold;' : 'color:#047857;font-weight:bold;');
+        var styleBg = r.dupLevel === 'exact' ? 'opacity:0.65;background:#f8fafc;' : (r.dupLevel === 'suspect' ? 'background:#fffdf0;border-color:#f6e05e;' : 'background:#ffffff;');
+        var statusColor = r.dupLevel === 'exact' ? 'color:#b42318;background:#fee2e2;border:1px solid #fecaca;' : (r.dupLevel === 'suspect' ? 'color:#b7791f;background:#fef3c7;border:1px solid #fde68a;' : 'color:#047857;background:#d1fae5;border:1px solid #a7f3d0;');
 
-        return '<div class="invoice-row ' + badgeClass + '" style="display:grid;grid-template-columns:38px 125px 150px minmax(220px,1.5fr) 95px 140px 180px 110px minmax(130px,1fr);gap:8px;' + styleBg + '" data-i="' + i + '">' +
-          '<input class="inv-use" type="checkbox" ' + (r.selected ? 'checked' : '') + '>' +
-          '<input class="inv-date" type="date" value="' + escHtml(r.date) + '">' +
-          '<input class="inv-est" value="' + escHtml(r.establishment) + '" placeholder="Estabelecimento">' +
-          '<input class="inv-desc" value="' + escHtml(r.description) + '" placeholder="Descrição da compra">' +
-          '<input class="inv-inst" value="' + escHtml(r.installmentLabel || '') + '" placeholder="Ex.: 02/03">' +
-          '<select class="inv-cat">' + cats.map(function(c){ return '<option value="' + escHtml(c) + '" ' + (c === r.category ? 'selected' : '') + '>' + escHtml(c) + '</option>'; }).join('') + '</select>' +
-          '<select class="inv-sub">' + subs.map(function(sub){ return '<option value="' + escHtml(sub) + '" ' + (sub === r.subcategory ? 'selected' : '') + '>' + escHtml(window.subcategoryLabel(sub)) + '</option>'; }).join('') + '</select>' +
-          '<input class="inv-amount" type="number" min="0.01" step="0.01" value="' + Number(r.amount).toFixed(2) + '">' +
-          '<div class="inv-dup note" style="' + statusColor + '">' + escHtml(r.dupText) + '</div></div>';
+        return '<div class="invoice-row ' + badgeClass + '" style="' + GRID_LAYOUT + styleBg + 'padding:8px 10px;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:6px;" data-i="' + i + '">' +
+          '<input class="inv-use" type="checkbox" ' + (r.selected ? 'checked' : '') + ' style="width:18px;height:18px;margin:0 auto;cursor:pointer;">' +
+          '<input class="inv-date" type="date" value="' + escHtml(r.date) + '" style="width:100%;padding:6px 8px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' +
+          '<input class="inv-est" value="' + escHtml(r.establishment) + '" placeholder="Estabelecimento" style="width:100%;padding:6px 8px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' +
+          '<input class="inv-desc" value="' + escHtml(r.description) + '" placeholder="Descrição" style="width:100%;padding:6px 8px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' +
+          '<input class="inv-inst" value="' + escHtml(r.installmentLabel || '') + '" placeholder="1x" style="width:100%;padding:6px 8px;font-size:12px;text-align:center;border:1px solid #cbd5e1;border-radius:8px;">' +
+          '<select class="inv-cat" style="width:100%;padding:6px 4px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' + cats.map(function(c){ return '<option value="' + escHtml(c) + '" ' + (c === r.category ? 'selected' : '') + '>' + escHtml(c) + '</option>'; }).join('') + '</select>' +
+          '<select class="inv-sub" style="width:100%;padding:6px 4px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' + subs.map(function(sub){ return '<option value="' + escHtml(sub) + '" ' + (sub === r.subcategory ? 'selected' : '') + '>' + escHtml(window.subcategoryLabel(sub)) + '</option>'; }).join('') + '</select>' +
+          '<input class="inv-amount" type="number" min="0.01" step="0.01" value="' + Number(r.amount).toFixed(2) + '" style="width:100%;padding:6px 8px;font-size:12px;text-align:right;font-weight:700;border:1px solid #cbd5e1;border-radius:8px;">' +
+          '<div class="inv-dup" style="font-size:10px;font-weight:800;padding:5px 6px;border-radius:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' + statusColor + '" title="' + escHtml(r.dupText) + '">' + escHtml(r.dupText) + '</div></div>';
       }).join('');
 
     Array.from(box.querySelectorAll('.invoice-row')).forEach(function(row){
@@ -300,10 +348,10 @@
     var suspects = draft.filter(function(x){ return x.dupLevel === 'suspect'; }).length;
 
     var warn = '';
-    if(exacts) warn += ' · <span style="color:#b42318">' + exacts + ' duplicata(s) ignorada(s)</span>';
-    if(suspects) warn += ' · <span style="color:#b7791f">' + suspects + ' suspeita(s) de duplicidade</span>';
+    if(exacts) warn += ' · <span style="color:#b42318">' + exacts + ' já cadastrada(s)</span>';
+    if(suspects) warn += ' · <span style="color:#b7791f">' + suspects + ' suspeita(s)</span>';
 
-    sum.innerHTML = '<span><strong>' + draft.length + '</strong> itens lidos · <strong>' + chosen.length + '</strong> selecionados para importar</span>' +
+    sum.innerHTML = '<span><strong>' + draft.length + '</strong> compras · <strong>' + chosen.length + '</strong> selecionadas</span>' +
                     '<span>Total selecionado: <strong>' + fmt(total) + '</strong>' + warn + '</span>';
   }
 
