@@ -1548,8 +1548,12 @@ const CATS = {
   },
   "Família": {
     "🎁 Presentes":"Variável",
-    "🤝 Doações":"Variável",
     "🧠 Terapia":"Fixo"
+  },
+  "Doação": {
+    "👨‍👩‍👧‍👦 Família":"Variável",
+    "🏛️ Instituições":"Variável",
+    "📦 Outros":"Variável"
   },
   "Crédito": {
     "💳 Empréstimo de limite":"Variável",
@@ -2134,7 +2138,7 @@ function txIcon(t){
  const subIcon=String(t.subcategory||'').trim().match(/^(\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*)/u)?.[1];
  if(subIcon)return subIcon;
  const classified=match(subcategory,specific);if(classified)return classified;
- return match(category,[[/alimentacao/,'🍽️'],[/carro/,'🚘'],[/transporte/,'🚌'],[/moradia/,'🏠'],[/eletronicos/,'💻'],[/saude/,'🩺'],[/educacao/,'📚'],[/pessoais/,'👤'],[/lazer/,'🎭'],[/financeiro|credito/,'💳'],[/pets/,'🐾'],[/familia|presentes/,'🎁'],[/servicos/,'🛠️'],[/documentacao/,'📄']])||'•'
+ return match(category,[[/alimentacao/,'🍽️'],[/carro/,'🚘'],[/transporte/,'🚌'],[/moradia/,'🏠'],[/eletronicos/,'💻'],[/saude/,'🩺'],[/educacao/,'📚'],[/pessoais/,'👤'],[/lazer/,'🎭'],[/financeiro|credito/,'💳'],[/pets/,'🐾'],[/doacao/,'🤝'],[/familia|presentes/,'🎁'],[/servicos/,'🛠️'],[/documentacao/,'📄']])||'•'
 }
 function isInstallmentTx(t){return !!t.installmentGroup||(+t.installmentTotal||+t.installments||1)>1||/(?:parcela\s*)?\d+\s*\/\s*\d+/i.test(String(t.installmentLabel||''))}
 function isPlannedTx(t){return MFReminders.pending(t)||(t.date>today()&&!isInstallmentTx(t))}
