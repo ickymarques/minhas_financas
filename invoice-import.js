@@ -267,7 +267,7 @@
   }
 
   // Grid responsivo com frações proporcionais para ocupar 100% da largura do card
-  var GRID_LAYOUT = 'display:grid!important;grid-template-columns:28px 120px minmax(130px,1.4fr) minmax(140px,1.5fr) 60px 115px minmax(120px,1.3fr) 85px minmax(120px,1.2fr)!important;gap:8px!important;align-items:center!important;width:100%!important;box-sizing:border-box!important;';
+  var GRID_LAYOUT = 'display:grid!important;grid-template-columns:28px 115px minmax(120px,1.3fr) minmax(130px,1.4fr) 55px 110px minmax(115px,1.2fr) 85px minmax(110px,1.1fr) 78px!important;gap:7px!important;align-items:center!important;width:100%!important;box-sizing:border-box!important;';
 
   function render(){
     var box = el('invoicePreview'), sum = el('invoiceSummary'), actions = el('invoiceActions'); 
@@ -285,7 +285,7 @@
 
     var cats = Object.keys(CATS);
     box.innerHTML = '<div class="invoice-columns" style="' + GRID_LAYOUT + 'padding:0 8px 8px;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;">' + 
-      '<span style="text-align:center;">✓</span><span>Data</span><span>Estabelecimento</span><span>Descrição</span><span>Parcela</span><span>Categoria</span><span>Subcategoria</span><span style="text-align:right;">Valor</span><span style="text-align:center;">Status</span></div>' + 
+      '<span style="text-align:center;">✓</span><span>Data</span><span>Estabelecimento</span><span>Descrição</span><span>Parcela</span><span>Categoria</span><span>Subcategoria</span><span style="text-align:right;">Valor</span><span style="text-align:center;">Status</span><span style="text-align:center;">Ação</span></div>' + 
       draft.map(function(r, i){
         var subs = Object.keys(CATS[r.category] || {});
         var badgeClass = r.dupLevel === 'exact' ? 'duplicate' : (r.dupLevel === 'suspect' ? 'suspect' : '');
@@ -301,7 +301,8 @@
           '<select class="inv-cat" style="width:100%;box-sizing:border-box;padding:6px 4px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' + cats.map(function(c){ return '<option value="' + escHtml(c) + '" ' + (c === r.category ? 'selected' : '') + '>' + escHtml(c) + '</option>'; }).join('') + '</select>' +
           '<select class="inv-sub" style="width:100%;box-sizing:border-box;padding:6px 4px;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;">' + subs.map(function(sub){ return '<option value="' + escHtml(sub) + '" ' + (sub === r.subcategory ? 'selected' : '') + '>' + escHtml(window.subcategoryLabel(sub)) + '</option>'; }).join('') + '</select>' +
           '<input class="inv-amount" type="number" min="0.01" step="0.01" value="' + Number(r.amount).toFixed(2) + '" style="width:100%;box-sizing:border-box;padding:6px 6px;font-size:12px;text-align:right;font-weight:700;border:1px solid #cbd5e1;border-radius:8px;">' +
-          '<div class="inv-dup" style="font-size:11px;font-weight:800;padding:6px 8px;border-radius:8px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;box-sizing:border-box;' + statusColor + '" title="' + escHtml(r.dupText) + '">' + escHtml(r.dupText) + '</div></div>';
+          '<div class="inv-dup" style="font-size:11px;font-weight:800;padding:6px 8px;border-radius:8px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;box-sizing:border-box;' + statusColor + '" title="' + escHtml(r.dupText) + '">' + escHtml(r.dupText) + '</div>' +
+          '<button type="button" class="inv-split-btn" data-i="' + i + '" title="Dividir esta compra em duas categorias" style="padding:6px 6px;font-size:11px;font-weight:700;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;color:#334155;cursor:pointer;white-space:nowrap;">✂️ Dividir</button></div>';
       }).join('');
 
     Array.from(box.querySelectorAll('.invoice-row')).forEach(function(row){
@@ -333,6 +334,40 @@
       };
       row.querySelector('.inv-sub').onchange = function(e){ draft[i].subcategory = e.target.value; };
       row.querySelector('.inv-amount').oninput = function(e){ draft[i].amount = Number(e.target.value) || 0; updateSummary(); };
+    });
+
+    Array.from(box.querySelectorAll('.inv-split-btn')).forEach(function(btn){
+      btn.onclick = function(){
+        var idx = Number(btn.dataset.i);
+        var orig = draft[idx];
+        if(!orig) return;
+        var half = Math.round((orig.amount / 2) * 100) / 100;
+        var rest = Math.round((orig.amount - half) * 100) / 100;
+        var groupKey = orig.splitGroup || uid();
+        var baseTags = Array.isArray(orig.extraTags) ? orig.extraTags.slice() : [];
+        if(baseTags.indexOf('Compra dividida') === -1) baseTags.push('Compra dividida');
+
+        var part1 = Object.assign({}, orig, {
+          description: orig.description + ' (1/2)',
+          amount: half,
+          selected: true,
+          dupLevel: 'none',
+          dupText: 'DIVIDIDO (1/2)',
+          splitGroup: groupKey,
+          extraTags: baseTags.slice()
+        });
+        var part2 = Object.assign({}, orig, {
+          description: orig.description + ' (2/2)',
+          amount: rest,
+          selected: true,
+          dupLevel: 'none',
+          dupText: 'DIVIDIDO (2/2)',
+          splitGroup: groupKey,
+          extraTags: baseTags.slice()
+        });
+        draft.splice(idx, 1, part1, part2);
+        render();
+      };
     });
 
     actions.style.display = 'flex'; 
@@ -437,7 +472,8 @@
           installmentTotal: totalInstallments,
           installmentPaid: r.installmentPaid || 0,
           installmentLabel: r.installmentLabel || '',
-          tags: ['Importado da fatura'].concat(parcelTag)
+          splitGroup: r.splitGroup || '',
+          tags: ['Importado da fatura'].concat(parcelTag).concat(r.extraTags || [])
         });
       });
 
