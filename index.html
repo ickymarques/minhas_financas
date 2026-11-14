@@ -1414,6 +1414,251 @@ dialog::backdrop {
   }
 }
 </style>
+<style id="mf-dark-desktop-fix">
+/* ==========================================================================
+   CORREÇÃO COMPLETA DO MODO NOTURNO NO DESKTOP & COMPONENTES GLOBAIS
+   ========================================================================== */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1120;
+  --surface: #131c2e;
+  --surface2: #1c283e;
+  --card: #131c2e;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --line: #28364f;
+  --accent: #3b82f6;
+  --accent2: #64748b;
+  --good: #34d399;
+  --bad: #f87171;
+  --warn: #fbbf24;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.42), 0 2px 8px rgba(0, 0, 0, 0.28);
+  --soft-blue: #60a5fa;
+  --soft-green: #34d399;
+  --soft-red: #f87171;
+}
+
+/* Fundo principal do body, html e container .app no Desktop e Mobile */
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+html[data-theme="dark"] .app,
+html[data-theme="dark"] main {
+  background-color: var(--bg) !important;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.06) 0px, transparent 45%) !important;
+  color: var(--text) !important;
+}
+
+/* Barra lateral (Aside) e Navegação no Desktop */
+html[data-theme="dark"] aside,
+html[data-theme="dark"] #appSidebar {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-right: 1px solid var(--line) !important;
+  box-shadow: 4px 0 28px rgba(0, 0, 0, 0.35) !important;
+}
+
+html[data-theme="dark"] .brand,
+html[data-theme="dark"] #appSidebar .brand-wordmark {
+  color: var(--text) !important;
+}
+
+html[data-theme="dark"] .brand small,
+html[data-theme="dark"] .aside-bottom {
+  color: var(--muted) !important;
+}
+
+html[data-theme="dark"] .nav button,
+html[data-theme="dark"] #sideNav button {
+  color: var(--muted) !important;
+}
+
+html[data-theme="dark"] .nav button:hover,
+html[data-theme="dark"] #sideNav button:hover {
+  background: var(--surface2) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme="dark"] .nav button.active,
+html[data-theme="dark"] #sideNav button.active {
+  background: rgba(59, 130, 246, 0.16) !important;
+  color: #60a5fa !important;
+  box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.25) !important;
+}
+
+/* Topbar e Botões rápidos superiores no Desktop */
+html[data-theme="dark"] .topbar h1 {
+  color: var(--text) !important;
+}
+html[data-theme="dark"] .topbar p {
+  color: var(--muted) !important;
+}
+html[data-theme="dark"] .desktop-top-launch.income {
+  background: rgba(16, 185, 129, 0.16) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(52, 211, 153, 0.28) !important;
+}
+html[data-theme="dark"] .desktop-top-launch.income:hover {
+  background: rgba(16, 185, 129, 0.24) !important;
+}
+html[data-theme="dark"] .desktop-top-launch.expense {
+  background: rgba(239, 68, 68, 0.16) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(248, 113, 113, 0.28) !important;
+}
+html[data-theme="dark"] .desktop-top-launch.expense:hover {
+  background: rgba(239, 68, 68, 0.24) !important;
+}
+
+/* Cards, Seções, KPIs e Containers */
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .kpi,
+html[data-theme="dark"] .projection-kpi,
+html[data-theme="dark"] .projection-month,
+html[data-theme="dark"] .budget-card,
+html[data-theme="dark"] #uber .uber-detail-card,
+html[data-theme="dark"] #uber .uber-visual,
+html[data-theme="dark"] #uber .uber-ride,
+html[data-theme="dark"] .tx-search-bar {
+  background: var(--surface) !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+html[data-theme="dark"] .projection-kpi.primary {
+  background: linear-gradient(145deg, #1d3557, #152642) !important;
+  border-color: #2f5282 !important;
+  color: #f8fafc !important;
+}
+
+html[data-theme="dark"] #uber .uber-kpi,
+html[data-theme="dark"] #uber .uber-profit,
+html[data-theme="dark"] #uber .uber-meter,
+html[data-theme="dark"] #uber .uber-detail-metric,
+html[data-theme="dark"] #uber .uber-ride-stat,
+html[data-theme="dark"] #uber .uber-efficiency,
+html[data-theme="dark"] #budget .budget-summary-kpi,
+html[data-theme="dark"] #budget .budget-summary-list,
+html[data-theme="dark"] .tx-ref-summary > div,
+html[data-theme="dark"] .recent-icon {
+  background: var(--surface2) !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+}
+
+/* Textareas, Inputs, Selects e Opções de Aparência */
+html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] .issue-form textarea {
+  background-color: var(--surface2) !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: var(--muted) !important;
+  opacity: 0.75;
+}
+
+/* Botões em Configurações (#settings) e Admin (#admin) */
+html[data-theme="dark"] .btn,
+html[data-theme="dark"] #settings .btn,
+html[data-theme="dark"] #admin .btn {
+  background: var(--surface2) !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme="dark"] .btn:hover,
+html[data-theme="dark"] #settings .btn:hover,
+html[data-theme="dark"] #admin .btn:hover {
+  background: #263652 !important;
+  border-color: #4b6285 !important;
+}
+
+html[data-theme="dark"] .btn.primary,
+html[data-theme="dark"] #settings .btn.primary,
+html[data-theme="dark"] #admin .btn.primary,
+html[data-theme="dark"] #admin [data-access-status="approved"] {
+  background: #1d4ed8 !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .btn.primary:hover,
+html[data-theme="dark"] #settings .btn.primary:hover,
+html[data-theme="dark"] #admin .btn.primary:hover {
+  background: #2563eb !important;
+  border-color: #3b82f6 !important;
+}
+
+html[data-theme="dark"] .btn.danger,
+html[data-theme="dark"] #settings .btn.danger,
+html[data-theme="dark"] #admin [data-access-status="rejected"] {
+  background: rgba(239, 68, 68, 0.14) !important;
+  border-color: rgba(248, 113, 113, 0.32) !important;
+  color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] .btn.danger:hover,
+html[data-theme="dark"] #settings .btn.danger:hover {
+  background: rgba(239, 68, 68, 0.24) !important;
+  border-color: rgba(248, 113, 113, 0.5) !important;
+}
+
+/* Tabelas, Cabeçalhos e Popover de Filtro Excel no Modo Escuro */
+html[data-theme="dark"] .tx-sheet th,
+html[data-theme="dark"] .tx-sheet tfoot td,
+html[data-theme="dark"] .tx-ref-footer {
+  background: var(--surface2) !important;
+  color: var(--muted) !important;
+  border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] .tx-sheet td {
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme="dark"] .tx-sheet tbody tr:hover {
+  background: rgba(59, 130, 246, 0.08) !important;
+}
+
+html[data-theme="dark"] .excel-filter-popover {
+  background: var(--surface) !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Fatura em PDF (invoice-import.js) no Modo Escuro */
+html[data-theme="dark"] #invoicePreview .invoice-row {
+  background: var(--surface2) !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme="dark"] #invoicePreview .inv-split-btn {
+  background: var(--surface) !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme="dark"] #batchDeletionSection {
+  background: rgba(185, 28, 28, 0.14) !important;
+  border-color: rgba(248, 113, 113, 0.3) !important;
+}
+html[data-theme="dark"] #batchDeletionSection strong {
+  color: #fca5a5 !important;
+}
+html[data-theme="dark"] #batchDeletionSection span {
+  color: #fecaca !important;
+}
+</style>
 </head>
 <body>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="uberFrontIcon" viewBox="0 0 48 48">
