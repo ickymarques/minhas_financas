@@ -1136,6 +1136,284 @@ html[data-theme="dark"] #admin [data-access-status="rejected"]{color:var(--bad)}
     border-color: #334155 !important;
   }
 </style>
+<style id="mf-pro-redesign">
+/* ==========================================================================
+   REFORMULAÇÃO VISUAL PREMIUM & MICRO-ANIMAÇÕES (MEU FINANCEIRO PRO)
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --brand-primary: #1265f3;
+  --brand-glow: rgba(18, 101, 243, 0.16);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background-image:
+    radial-gradient(at 0% 0%, color-mix(in srgb, var(--soft-blue, #4677ba) 7%, transparent) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, color-mix(in srgb, var(--soft-green, #4c997c) 6%, transparent) 0px, transparent 45%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Valores numéricos alinhados com precisão bancária */
+.kpi .value,
+.mobile-balance-big,
+.sheet-money,
+.amount,
+.recent-item-amount,
+.projection-month-balance,
+.budget-amount,
+.uber-kpi-value,
+.uber-ride-net {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+/* Transição fluida entre abas/telas com cascata suave */
+.view.active {
+  animation: mfViewEnter 0.42s var(--ease-spring) both;
+}
+
+@keyframes mfViewEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.994);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.view.active .kpis > .card,
+.view.active .projection-overview > .projection-kpi,
+.view.active .uber-kpis > .card {
+  animation: mfCardStagger 0.48s var(--ease-spring) both;
+}
+.view.active :is(.kpis, .projection-overview, .uber-kpis) > :nth-child(1) { animation-delay: 0.03s; }
+.view.active :is(.kpis, .projection-overview, .uber-kpis) > :nth-child(2) { animation-delay: 0.08s; }
+.view.active :is(.kpis, .projection-overview, .uber-kpis) > :nth-child(3) { animation-delay: 0.13s; }
+.view.active :is(.kpis, .projection-overview, .uber-kpis) > :nth-child(4) { animation-delay: 0.18s; }
+.view.active :is(.kpis, .projection-overview, .uber-kpis) > :nth-child(5) { animation-delay: 0.23s; }
+
+@keyframes mfCardStagger {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Cards com profundidade refinada, borda luminosa sutil e elevação ao passar o mouse */
+.card,
+.projection-kpi,
+.projection-month,
+.budget-summary-kpi,
+.uber-kpi {
+  transition: transform 0.28s var(--ease-spring), box-shadow 0.28s var(--ease-spring), border-color 0.22s ease;
+  backdrop-filter: blur(10px);
+}
+
+@media (hover: hover) and (min-width: 761px) {
+  .kpi:hover,
+  .projection-kpi:hover,
+  .projection-month:hover,
+  .budget-card:hover,
+  .credit-card-item:hover,
+  .uber-kpi:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 34px -8px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+    border-color: color-mix(in srgb, var(--soft-blue, #4677ba) 35%, var(--line));
+  }
+}
+
+/* KPIs da Home com barra superior de acento semântico */
+.home-month-summary .kpi {
+  position: relative;
+  overflow: hidden;
+}
+.home-month-summary .kpi::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+  background: linear-gradient(90deg, var(--soft-blue, #4677ba), #60a5fa);
+  opacity: 0.85;
+}
+.home-month-summary .kpi:nth-child(1)::before {
+  background: linear-gradient(90deg, #059669, #34d399);
+}
+.home-month-summary .kpi:nth-child(2)::before {
+  background: linear-gradient(90deg, #dc2626, #f87171);
+}
+.home-month-summary .kpi:nth-child(4)::before {
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+}
+
+/* Botões e controles com resposta tátil imediata */
+.btn,
+.desktop-top-launch,
+.quick-action,
+.nav button,
+.tx-view-tabs button {
+  transition: transform 0.18s var(--ease-spring), box-shadow 0.2s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.btn:active,
+.desktop-top-launch:active,
+.quick-action:active {
+  transform: scale(0.96) !important;
+}
+
+.desktop-top-launch {
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+.desktop-top-launch.income:hover {
+  background: #d3f3e2;
+  box-shadow: 0 8px 20px rgba(8, 123, 76, 0.16);
+}
+.desktop-top-launch.expense:hover {
+  background: #fbd8de;
+  box-shadow: 0 8px 20px rgba(201, 31, 53, 0.16);
+}
+
+/* Campos de formulário com anel de foco moderno */
+.field input,
+.field select,
+.filters input,
+.filters select,
+.issue-form textarea {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.field input:focus,
+.field select:focus,
+.filters input:focus,
+.filters select:focus,
+.issue-form textarea:focus {
+  outline: none;
+  border-color: var(--soft-blue, #1265f3);
+  box-shadow: 0 0 0 3.5px color-mix(in srgb, var(--soft-blue, #1265f3) 16%, transparent);
+}
+
+/* Modais (<dialog>) com entrada elástica suave */
+dialog[open] {
+  animation: mfDialogIn 0.32s var(--ease-spring) both;
+}
+dialog::backdrop {
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  animation: mfBackdropIn 0.25s ease both;
+}
+@keyframes mfDialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes mfBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Transações recentes e linhas da planilha com hover interativo */
+.recent-item {
+  border-radius: 14px;
+  padding: 13px 10px;
+  margin: 0 -10px;
+  transition: background-color 0.18s ease, transform 0.18s var(--ease-spring);
+}
+.recent-item:hover {
+  background-color: color-mix(in srgb, var(--soft-blue, #4677ba) 7%, var(--surface2));
+  transform: translateX(3px);
+}
+.recent-item .recent-icon,
+.tx-ref-icon {
+  transition: transform 0.22s var(--ease-spring);
+}
+.recent-item:hover .recent-icon,
+.tx-sheet tbody tr:hover .tx-ref-icon {
+  transform: scale(1.1) rotate(-3deg);
+}
+
+/* Cartões de crédito com brilho metálico sutil no hover */
+.credit-card-item {
+  box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+.credit-card-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(125deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 42%);
+  pointer-events: none;
+}
+
+/* Hero Card Mobile com brilho dinâmico */
+.mobile-balance-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.mobile-balance-hero::after {
+  content: '';
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.24), transparent 70%);
+  top: -60px;
+  right: -40px;
+  pointer-events: none;
+}
+
+/* Popover de filtro Excel com entrada animada */
+.excel-filter-popover:not([hidden]) {
+  animation: mfPopoverIn 0.2s var(--ease-spring) both;
+}
+@keyframes mfPopoverIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Barras de progresso com preenchimento fluido */
+.bar-fill,
+.budget-limit-fill,
+.budget-subfill,
+.uber-profit-fill,
+.uber-mini-fill,
+.uber-efficiency-fill,
+.tx-ref-progress i {
+  transition: width 0.55s var(--ease-spring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view.active,
+  .view.active .kpis > .card,
+  .view.active .projection-overview > .projection-kpi,
+  .view.active .uber-kpis > .card,
+  dialog[open],
+  .excel-filter-popover:not([hidden]) {
+    animation: none !important;
+  }
+}
+</style>
 </head>
 <body>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="uberFrontIcon" viewBox="0 0 48 48">
