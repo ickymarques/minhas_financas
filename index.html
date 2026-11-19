@@ -3523,44 +3523,72 @@ function renderPayOnPaydayDashboard(){
  const card=$('#payOnPaydayDashboardCard');
  if(!card)return;
  const cm=currentMonth();
- const items=state.transactions.filter(t=>t.type==='expense'&&t.payOnPayday&&effectiveAccountingMonth(t)===cm)
-  .sort((a,b)=>String(b.purchaseDate||b.date).localeCompare(String(a.purchaseDate||a.date)));
- if(!items.length){
-  card.hidden=true;
-  card.innerHTML='';
-  return;
- }
- card.hidden=false;
- const total=items.reduce((s,t)=>s+(+t.amount||0),0);
- const pendingTotal=items.filter(t=>MFReminders.pending(t)).reduce((s,t)=>s+(+t.amount||0),0);
+ const items=state.transactions.filter(t=>{
+  if(t.type!=='expense')return false;
+  const isPayday=!!t.payOnPayday;
+  const isDeferred=!!t.payLater||MFReminders.pending(t);
+  if(!isPayday&&!isDeferred)return false;
+  if(isPayday)return effectiveAccountingMonth(t)===cm||monthKey(t.date)===cm;
+  const buyM=/^\d{4}-\d{2}-\d{2}$/.test(t.purchaseDate||'')?t.purchaseDate.slice(0,7):'';
+  return buyM===cm||monthKey(t.date)===cm;
+ }).sort((a,b)=>String(b.purchaseDate||b.date).localeCompare(String(a.purchaseDate||a.date)));
+
  const [y,m]=cm.split('-').map(Number);
  const nextY=m===12?y+1:y,nextM=m===12?1:m+1;
  const defaultPayday=mfFifthBusinessDay(nextY,nextM);
  const formattedDefaultPayday=new Date(defaultPayday+'T12:00:00').toLocaleDateString('pt-BR');
 
+ card.hidden=false;
+
+ if(!items.length){
+  card.innerHTML=`
+   <div class="payday-header" style="margin-bottom:0">
+    <div>
+     <h2>💼 Extrato: Pagar no pagamento / Pagar depois</h2>
+     <p>Nenhuma compra marcada como <strong>Pagar no pagamento</strong> ou <strong>Pagar depois</strong> neste mês. Próximo 5º dia útil: <strong>${formattedDefaultPayday}</strong>.</p>
+    </div>
+    <div class="payday-total-pill">
+     <span>Total comprometido</span>
+     <strong>${fmt(0)}</strong>
+    </div>
+   </div>`;
+  return;
+ }
+
+ const total=items.reduce((s,t)=>s+(+t.amount||0),0);
+ const paydayTotal=items.filter(t=>t.payOnPayday).reduce((s,t)=>s+(+t.amount||0),0);
+ const deferredOnlyTotal=items.filter(t=>!t.payOnPayday).reduce((s,t)=>s+(+t.amount||0),0);
+ const pendingTotal=items.filter(t=>MFReminders.pending(t)).reduce((s,t)=>s+(+t.amount||0),0);
+
  card.innerHTML=`
   <div class="payday-header">
    <div>
-    <h2>💼 Compras para pagar no pagamento (5º dia útil)</h2>
-    <p>Compras realizadas neste mês (já descontadas do seu resultado atual) com pagamento previsto para <strong>${formattedDefaultPayday}</strong>.</p>
+    <h2>💼 Extrato: Pagar no pagamento & Pagar depois</h2>
+    <p>Compras para pagar no 5º dia útil (<strong>${formattedDefaultPayday}</strong>) ou em datas agendadas.</p>
    </div>
    <div class="payday-total-pill">
-    <span>Total comprometido p/ pagamento</span>
+    <span>Total do extrato (${items.length})</span>
     <strong>${fmt(total)}</strong>
    </div>
   </div>
+  ${(paydayTotal>0&&deferredOnlyTotal>0)?`
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;font-size:11.5px;color:var(--muted)">
+   <span>💼 No pagamento (5º dia útil): <strong style="color:var(--text)">${fmt(paydayTotal)}</strong></span>
+   <span>🗓️ Outras datas (Pagar depois): <strong style="color:var(--text)">${fmt(deferredOnlyTotal)}</strong></span>
+  </div>`:''}
   <div class="payday-list">
    ${items.map(t=>{
     const isPending=MFReminders.pending(t);
-    const buyDate=t.purchaseDate?new Date(t.purchaseDate+'T12:00:00').toLocaleDateString('pt-BR'):'—';
+    const buyDate=t.purchaseDate?new Date(t.purchaseDate+'T12:00:00').toLocaleDateString('pt-BR'):new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR');
     const payDate=(t.paymentDate||t.date)?new Date((t.paymentDate||t.date)+'T12:00:00').toLocaleDateString('pt-BR'):formattedDefaultPayday;
-    const sub=[t.establishment,t.payment,t.installmentLabel].filter(Boolean).join(' · ');
-    return `<div class="payday-row">
+    const modeTag=t.payOnPayday?'💼 No pagamento':'🗓️ Pagar depois';
+    const sub=[modeTag,t.establishment,t.payment,t.installmentLabel].filter(Boolean).join(' · ');
+    return `<div class="payday-row" style="cursor:pointer" onclick="editTx('${esc(t.id)}')" title="Clique para ver ou editar este lançamento">
      <div class="payday-row-left">
       <div class="payday-row-icon" aria-hidden="true">${esc(txIcon(t))}</div>
       <div class="payday-row-info">
        <strong>${esc(t.description)}</strong>
-       <small>Compra: ${buyDate} → Pagar em: <b>${payDate}</b>${sub?' · '+esc(sub):''}</small>
+       <small>Compra: ${buyDate} → Pagar em: <b>${payDate}</b> · ${esc(sub)}</small>
       </div>
      </div>
      <div class="payday-row-right">
@@ -3570,7 +3598,7 @@ function renderPayOnPaydayDashboard(){
     </div>`;
    }).join('')}
   </div>
-  ${pendingTotal>0?`<p class="note" style="margin:10px 0 0;font-size:11px">💡 Restam <strong>${fmt(pendingTotal)}</strong> pendentes de baixa financeira no próximo 5º dia útil.</p>`:''}
+  ${pendingTotal>0?`<p class="note" style="margin:10px 0 0;font-size:11px">💡 Restam <strong>${fmt(pendingTotal)}</strong> pendentes de baixa financeira. Clique em qualquer item acima para editar ou dar baixa.</p>`:''}
  `;
 }
 
