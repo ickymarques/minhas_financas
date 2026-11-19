@@ -2294,6 +2294,137 @@ dialog[open] {
   transition: width 0.65s var(--mf-ease-fluid, ease);
 }
 </style>
+<style id="mf-payday-competence-style">
+/* ==========================================================================
+   DEMONSTRATIVO DE COMPRAS "PAGAR NO PAGAMENTO" (COMPETÊNCIA DO MÊS)
+   ========================================================================== */
+.pay-on-payday-widget {
+  border-left: 4px solid var(--soft-blue, #2563eb) !important;
+}
+.payday-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.payday-header h2 {
+  margin: 0;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.payday-header p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.payday-total-pill {
+  text-align: right;
+  background: color-mix(in srgb, var(--soft-blue, #2563eb) 12%, var(--surface2));
+  border: 1px solid color-mix(in srgb, var(--soft-blue, #2563eb) 28%, var(--line));
+  padding: 8px 14px;
+  border-radius: 13px;
+}
+.payday-total-pill span {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.payday-total-pill strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 850;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.payday-list {
+  display: grid;
+  gap: 8px;
+}
+.payday-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  font-size: 12.5px;
+}
+.payday-row-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.payday-row-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.payday-row-info {
+  min-width: 0;
+}
+.payday-row-info strong {
+  display: block;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.payday-row-info small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.payday-row-right {
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.payday-row-right strong {
+  display: block;
+  font-size: 13.5px;
+  color: var(--bad);
+}
+.payday-row-right span {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  margin-top: 2px;
+}
+.payday-row-right span.pending {
+  background: #fff4df;
+  color: #b45b00;
+}
+.payday-row-right span.settled {
+  background: #e8f7ef;
+  color: #087a4f;
+}
+html[data-theme="dark"] .payday-row-right span.pending {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+}
+html[data-theme="dark"] .payday-row-right span.settled {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+}
+</style>
 </head>
 <body>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="uberFrontIcon" viewBox="0 0 48 48">
@@ -2408,6 +2539,8 @@ dialog[open] {
       </div>
       <button class="mobile-projection-entry" type="button" data-go="projection"><span><strong>Como ficam os próximos meses?</strong><small>Veja sua projeção de saldo mês a mês.</small></span><span class="projection-entry-link">Ver projeção →</span></button>
       <div class="local-mode-banner" id="localModeBanner" hidden><strong>Dados somente deste aparelho</strong>Para ver os mesmos lançamentos no navegador e no app instalado, entre com a mesma conta nos dois. <button class="btn" type="button" id="localModeLogin">Entrar na conta</button></div>
+
+      <div class="card section pay-on-payday-widget" id="payOnPaydayDashboardCard" hidden style="margin-bottom:16px"></div>
 
       <div class="insights-strip" id="copilotInsights" aria-label="Diagnóstico automático do mês"></div>
 
@@ -2614,7 +2747,8 @@ dialog[open] {
   </div>
   <div class="field full expense-only" id="installmentToggleField"><label class="installment-toggle"><span><strong>Compra parcelada</strong><small>Divida esta compra em parcelas mensais.</small></span><span class="switch"><input type="checkbox" name="isInstallment" id="txIsInstallment"><span class="switch-track"></span></span></label></div>
   <div class="field full"><label class="installment-toggle"><span><strong id="txDeferredLabel">Pagar depois</strong><small id="txDeferredHelp">Compra feita agora, com pagamento em outra data.</small></span><span class="switch"><input type="checkbox" name="payLater" id="txPayLater"><span class="switch-track"></span></span></label></div>
-  <div class="field full pay-later-fields" hidden><label id="txDeferredDateLabel">Data prevista para pagamento</label><input name="paymentDate" type="date"><small class="field-help">Até lá, a despesa aparecerá como prevista.</small></div>
+  <div class="field full pay-later-fields expense-only" id="payOnPaydayField" hidden><label class="installment-toggle" style="background:color-mix(in srgb,var(--soft-blue,#1265f3) 8%,var(--surface));border-color:color-mix(in srgb,var(--soft-blue,#1265f3) 35%,var(--line))"><span><strong>💼 Pagar no pagamento (5º dia útil)</strong><small>Calcula automaticamente o 5º dia útil do mês seguinte (com feriados) e desconta do mês da compra.</small></span><span class="switch"><input type="checkbox" name="payOnPayday" id="txPayOnPayday"><span class="switch-track"></span></span></label></div>
+  <div class="field full pay-later-fields" hidden><label id="txDeferredDateLabel">Data prevista para pagamento</label><input name="paymentDate" type="date"><small class="field-help" id="txDeferredDateHelp">Até lá, a despesa aparecerá como prevista.</small></div>
   <div class="field installment-fields" hidden><label>Total de parcelas</label><input name="installments" type="number" min="2" max="60" value="2"></div>
   <div class="field installment-fields" hidden><label>Parcelas já pagas</label><input name="paidInstallments" type="number" min="0" max="59" value="0"><small class="field-help">Use 0 para uma compra nova.</small></div>
   <div class="field full"><label>Tags</label><input name="tags" placeholder="Ex.: trabalho, viagem, reembolsável"></div>
@@ -3256,10 +3390,76 @@ document.addEventListener('keydown',event=>{
 });
 window.addEventListener('resize',()=>{if(innerWidth>760)closeMobileMenu(false);if($('#transactions').classList.contains('active'))renderTransactions()});
 
+
+// ==========================================================================
+// CÁLCULO DO 5º DIA ÚTIL (FERIADOS FEDERAIS, ESTADUAIS SP E MUNICIPAIS SÃO CARLOS)
+// ==========================================================================
+function mfEasterDate(year){
+ const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4;
+ const f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30;
+ const i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);
+ const month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;
+ return new Date(year,month-1,day,12,0,0);
+}
+function mfHolidaySet(year){
+ const fmtD=dt=>`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+ const addDays=(dt,n)=>{const x=new Date(dt.getTime());x.setDate(x.getDate()+n);return x;};
+ const easter=mfEasterDate(year);
+ const movable=[
+  addDays(easter,-48), // Segunda de Carnaval
+  addDays(easter,-47), // Terça de Carnaval
+  addDays(easter,-2),  // Sexta-feira Santa (Nacional)
+  addDays(easter,60)   // Corpus Christi (Municipal)
+ ].map(fmtD);
+ const fixed=[
+  `${year}-01-01`, // Confraternização Universal (Nacional)
+  `${year}-04-21`, // Tiradentes (Nacional)
+  `${year}-05-01`, // Dia do Trabalhador (Nacional)
+  `${year}-07-09`, // Revolução Constitucionalista (Estadual SP)
+  `${year}-08-15`, // N. Sra. Aparecida da Babilônia (Municipal São Carlos - SP)
+  `${year}-09-07`, // Independência do Brasil (Nacional)
+  `${year}-10-12`, // Nossa Senhora Aparecida (Nacional)
+  `${year}-11-02`, // Finados (Nacional)
+  `${year}-11-04`, // Aniversário de São Carlos (Municipal São Carlos - SP)
+  `${year}-11-15`, // Proclamação da República (Nacional)
+  `${year}-11-20`, // Consciência Negra (Nacional)
+  `${year}-12-25`  // Natal (Nacional)
+ ];
+ return new Set([...fixed,...movable]);
+}
+function mfFifthBusinessDay(year,month1Based){
+ const hols=mfHolidaySet(year);
+ const d=new Date(year,month1Based-1,1,12,0,0);
+ let count=0;
+ while(count<5){
+  const wd=d.getDay(); // 0=Dom, 6=Sáb
+  const iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  if(wd!==0 && wd!==6 && !hols.has(iso)){
+   count++;
+   if(count===5)return iso;
+  }
+  d.setDate(d.getDate()+1);
+ }
+ return `${year}-${String(month1Based).padStart(2,'0')}-05`;
+}
+function mfNextMonthPaydayFromPurchase(purchaseIso){
+ const parts=String(purchaseIso||today()).split('-').map(Number);
+ const y=parts[0]||new Date().getFullYear(),m=parts[1]||(new Date().getMonth()+1);
+ const nextY=m===12?y+1:y,nextM=m===12?1:m+1;
+ return mfFifthBusinessDay(nextY,nextM);
+}
+// Mês de competência contábil: somente itens marcados com `payOnPayday` descontam no mês da compra (`purchaseDate`)
+function effectiveAccountingMonth(t){
+ if(t&&t.type==='expense'&&t.payOnPayday&&/^\d{4}-\d{2}-\d{2}$/.test(t.purchaseDate||'')){
+  return t.purchaseDate.slice(0,7);
+ }
+ return monthKey(t.date);
+}
+
 function currentMonth(){return today().slice(0,7)}
 function totals(){
  const cm=currentMonth(), td=today(); let income=0,expense=0,mi=0,me=0,futureMonthIncome=0,futureMonthExpense=0;
- state.transactions.forEach(t=>{const a=+t.amount||0,isFuture=t.date>td||MFReminders.pending(t),isMonth=monthKey(t.date)===cm;
+ state.transactions.forEach(t=>{const a=+t.amount||0,isFuture=(t.date>td||MFReminders.pending(t))&&!t.payOnPayday,isMonth=effectiveAccountingMonth(t)===cm;
    if(!isFuture){if(t.type==='income'){income+=a;if(isMonth)mi+=a}else{expense+=a;if(isMonth)me+=a}}
    else if(isMonth){if(t.type==='income')futureMonthIncome+=a;else futureMonthExpense+=a}
  });
@@ -3305,8 +3505,8 @@ function recentTransactionPurchases(transactions,asOf){
 function currentMonthInstallmentSummary(){const rows=state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===currentMonth()&&((+x.installmentTotal||1)>1||!!x.installmentGroup||/(?:Parcela\s*)?\d+\s*\/\s*\d+/i.test(x.installmentLabel||'')));return{amount:rows.reduce((sum,x)=>sum+(+x.amount||0),0),count:rows.length}}
 function renderDashboard(){const t=totals(),projection=projectionData(6),month=projection[0],closingBalance=month.balance,installments=currentMonthInstallmentSummary();if($('#mobileBalanceBig'))$('#mobileBalanceBig').textContent=fmt(month.net);if($('#mobileBalanceNote'))$('#mobileBalanceNote').textContent='Previsão do mês · entradas menos saídas';$('#kpiIncome').textContent=fmt(month.income);$('#kpiExpense').textContent=fmt(month.expense);$('#kpiNet').textContent=fmt(month.net);$('#kpiNet').className='value '+(month.net>=0?'good':'bad');$('#kpiIncomeSub').textContent='Total do mês · realizadas + previstas';$('#kpiExpenseSub').textContent='Total do mês · inclui parcelas e recorrências';$('#kpiInstallments').textContent=fmt(installments.amount);$('#kpiInstallmentsSub').textContent=installments.count+' parcela'+(installments.count===1?'':'s')+' neste mês · já incluídas nas saídas';
  const recent=recentTransactionPurchases(state.transactions,today());$('#recentTx').innerHTML=recent.length?renderRecentTransactions(recent)+'<button type="button" class="btn recent-older" id="recentOlder">Ver transações mais antigas →</button>':empty('Nenhuma transação ainda.');const older=$('#recentOlder');if(older)older.onclick=()=>{go('transactions');$('#searchTx').value='';$('#filterType').value='all';$('#filterMonth').value='all';exactNotificationTransactionIds=[];renderTransactions()};
- const cm=currentMonth(),cats={};state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===cm).forEach(x=>cats[x.category||'Outros']=(cats[x.category||'Outros']||0)+(+x.amount||0));const arr=Object.entries(cats).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);$('#categoryBars').innerHTML=arr.length?categoryPie(arr):empty('Sem despesas neste mês.');bindCategoryPie();
- $('#quickProjection').innerHTML=projection.map(monthCard).join('');renderCopilotDashboard(projection,month);mfAnimateNumbers();}
+ const cm=currentMonth(),cats={};state.transactions.filter(x=>x.type==='expense'&&effectiveAccountingMonth(x)===cm).forEach(x=>cats[x.category||'Outros']=(cats[x.category||'Outros']||0)+(+x.amount||0));const arr=Object.entries(cats).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);$('#categoryBars').innerHTML=arr.length?categoryPie(arr):empty('Sem despesas neste mês.');bindCategoryPie();
+ $('#quickProjection').innerHTML=projection.map(monthCard).join('');renderPayOnPaydayDashboard();renderCopilotDashboard(projection,month);mfAnimateNumbers();}
 
 function mfAnimateNumbers(){
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
@@ -3318,6 +3518,62 @@ function mfAnimateNumbers(){
 }
 
 
+
+function renderPayOnPaydayDashboard(){
+ const card=$('#payOnPaydayDashboardCard');
+ if(!card)return;
+ const cm=currentMonth();
+ const items=state.transactions.filter(t=>t.type==='expense'&&t.payOnPayday&&effectiveAccountingMonth(t)===cm)
+  .sort((a,b)=>String(b.purchaseDate||b.date).localeCompare(String(a.purchaseDate||a.date)));
+ if(!items.length){
+  card.hidden=true;
+  card.innerHTML='';
+  return;
+ }
+ card.hidden=false;
+ const total=items.reduce((s,t)=>s+(+t.amount||0),0);
+ const pendingTotal=items.filter(t=>MFReminders.pending(t)).reduce((s,t)=>s+(+t.amount||0),0);
+ const [y,m]=cm.split('-').map(Number);
+ const nextY=m===12?y+1:y,nextM=m===12?1:m+1;
+ const defaultPayday=mfFifthBusinessDay(nextY,nextM);
+ const formattedDefaultPayday=new Date(defaultPayday+'T12:00:00').toLocaleDateString('pt-BR');
+
+ card.innerHTML=`
+  <div class="payday-header">
+   <div>
+    <h2>💼 Compras para pagar no pagamento (5º dia útil)</h2>
+    <p>Compras realizadas neste mês (já descontadas do seu resultado atual) com pagamento previsto para <strong>${formattedDefaultPayday}</strong>.</p>
+   </div>
+   <div class="payday-total-pill">
+    <span>Total comprometido p/ pagamento</span>
+    <strong>${fmt(total)}</strong>
+   </div>
+  </div>
+  <div class="payday-list">
+   ${items.map(t=>{
+    const isPending=MFReminders.pending(t);
+    const buyDate=t.purchaseDate?new Date(t.purchaseDate+'T12:00:00').toLocaleDateString('pt-BR'):'—';
+    const payDate=(t.paymentDate||t.date)?new Date((t.paymentDate||t.date)+'T12:00:00').toLocaleDateString('pt-BR'):formattedDefaultPayday;
+    const sub=[t.establishment,t.payment,t.installmentLabel].filter(Boolean).join(' · ');
+    return `<div class="payday-row">
+     <div class="payday-row-left">
+      <div class="payday-row-icon" aria-hidden="true">${esc(txIcon(t))}</div>
+      <div class="payday-row-info">
+       <strong>${esc(t.description)}</strong>
+       <small>Compra: ${buyDate} → Pagar em: <b>${payDate}</b>${sub?' · '+esc(sub):''}</small>
+      </div>
+     </div>
+     <div class="payday-row-right">
+      <strong>− ${fmt(t.amount)}</strong>
+      <span class="${isPending?'pending':'settled'}">${isPending?'Aguardando pagamento':'Pago'}</span>
+     </div>
+    </div>`;
+   }).join('')}
+  </div>
+  ${pendingTotal>0?`<p class="note" style="margin:10px 0 0;font-size:11px">💡 Restam <strong>${fmt(pendingTotal)}</strong> pendentes de baixa financeira no próximo 5º dia útil.</p>`:''}
+ `;
+}
+
 function renderCopilotDashboard(projection, month){
  const cm=currentMonth(),td=today(),nowDate=new Date(td+'T12:00:00');
  const year=nowDate.getFullYear(),monIdx=nowDate.getMonth(),dayOfMonth=nowDate.getDate();
@@ -3325,7 +3581,7 @@ function renderCopilotDashboard(projection, month){
  const daysRemaining=Math.max(1,daysInMonth-dayOfMonth+1);
  const monthElapsedPct=Math.min(100,Math.round((dayOfMonth/daysInMonth)*100));
 
- const monthTxs=state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===cm);
+ const monthTxs=state.transactions.filter(x=>x.type==='expense'&&effectiveAccountingMonth(x)===cm);
  let fixedAmt=0,instAmt=0,varAmt=0;
  monthTxs.forEach(x=>{
   const val=+x.amount||0;
@@ -3464,7 +3720,7 @@ function renderCopilotDashboard(projection, month){
 
   const currMap={},prevMap={};
   state.transactions.filter(x=>x.type==='expense').forEach(x=>{
-   const mk=monthKey(x.date),cat=x.category||'Outros',val=+x.amount||0;
+   const mk=effectiveAccountingMonth(x),cat=x.category||'Outros',val=+x.amount||0;
    if(mk===cm)currMap[cat]=(currMap[cat]||0)+val;
    else if(prevKeys.includes(mk))prevMap[cat]=(prevMap[cat]||0)+val;
   });
@@ -3797,7 +4053,7 @@ function fillCardSelect(){const el=$('#txCardSelect');if(!el)return;el.innerHTML
 function budgetSubcategoryKey(value){return String(value||'Sem subcategoria').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()||'sem subcategoria'}
 function canonicalBudgetSubcategory(category,value){const raw=String(value||'').trim()||'Sem subcategoria',key=budgetSubcategoryKey(raw),canonical=Object.keys(CATS[category]||{}).find(name=>budgetSubcategoryKey(name)===key);return subcategoryLabel(canonical||raw)}
 function renderBudget(){
- const cm=currentMonth(),monthExpenses=state.transactions.filter(t=>t.type==='expense'&&monthKey(t.date)===cm),expenseNames=monthExpenses.map(t=>t.category).filter(Boolean),budgetNames=state.budgets.map(b=>b.category).filter(Boolean),categoryNames=[],seen=new Set();
+ const cm=currentMonth(),monthExpenses=state.transactions.filter(t=>t.type==='expense'&&effectiveAccountingMonth(t)===cm),expenseNames=monthExpenses.map(t=>t.category).filter(Boolean),budgetNames=state.budgets.map(b=>b.category).filter(Boolean),categoryNames=[],seen=new Set();
  [...budgetNames,...expenseNames].forEach(name=>{const key=budgetSubcategoryKey(name);if(!seen.has(key)){seen.add(key);categoryNames.push(name)}});
  const budgetByCat=new Map(state.budgets.map(b=>[budgetSubcategoryKey(b.category),b])),items=categoryNames.map(category=>budgetByCat.get(budgetSubcategoryKey(category))||{id:'',category,limit:0,auto:true});
  const summaries=items.map(b=>{const key=budgetSubcategoryKey(b.category),txs=monthExpenses.filter(t=>budgetSubcategoryKey(t.category)===key),spent=txs.reduce((sum,t)=>sum+(+t.amount||0),0),limit=+b.limit||0;return{b,txs,spent,limit,hasLimit:limit>0,remaining:limit-spent}}),limited=summaries.filter(x=>x.hasLimit),below=limited.filter(x=>x.remaining>0.009).sort((a,b)=>b.remaining-a.remaining),over=limited.filter(x=>x.remaining<-.009).sort((a,b)=>a.remaining-b.remaining),atLimit=limited.filter(x=>Math.abs(x.remaining)<=.009),totalLimit=limited.reduce((sum,x)=>sum+x.limit,0),totalSpent=limited.reduce((sum,x)=>sum+x.spent,0),available=below.reduce((sum,x)=>sum+x.remaining,0),exceeded=over.reduce((sum,x)=>sum+Math.abs(x.remaining),0),overallPct=totalLimit?totalSpent/totalLimit*100:0,withoutLimit=summaries.filter(x=>!x.hasLimit&&x.spent>0),withoutLimitSpent=withoutLimit.reduce((sum,x)=>sum+x.spent,0),summary=$('#budgetSummary');
@@ -3824,7 +4080,7 @@ function recurringAmountForMonth(r,d){
 function normalizedRecurringDescription(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\b(?:jan(?:eiro)?|fev(?:ereiro)?|mar(?:co)?|abr(?:il)?|mai(?:o)?|jun(?:ho)?|jul(?:ho)?|ago(?:sto)?|set(?:embro)?|out(?:ubro)?|nov(?:embro)?|dez(?:embro)?)\b/g,' ').replace(/\b(?:0?[1-9]|1[0-2])\s*[\/-]\s*(?:19|20)?\d{2}\b/g,' ').replace(/\b(?:19|20)\d{2}\b/g,' ').replace(/[^a-z0-9]+/g,' ').trim()}
 function recurringTransactionMatch(r,t,key){if(monthKey(t.date)!==key||t.type!==r.type)return false;if(t.recurringId&&t.recurringId===r.id)return true;const rd=normalizedRecurringDescription(r.description),td=normalizedRecurringDescription(t.description);if(rd&&td&&rd===td)return true;const sameCategory=String(r.category||'').trim().toLowerCase()===String(t.category||'').trim().toLowerCase(),expected=recurringAmountForMonth(r,new Date(key+'-01T12:00:00')),sameAmount=Math.abs((+t.amount||0)-expected)<0.01;return !!r.category&&sameCategory&&sameAmount}
 function projectionData(n=12){const actual=totals();let running=actual.balance-actual.net;const out=[],duplicates=[],td=today(),now=new Date(td+'T12:00:00');for(let i=0;i<n;i++){const d=new Date(now.getFullYear(),now.getMonth()+i,1),key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');let inc=0,exp=0;
- state.transactions.filter(t=>monthKey(t.date)===key).forEach(t=>t.type==='income'?inc+=+t.amount:exp+=+t.amount);
+ state.transactions.filter(t=>effectiveAccountingMonth(t)===key).forEach(t=>t.type==='income'?inc+=+t.amount:exp+=+t.amount);
  state.recurring.forEach(r=>{const match=state.transactions.find(t=>recurringTransactionMatch(r,t,key));if(match)duplicates.push({key,recurring:r,transaction:match});else{const amt=recurringAmountForMonth(r,d);r.type==='income'?inc+=amt:exp+=amt}});
  const net=inc-exp;running+=net;out.push({key,label:d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}),income:inc,expense:exp,net,balance:running})}out.duplicates=duplicates;return out}
 function parseScenario(question,now=new Date(),preferredType=''){
@@ -4042,7 +4298,31 @@ $('#addSplitPartBtn')?.addEventListener('click',()=>{
  renderSplitParts();
 });
 $('#txForm [name=amount]')?.addEventListener('input',()=>{if($('#txIsSplit')?.checked)updateSplitSummary()});
-function updatePayLaterFields(){const on=!!$('#txPayLater')?.checked;document.querySelectorAll('#txForm .pay-later-fields').forEach(el=>el.hidden=!on);const d=$('#txForm [name=paymentDate]');if(d)d.required=on}
+function updatePayLaterFields(){
+ const on=!!$('#txPayLater')?.checked;
+ const income=txIsIncome();
+ document.querySelectorAll('#txForm .pay-later-fields').forEach(el=>{
+  if(el.id==='payOnPaydayField'){el.hidden=!on||income;}
+  else{el.hidden=!on;}
+ });
+ const paydayOn=!income&&on&&!!$('#txPayOnPayday')?.checked;
+ const d=$('#txForm [name=paymentDate]');
+ const help=$('#txDeferredDateHelp');
+ if(d){
+  d.required=on;
+  if(paydayOn){
+   const buyDate=$('#txForm [name=date]')?.value||today();
+   d.value=mfNextMonthPaydayFromPurchase(buyDate);
+  }
+ }
+ if(help){
+  help.textContent=paydayOn
+   ?'Calculado automaticamente para o 5º dia útil do mês seguinte (considerando feriados). O gasto será descontado no mês da compra.'
+   :'Até lá, a despesa aparecerá como prevista.';
+ }
+}
+$('#txPayOnPayday')?.addEventListener('change',updatePayLaterFields);
+$('#txForm [name=date]')?.addEventListener('change',()=>{if($('#txPayOnPayday')?.checked)updatePayLaterFields();});
 function populateTxTaxonomy(){
  const cat=$('#txCategory'),pay=$('#txPayment');if(!cat||!pay)return;
  const income=txIsIncome();
@@ -4247,8 +4527,8 @@ $('#addInvestment').onclick=()=>openInvestment();$('#cancelInvestment').onclick=
 $('#retryInvestmentCdi').onclick=()=>refreshCdiRate(true);
 refreshCdiRate();
 
-function openTx(type='expense'){editingTxId=null;$('#txForm').reset();$('#txForm [name=type]').value=type;populateTxTaxonomy();$('#txDialogTitle').textContent=type==='income'?'Nova entrada':'Nova despesa';$('#txForm [name=date]').value=today();$('#txIsInstallment').checked=false;if($('#txIsSplit'))$('#txIsSplit').checked=false;txSplitParts=[];$('#txPayLater').checked=false;$('#txForm [name=paymentDate]').value='';$('#txForm [name=installments]').value=2;$('#txForm [name=paidInstallments]').value=0;updateInstallmentFields();updateSplitFields();updatePayLaterFields();$('#txDialog').showModal()}
-window.editTx=id=>{const t=state.transactions.find(x=>x.id===id);if(!t)return;editingTxId=id;const f=$('#txForm');f.reset();f.elements.type.value=t.type;populateTxTaxonomy();$('#txDialogTitle').textContent=t.type==='income'?'Editar entrada':'Editar despesa';f.elements.amount.value=t.amount;f.elements.description.value=t.description||'';f.elements.establishment.value=t.establishment||'';f.elements.category.value=t.category||(t.type==='income'?INCOME_CATEGORIES[0]:Object.keys(CATS)[0]);updateTxSubcategories();if(t.type!=='income'){f.elements.subcategory.value=t.subcategory||'';f.elements.expenseKind.value=t.expenseKind||'Variável'}fillTransactionPaymentFields(t);f.elements.date.value=t.date;f.elements.isInstallment.checked=(t.installmentTotal||1)>1;if(f.elements.isSplit)f.elements.isSplit.checked=false;txSplitParts=[];updateSplitFields();f.elements.payLater.checked=MFReminders.pending(t);f.elements.paymentDate.value=t.paymentDate||'';if(t.payLater&&t.purchaseDate)f.elements.date.value=t.purchaseDate;f.elements.installments.value=t.installmentTotal||2;f.elements.paidInstallments.value=t.installmentPaid||0;updateInstallmentFields();updatePayLaterFields();f.elements.isInstallment.disabled=true;f.elements.installments.disabled=true;f.elements.paidInstallments.disabled=true;f.elements.tags.value=(t.tags||[]).join(', ');$('#txDialog').showModal()};
+function openTx(type='expense'){editingTxId=null;$('#txForm').reset();$('#txForm [name=type]').value=type;populateTxTaxonomy();$('#txDialogTitle').textContent=type==='income'?'Nova entrada':'Nova despesa';$('#txForm [name=date]').value=today();$('#txIsInstallment').checked=false;if($('#txIsSplit'))$('#txIsSplit').checked=false;txSplitParts=[];$('#txPayLater').checked=false;if($('#txPayOnPayday'))$('#txPayOnPayday').checked=false;$('#txForm [name=paymentDate]').value='';$('#txForm [name=installments]').value=2;$('#txForm [name=paidInstallments]').value=0;updateInstallmentFields();updateSplitFields();updatePayLaterFields();$('#txDialog').showModal()}
+window.editTx=id=>{const t=state.transactions.find(x=>x.id===id);if(!t)return;editingTxId=id;const f=$('#txForm');f.reset();f.elements.type.value=t.type;populateTxTaxonomy();$('#txDialogTitle').textContent=t.type==='income'?'Editar entrada':'Editar despesa';f.elements.amount.value=t.amount;f.elements.description.value=t.description||'';f.elements.establishment.value=t.establishment||'';f.elements.category.value=t.category||(t.type==='income'?INCOME_CATEGORIES[0]:Object.keys(CATS)[0]);updateTxSubcategories();if(t.type!=='income'){f.elements.subcategory.value=t.subcategory||'';f.elements.expenseKind.value=t.expenseKind||'Variável'}fillTransactionPaymentFields(t);f.elements.date.value=t.date;f.elements.isInstallment.checked=(t.installmentTotal||1)>1;if(f.elements.isSplit)f.elements.isSplit.checked=false;txSplitParts=[];updateSplitFields();f.elements.payLater.checked=MFReminders.pending(t)||!!t.payOnPayday;if(f.elements.payOnPayday)f.elements.payOnPayday.checked=!!t.payOnPayday;f.elements.paymentDate.value=t.paymentDate||'';if((t.payLater||t.payOnPayday)&&t.purchaseDate)f.elements.date.value=t.purchaseDate;f.elements.installments.value=t.installmentTotal||2;f.elements.paidInstallments.value=t.installmentPaid||0;updateInstallmentFields();updatePayLaterFields();f.elements.isInstallment.disabled=true;f.elements.installments.disabled=true;f.elements.paidInstallments.disabled=true;f.elements.tags.value=(t.tags||[]).join(', ');$('#txDialog').showModal()};
 $('#txDialog').addEventListener('close',()=>{$('#txForm [name=isInstallment]').disabled=false;$('#txForm [name=installments]').disabled=false;$('#txForm [name=paidInstallments]').disabled=false;editingTxId=null});
 $('#cancelTx').onclick=e=>{e.preventDefault();$('#txDialog').close()};
 $('#txDialog').addEventListener('click',e=>{if(e.target===$('#txDialog'))$('#txDialog').close()});
@@ -4282,7 +4562,7 @@ $('#saveTx').onclick=e=>{e.preventDefault();if(!$('#txForm').reportValidity())re
    const partKind=(CATS[part.category]||{})[part.subcategory]||'Variável';
    const partDesc=part.description.trim()?`${baseDesc} (${part.description.trim()})`:`${baseDesc} (Parte ${idx+1}/${txSplitParts.length})`;
    const partTotal=Math.round((+part.amount)*100)/100;
-   const partBase={type:'expense',amount:partTotal,description:partDesc,establishment:f.get('establishment')||'',category:part.category,subcategory:part.subcategory||'',expenseKind:partKind,date:effDate,purchaseDate:f.get('date'),payLater:f.get('payLater')==='on',settlementStatus:f.get('payLater')==='on'?'pending':'settled',paid:f.get('payLater')!=='on',received:f.get('payLater')!=='on',paymentDate:(f.get('payLater')==='on')?(f.get('paymentDate')||''):'',account:f.get('account')||'',payment:payMethod,cardId:resolvedCardId,installments:1,splitGroup:splitGroupId,tags:[...baseTags]};
+   const partBase={type:'expense',amount:partTotal,description:partDesc,establishment:f.get('establishment')||'',category:part.category,subcategory:part.subcategory||'',expenseKind:partKind,date:effDate,purchaseDate:f.get('date'),payLater:f.get('payLater')==='on',payOnPayday:!isIncome&&f.get('payLater')==='on'&&f.get('payOnPayday')==='on',settlementStatus:f.get('payLater')==='on'?'pending':'settled',paid:f.get('payLater')!=='on',received:f.get('payLater')!=='on',paymentDate:(f.get('payLater')==='on')?(f.get('paymentDate')||''):'',account:f.get('account')||'',payment:payMethod,cardId:resolvedCardId,installments:1,splitGroup:splitGroupId,tags:[...baseTags]};
    if(n>1){
     const instPart=Math.round((partTotal/n)*100)/100,instGroup=uid();
     for(let k=paid;k<n;k++){
@@ -4295,7 +4575,7 @@ $('#saveTx').onclick=e=>{e.preventDefault();if(!$('#txForm').reportValidity())re
    }
   });
   $('#txDialog').close();save();return;
- }const base={type:f.get('type'),amount:+f.get('amount'),description:f.get('description'),establishment:f.get('establishment')||'',category:f.get('category'),subcategory:isIncome?'':(f.get('subcategory')||''),expenseKind:isIncome?'':(f.get('expenseKind')||''),date:(f.get('payLater')==='on'&&f.get('paymentDate'))?f.get('paymentDate'):f.get('date'),purchaseDate:isIncome?'':f.get('date'),payLater:f.get('payLater')==='on',settlementStatus:f.get('payLater')==='on'?'pending':'settled',paid:f.get('payLater')!=='on',received:f.get('payLater')!=='on',paymentDate:(f.get('payLater')==='on')?(f.get('paymentDate')||''):'',account:f.get('account')||'',payment:transactionPaymentValue(f.get('account'),f.get('payment')),cardId:'',installments:1,tags:String(f.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean)};base.cardId=inferCardId(base);
+ }const base={type:f.get('type'),amount:+f.get('amount'),description:f.get('description'),establishment:f.get('establishment')||'',category:f.get('category'),subcategory:isIncome?'':(f.get('subcategory')||''),expenseKind:isIncome?'':(f.get('expenseKind')||''),date:(f.get('payLater')==='on'&&f.get('paymentDate'))?f.get('paymentDate'):f.get('date'),purchaseDate:isIncome?'':f.get('date'),payLater:f.get('payLater')==='on',payOnPayday:!isIncome&&f.get('payLater')==='on'&&f.get('payOnPayday')==='on',settlementStatus:f.get('payLater')==='on'?'pending':'settled',paid:f.get('payLater')!=='on',received:f.get('payLater')!=='on',paymentDate:(f.get('payLater')==='on')?(f.get('paymentDate')||''):'',account:f.get('account')||'',payment:transactionPaymentValue(f.get('account'),f.get('payment')),cardId:'',installments:1,tags:String(f.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean)};base.cardId=inferCardId(base);
  if(editingTxId){const i=state.transactions.findIndex(x=>x.id===editingTxId);if(i>=0){const original=state.transactions[i],installmentMatch=String(original.installmentLabel||'').match(/(?:Parcela\s*)?(\d+)\s*\/\s*(\d+)/i),isInstallmentEdit=(+original.installmentTotal||1)>1||!!original.installmentGroup||!!installmentMatch;if(isInstallmentEdit&&confirm('Esta compra possui parcelas. Deseja aplicar esta alteração a todos os lançamentos desta compra?')){let related=[];if(original.installmentGroup){related=state.transactions.filter(x=>x.installmentGroup===original.installmentGroup)}else{const total=+original.installmentTotal||(installmentMatch?+installmentMatch[2]:0);related=state.transactions.filter(x=>{const m=String(x.installmentLabel||'').match(/(?:Parcela\s*)?(\d+)\s*\/\s*(\d+)/i);return x.id===original.id||(m&&+m[2]===total&&x.description===original.description&&x.establishment===original.establishment&&x.account===original.account&&x.payment===original.payment)})}const originalDate=original.date;related.forEach(x=>{const keep={id:x.id,date:x.date,installmentGroup:x.installmentGroup,installmentTotal:x.installmentTotal,installmentPaid:x.installmentPaid,installmentLabel:x.installmentLabel};Object.assign(x,base,keep);if(base.date!==originalDate){const oldD=new Date(originalDate+'T12:00:00'),newD=new Date(base.date+'T12:00:00'),xd=new Date(x.date+'T12:00:00');const monthDiff=(newD.getFullYear()-oldD.getFullYear())*12+(newD.getMonth()-oldD.getMonth());xd.setMonth(xd.getMonth()+monthDiff);xd.setDate(newD.getDate());x.date=xd.toISOString().slice(0,10)}})}else state.transactions[i]={...state.transactions[i],...base};}}
  else {const parcelada=!isIncome&&f.get('isInstallment')==='on',n=parcelada?Math.max(2,+f.get('installments')||2):1,paid=parcelada?Math.max(0,Math.min(n-1,+f.get('paidInstallments')||0)):0;if(n>1){const total=base.amount,part=Math.round((total/n)*100)/100,group=uid();for(let k=paid;k<n;k++){const d=new Date(base.date+'T12:00:00');d.setMonth(d.getMonth()+(k-paid));const amt=k===n-1?Math.round((total-part*(n-1))*100)/100:part;state.transactions.push({...base,id:uid(),amount:amt,date:d.toISOString().slice(0,10),installmentGroup:group,installmentTotal:n,installmentPaid:paid,installmentLabel:`Parcela ${k+1}/${n}`});}}else state.transactions.push({id:uid(),...base,installmentTotal:1,installmentPaid:0});}
  $('#txDialog').close();save()}
