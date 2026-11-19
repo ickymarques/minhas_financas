@@ -1717,6 +1717,303 @@ html[data-theme="dark"] .recent-item:hover {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(52, 211, 153, 0.3) !important;
 }
 </style>
+<style id="mf-copilot-option1">
+/* ==========================================================================
+   OPÇÃO 1: COPILOTO DE CAIXA & LIBERDADE FINANCEIRA (DASHBOARD)
+   ========================================================================== */
+.copilot-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 1000px) {
+  .copilot-grid { grid-template-columns: 1fr; }
+}
+.copilot-card {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+}
+.copilot-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.copilot-head h2 {
+  margin: 0;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.copilot-head p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.copilot-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--soft-blue, #4677ba) 14%, var(--surface2));
+  color: var(--soft-blue, #1265f3);
+}
+.copilot-badge.good {
+  background: color-mix(in srgb, var(--good) 15%, var(--surface2));
+  color: var(--good);
+}
+.copilot-badge.warn {
+  background: color-mix(in srgb, var(--warn) 18%, var(--surface2));
+  color: var(--warn);
+}
+.copilot-badge.bad {
+  background: color-mix(in srgb, var(--bad) 15%, var(--surface2));
+  color: var(--bad);
+}
+
+/* Stacked Freedom Bar */
+.freedom-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.freedom-hero strong {
+  font-size: 26px;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.freedom-hero span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.freedom-bar-track {
+  height: 14px;
+  border-radius: 999px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+}
+.freedom-seg {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s var(--ease-spring, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.freedom-seg.fixed { background: #6366f1; }
+.freedom-seg.inst { background: #f59e0b; }
+.freedom-seg.var { background: #ef4444; }
+.freedom-seg.free { background: #10b981; }
+
+.freedom-legend {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+@media (max-width: 600px) {
+  .freedom-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.freedom-item {
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 3px;
+}
+.freedom-item span {
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.freedom-item i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.freedom-item strong {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Burn Rate & Safe Daily Cap */
+.burn-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.burn-box {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+}
+.burn-box span {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.burn-box strong {
+  display: block;
+  font-size: 18px;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.burn-box small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.burn-bars {
+  display: grid;
+  gap: 8px;
+}
+.burn-bar-row {
+  display: grid;
+  gap: 4px;
+  font-size: 11px;
+}
+.burn-bar-row > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-weight: 650;
+}
+.burn-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.burn-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.55s var(--ease-spring, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+/* Insights Automáticos (3 Cards) */
+.insights-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+@media (max-width: 900px) {
+  .insights-strip { grid-template-columns: 1fr; }
+}
+.insight-pill-card {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.insight-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  flex-shrink: 0;
+  background: var(--surface2);
+}
+.insight-pill-card.good .insight-icon { background: color-mix(in srgb, var(--good) 15%, var(--surface2)); }
+.insight-pill-card.warn .insight-icon { background: color-mix(in srgb, var(--warn) 18%, var(--surface2)); }
+.insight-pill-card.bad .insight-icon { background: color-mix(in srgb, var(--bad) 15%, var(--surface2)); }
+.insight-copy strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+.insight-copy p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* Histórico Comparativo por Categoria (Mês Atual vs Média 3 Meses) */
+.cat-compare-card {
+  margin-top: 16px;
+}
+.cat-compare-list {
+  display: grid;
+  gap: 12px;
+}
+.cat-compare-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 145px) 1fr auto;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .cat-compare-row { grid-template-columns: 1fr auto; }
+  .cat-compare-bars { grid-column: 1 / -1; }
+}
+.cat-compare-name {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cat-compare-bars {
+  display: grid;
+  gap: 4px;
+}
+.cat-bar-line {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--surface2);
+  overflow: hidden;
+}
+.cat-bar-line i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.55s var(--ease-spring, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.cat-bar-line.curr i { background: var(--soft-blue, #1265f3); }
+.cat-bar-line.curr.over i { background: var(--bad, #dc2626); }
+.cat-bar-line.avg i { background: #94a3b8; opacity: 0.65; }
+.cat-compare-vals {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cat-compare-vals strong { display: block; font-size: 12px; }
+.cat-compare-vals small { display: block; font-size: 10px; color: var(--muted); }
+@media (max-width: 760px) {
+  #dashboard > .copilot-grid,
+  #dashboard > .insights-strip,
+  #dashboard > .cat-compare-card {
+    display: grid;
+  }
+  #dashboard > .cat-compare-card {
+    display: block;
+  }
+}
+</style>
 </head>
 <body>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="uberFrontIcon" viewBox="0 0 48 48">
@@ -1832,9 +2129,27 @@ html[data-theme="dark"] .recent-item:hover {
       <button class="mobile-projection-entry" type="button" data-go="projection"><span><strong>Como ficam os próximos meses?</strong><small>Veja sua projeção de saldo mês a mês.</small></span><span class="projection-entry-link">Ver projeção →</span></button>
       <div class="local-mode-banner" id="localModeBanner" hidden><strong>Dados somente deste aparelho</strong>Para ver os mesmos lançamentos no navegador e no app instalado, entre com a mesma conta nos dois. <button class="btn" type="button" id="localModeLogin">Entrar na conta</button></div>
 
+      <div class="insights-strip" id="copilotInsights" aria-label="Diagnóstico automático do mês"></div>
+
+      <div class="copilot-grid" aria-label="Copiloto de Caixa e Ritmo de Gastos">
+        <div class="card copilot-card" id="copilotFreedomCard"></div>
+        <div class="card copilot-card" id="copilotBurnCard"></div>
+      </div>
+
       <div class="grid two">
         <div class="card section recent-card"><div class="section-head"><h2>Transações recentes</h2><button class="btn" data-go="transactions">Ver todas</button></div><div id="recentTx"></div></div>
         <div class="card section"><h2>Distribuição de gastos</h2><p class="category-chart-subtitle">Resumo de despesas por categoria</p><div id="categoryBars"></div></div>
+      </div>
+
+      <div class="card section cat-compare-card">
+        <div class="section-head">
+          <div>
+            <h2>Mês atual vs. média dos últimos 3 meses</h2>
+            <p class="category-chart-subtitle" style="margin:3px 0 0">Compare onde seus gastos estão acima ou abaixo do seu histórico recente</p>
+          </div>
+          <span class="copilot-badge" id="catCompareLegend">Azul: Atual · Cinza: Média 3m</span>
+        </div>
+        <div id="categoryHistoryCompare"></div>
       </div>
 
       <div class="card section" style="margin-top:16px"><div class="section-head"><h2>Projeção rápida</h2><button class="btn" data-go="projection">Detalhar</button></div><div class="projection" id="quickProjection"></div></div>
@@ -2711,7 +3026,190 @@ function currentMonthInstallmentSummary(){const rows=state.transactions.filter(x
 function renderDashboard(){const t=totals(),projection=projectionData(6),month=projection[0],closingBalance=month.balance,installments=currentMonthInstallmentSummary();if($('#mobileBalanceBig'))$('#mobileBalanceBig').textContent=fmt(month.net);if($('#mobileBalanceNote'))$('#mobileBalanceNote').textContent='Previsão do mês · entradas menos saídas';$('#kpiIncome').textContent=fmt(month.income);$('#kpiExpense').textContent=fmt(month.expense);$('#kpiNet').textContent=fmt(month.net);$('#kpiNet').className='value '+(month.net>=0?'good':'bad');$('#kpiIncomeSub').textContent='Total do mês · realizadas + previstas';$('#kpiExpenseSub').textContent='Total do mês · inclui parcelas e recorrências';$('#kpiInstallments').textContent=fmt(installments.amount);$('#kpiInstallmentsSub').textContent=installments.count+' parcela'+(installments.count===1?'':'s')+' neste mês · já incluídas nas saídas';
  const recent=recentTransactionPurchases(state.transactions,today());$('#recentTx').innerHTML=recent.length?renderRecentTransactions(recent)+'<button type="button" class="btn recent-older" id="recentOlder">Ver transações mais antigas →</button>':empty('Nenhuma transação ainda.');const older=$('#recentOlder');if(older)older.onclick=()=>{go('transactions');$('#searchTx').value='';$('#filterType').value='all';$('#filterMonth').value='all';exactNotificationTransactionIds=[];renderTransactions()};
  const cm=currentMonth(),cats={};state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===cm).forEach(x=>cats[x.category||'Outros']=(cats[x.category||'Outros']||0)+(+x.amount||0));const arr=Object.entries(cats).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);$('#categoryBars').innerHTML=arr.length?categoryPie(arr):empty('Sem despesas neste mês.');bindCategoryPie();
- $('#quickProjection').innerHTML=projection.map(monthCard).join('');}
+ $('#quickProjection').innerHTML=projection.map(monthCard).join('');renderCopilotDashboard(projection,month);}
+
+function renderCopilotDashboard(projection, month){
+ const cm=currentMonth(),td=today(),nowDate=new Date(td+'T12:00:00');
+ const year=nowDate.getFullYear(),monIdx=nowDate.getMonth(),dayOfMonth=nowDate.getDate();
+ const daysInMonth=new Date(year,monIdx+1,0).getDate();
+ const daysRemaining=Math.max(1,daysInMonth-dayOfMonth+1);
+ const monthElapsedPct=Math.min(100,Math.round((dayOfMonth/daysInMonth)*100));
+
+ const monthTxs=state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===cm);
+ let fixedAmt=0,instAmt=0,varAmt=0;
+ monthTxs.forEach(x=>{
+  const val=+x.amount||0;
+  if(isInstallmentTx(x))instAmt+=val;
+  else if(String(x.expenseKind||'').toLowerCase()==='fixo')fixedAmt+=val;
+  else varAmt+=val;
+ });
+ // Include pending recurrences for this month that haven't been posted yet
+ (state.recurring||[]).forEach(r=>{
+  if(r.type!=='expense')return;
+  const already=state.transactions.some(t=>recurringTransactionMatch(r,t,cm));
+  if(!already){
+   const amt=recurringAmountForMonth(r,new Date(cm+'-01T12:00:00'));
+   if(String(r.expenseKind||'Fixo').toLowerCase()==='fixo')fixedAmt+=amt;
+   else varAmt+=amt;
+  }
+ });
+
+ const totalIncome=Math.max(0,month.income);
+ const committed=fixedAmt+instAmt;
+ const freeBeforeVar=Math.max(0,totalIncome-committed);
+ const remainingMargin=totalIncome-(committed+varAmt);
+ const committedPct=totalIncome>0?Math.min(100,Math.round((committed/totalIncome)*100)):0;
+
+ // 1. Termômetro de Comprometimento da Renda
+ const freedomEl=$('#copilotFreedomCard');
+ if(freedomEl){
+  const denom=Math.max(1,totalIncome,committed+varAmt);
+  const pFixed=(fixedAmt/denom)*100,pInst=(instAmt/denom)*100,pVar=(varAmt/denom)*100;
+  const pFree=Math.max(0,100-(pFixed+pInst+pVar));
+  const statusClass=remainingMargin<0?'bad':committedPct>75?'warn':'good';
+  const statusText=remainingMargin<0?'Orçamento estourado':committedPct>75?`${committedPct}% comprometido`:`${committedPct}% comprometido`;
+  freedomEl.innerHTML=`
+   <div class="copilot-head">
+    <div><h2>🧭 Comprometimento da Renda</h2><p>Quanto sobra de verdade após fixos e parcelas</p></div>
+    <span class="copilot-badge ${statusClass}">${statusText}</span>
+   </div>
+   <div class="freedom-hero">
+    <strong class="${remainingMargin>=0?'good':'bad'}">${remainingMargin>=0?fmt(remainingMargin):'− '+fmt(Math.abs(remainingMargin))}</strong>
+    <span>${remainingMargin>=0?'margem livre restante no mês':'acima da renda prevista'}</span>
+   </div>
+   <div class="freedom-bar-track" role="img" aria-label="Distribuição da renda entre fixos, parcelas, variáveis e margem livre">
+    <span class="freedom-seg fixed" style="width:${pFixed.toFixed(1)}%" title="Fixos: ${fmt(fixedAmt)}"></span>
+    <span class="freedom-seg inst" style="width:${pInst.toFixed(1)}%" title="Parcelas: ${fmt(instAmt)}"></span>
+    <span class="freedom-seg var" style="width:${pVar.toFixed(1)}%" title="Variáveis: ${fmt(varAmt)}"></span>
+    <span class="freedom-seg free" style="width:${pFree.toFixed(1)}%" title="Livre: ${fmt(Math.max(0,remainingMargin))}"></span>
+   </div>
+   <div class="freedom-legend">
+    <div class="freedom-item"><span><i style="background:#6366f1"></i>Fixos</span><strong>${fmt(fixedAmt)}</strong></div>
+    <div class="freedom-item"><span><i style="background:#f59e0b"></i>Parcelas</span><strong>${fmt(instAmt)}</strong></div>
+    <div class="freedom-item"><span><i style="background:#ef4444"></i>Variáveis</span><strong>${fmt(varAmt)}</strong></div>
+    <div class="freedom-item"><span><i style="background:#10b981"></i>Livre</span><strong class="${remainingMargin>=0?'good':'bad'}">${fmt(Math.max(0,remainingMargin))}</strong></div>
+   </div>`;
+ }
+
+ // 2. Ritmo de Gastos vs Dias do Mês (Burn Rate)
+ const burnEl=$('#copilotBurnCard');
+ if(burnEl){
+  const totalBudgetVar=state.budgets.reduce((s,b)=>s+(+b.limit||0),0);
+  const varCeiling=totalBudgetVar>0?totalBudgetVar:freeBeforeVar;
+  const varConsumedPct=varCeiling>0?Math.round((varAmt/varCeiling)*100):0;
+  const safeDaily=remainingMargin>0?(remainingMargin/daysRemaining):0;
+  const paceDiff=varConsumedPct-monthElapsedPct;
+  const paceBadge=varCeiling<=0?'Sem teto definido':paceDiff>12?'Ritmo acelerado':paceDiff>0?'Atenção ao ritmo':'Ritmo controlado';
+  const paceTone=varCeiling<=0?'':paceDiff>12?'bad':paceDiff>0?'warn':'good';
+  burnEl.innerHTML=`
+   <div class="copilot-head">
+    <div><h2>⏱️ Ritmo de Gastos (Burn Rate)</h2><p>Dia ${dayOfMonth} de ${daysInMonth} (${monthElapsedPct}% do mês decorrido)</p></div>
+    <span class="copilot-badge ${paceTone}">${paceBadge}</span>
+   </div>
+   <div class="burn-metrics">
+    <div class="burn-box">
+     <span>Teto diário seguro</span>
+     <strong class="${safeDaily>0?'good':'bad'}">${fmt(safeDaily)}/dia</strong>
+     <small>Para os ${daysRemaining} dias restantes</small>
+    </div>
+    <div class="burn-box">
+     <span>Gasto variável atual</span>
+     <strong>${fmt(varAmt)}</strong>
+     <small>${varCeiling>0?`${varConsumedPct}% de ${fmt(varCeiling)}`:'Cadastre limites em Orçamento'}</small>
+    </div>
+   </div>
+   <div class="burn-bars">
+    <div class="burn-bar-row">
+     <div><span>Tempo do mês decorrido</span><span>${monthElapsedPct}%</span></div>
+     <div class="burn-track"><div class="burn-fill" style="width:${monthElapsedPct}%;background:#64748b"></div></div>
+    </div>
+    <div class="burn-bar-row">
+     <div><span>Consumo da margem variável</span><span>${Math.min(999,varConsumedPct)}%</span></div>
+     <div class="burn-track"><div class="burn-fill" style="width:${Math.min(100,varConsumedPct)}%;background:${paceDiff>12?'#ef4444':paceDiff>0?'#f59e0b':'#10b981'}"></div></div>
+    </div>
+   </div>`;
+ }
+
+ // 3. Diagnóstico Automático (3 Insights em Texto)
+ const insightsEl=$('#copilotInsights');
+ if(insightsEl){
+  const nextMonth=projection[1];
+  const nextInstAmt=nextMonth?state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===nextMonth.key&&isInstallmentTx(x)).reduce((s,x)=>s+(+x.amount||0),0):0;
+  const instDelta=instAmt-nextInstAmt;
+  const insight1=instDelta>5
+   ?{tone:'good',icon:'📉',title:'Alívio de parcelas à vista',text:`Suas parcelas caem ${fmt(instDelta)} no próximo mês (de ${fmt(instAmt)} para ${fmt(nextInstAmt)}).`}
+   :instDelta<-5
+   ?{tone:'warn',icon:'📈',title:'Aumento de parcelas no próximo mês',text:`Suas parcelas sobem ${fmt(Math.abs(instDelta))} no próximo mês. Evite novos parcelamentos agora.`}
+   :{tone:'good',icon:'🧾',title:'Parcelamento estável',text:`Compromisso com parcelas segue em ${fmt(instAmt)}/mês (${committedPct}% da renda comprometida).`};
+
+  const uberIncomeMonth=state.transactions.filter(x=>x.type==='income'&&monthKey(x.date)===cm&&/uber/i.test(`${x.description} ${x.account} ${x.category}`)).reduce((s,x)=>s+(+x.amount||0),0);
+  const netWithoutUber=month.net-uberIncomeMonth;
+  const insight2=netWithoutUber<0
+   ?{tone:'warn',icon:'🚗',title:'Dependência de renda extra',text:`Sem o Uber, o mês fecharia em −${fmt(Math.abs(netWithoutUber))}. Você já gerou ${fmt(uberIncomeMonth)} em corridas.`}
+   :{tone:'good',icon:'🛡️',title:'Base salarial cobre o mês',text:`Sua renda principal já cobre as despesas previstas; o Uber (${fmt(uberIncomeMonth)}) entra como folga extra.`};
+
+  const catTotals={};
+  monthTxs.forEach(x=>{const c=x.category||'Outros';catTotals[c]=(catTotals[c]||0)+(+x.amount||0)});
+  const topCat=Object.entries(catTotals).sort((a,b)=>b[1]-a[1])[0];
+  const insight3=topCat
+   ?{tone:remainingMargin<0?'bad':'',icon:'🎯',title:`Maior foco: ${topCat[0]}`,text:`Representa ${fmt(topCat[1])} (${month.expense>0?Math.round((topCat[1]/month.expense)*100):0}% das saídas do mês).`}
+   :{tone:'',icon:'✨',title:'Sem gastos no mês',text:'Registre suas despesas para ativar os alertas inteligentes por categoria.'};
+
+  insightsEl.innerHTML=[insight1,insight2,insight3].map(item=>`
+   <article class="insight-pill-card ${item.tone}">
+    <div class="insight-icon" aria-hidden="true">${item.icon}</div>
+    <div class="insight-copy"><strong>${esc(item.title)}</strong><p>${esc(item.text)}</p></div>
+   </article>`).join('');
+ }
+
+ // 4. Comparativo Mês Atual vs Média dos Últimos 3 Meses
+ const compareEl=$('#categoryHistoryCompare');
+ if(compareEl){
+  const prevKeys=[1,2,3].map(offset=>{
+   const d=new Date(year,monIdx-offset,1);
+   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  });
+  const activePrevKeys=prevKeys.filter(k=>state.transactions.some(x=>x.type==='expense'&&monthKey(x.date)===k));
+  const divisor=Math.max(1,activePrevKeys.length);
+
+  const currMap={},prevMap={};
+  state.transactions.filter(x=>x.type==='expense').forEach(x=>{
+   const mk=monthKey(x.date),cat=x.category||'Outros',val=+x.amount||0;
+   if(mk===cm)currMap[cat]=(currMap[cat]||0)+val;
+   else if(prevKeys.includes(mk))prevMap[cat]=(prevMap[cat]||0)+val;
+  });
+
+  const allCats=[...new Set([...Object.keys(currMap),...Object.keys(prevMap)])];
+  const rows=allCats.map(cat=>{
+   const curr=currMap[cat]||0;
+   const avg=(prevMap[cat]||0)/divisor;
+   return{cat,curr,avg,peak:Math.max(curr,avg)};
+  }).filter(r=>r.peak>0).sort((a,b)=>b.curr-a.curr||b.avg-a.avg).slice(0,6);
+
+  if(!rows.length){
+   compareEl.innerHTML=empty('Sem histórico suficiente para comparar categorias.');
+  }else{
+   const maxVal=Math.max(1,...rows.map(r=>r.peak));
+   compareEl.innerHTML=`<div class="cat-compare-list">${rows.map(r=>{
+    const currPct=(r.curr/maxVal)*100,avgPct=(r.avg/maxVal)*100;
+    const isOver=r.avg>0&&r.curr>r.avg*1.1;
+    const deltaText=r.avg>0?`${r.curr>=r.avg?'+':''}${Math.round(((r.curr-r.avg)/r.avg)*100)}% vs média`:'Novo no mês';
+    return `<div class="cat-compare-row">
+     <div class="cat-compare-name" title="${esc(r.cat)}">${esc(r.cat)}</div>
+     <div class="cat-compare-bars">
+      <div class="cat-bar-line curr ${isOver?'over':''}" title="Mês atual: ${fmt(r.curr)}"><i style="width:${currPct.toFixed(1)}%"></i></div>
+      <div class="cat-bar-line avg" title="Média últimos ${divisor}m: ${fmt(r.avg)}"><i style="width:${avgPct.toFixed(1)}%"></i></div>
+     </div>
+     <div class="cat-compare-vals">
+      <strong>${fmt(r.curr)}</strong>
+      <small>Média: ${fmt(r.avg)} (${deltaText})</small>
+     </div>
+    </div>`;
+   }).join('')}</div>`;
+  }
+ }
+}
+
 let recentScrollTimer;$('#recentTx').addEventListener('scroll',()=>{const list=$('#recentTx');list.classList.add('is-scrolling');clearTimeout(recentScrollTimer);recentScrollTimer=setTimeout(()=>list.classList.remove('is-scrolling'),900)},{passive:true});
 
 function empty(txt){return `<div class="empty">${txt}</div>`}
@@ -2987,7 +3485,7 @@ function recurringTransactionMatch(r,t,key){if(monthKey(t.date)!==key||t.type!==
 function projectionData(n=12){const actual=totals();let running=actual.balance-actual.net;const out=[],duplicates=[],td=today(),now=new Date(td+'T12:00:00');for(let i=0;i<n;i++){const d=new Date(now.getFullYear(),now.getMonth()+i,1),key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');let inc=0,exp=0;
  state.transactions.filter(t=>monthKey(t.date)===key).forEach(t=>t.type==='income'?inc+=+t.amount:exp+=+t.amount);
  state.recurring.forEach(r=>{const match=state.transactions.find(t=>recurringTransactionMatch(r,t,key));if(match)duplicates.push({key,recurring:r,transaction:match});else{const amt=recurringAmountForMonth(r,d);r.type==='income'?inc+=amt:exp+=amt}});
- const net=inc-exp;running+=net;out.push({label:d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}),income:inc,expense:exp,net,balance:running})}out.duplicates=duplicates;return out}
+ const net=inc-exp;running+=net;out.push({key,label:d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}),income:inc,expense:exp,net,balance:running})}out.duplicates=duplicates;return out}
 function parseScenario(question,now=new Date(),preferredType=''){
  const raw=String(question||''),q=raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
  let income=/\b(ganhar|receber|renda extra|freela|bonus|aumento|salario extra|vender|venda)\b/.test(q),expense=/\b(comprar|compra|gastar|pagar|adquirir|parcelar|despesa)\b/.test(q);
