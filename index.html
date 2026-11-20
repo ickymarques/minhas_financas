@@ -3929,7 +3929,63 @@ function txSearchText(t){const date=t.date?new Date(t.date+'T12:00:00'):null,dat
 let exactNotificationTransactionIds=null;
 function installmentTransactionDetail(t){const m=String(t.installmentLabel||'').match(/(?:Parcela\s*)?(\d+)\s*\/\s*(\d+)/i),total=+t.installmentTotal||+t.installments||(m?+m[2]:1),number=m?+m[1]:1;if(t.type!=='expense'||total<=1)return '';const siblings=t.installmentGroup?state.transactions.filter(x=>x.installmentGroup===t.installmentGroup):[],full=siblings.length===total,amount=full?siblings.reduce((sum,x)=>sum+(+x.amount||0),0):(+t.amount||0)*total,remaining=Math.max(0,total-number),later=full?siblings.filter(x=>{const a=String(x.installmentLabel||'').match(/(\d+)\s*\//);return a&&+a[1]>number}).reduce((sum,x)=>sum+(+x.amount||0),0):remaining*(+t.amount||0);return `<div class="tx-installment-detail"><span class="tx-installment-badge">Parcelada · ${number}/${total}</span><small>Compra: ${fmt(amount)} · Após esta parcela: ${remaining} restante(s), ${fmt(later)}${full?'':'<span class="tx-estimate-label">Valor estimado</span>'}</small></div>`;}
 function splitTransactionSections(rows){return {installments:rows.filter(t=>t.type==='expense'&&isInstallmentTx(t)),others:rows.filter(t=>!(t.type==='expense'&&isInstallmentTx(t)))};}
-function transactionInstallmentMetrics(t){const m=String(t.installmentLabel||'').match(/(\d+)\s*\/\s*(\d+)/),total=+t.installmentTotal||+t.installments||(m?+m[2]:1),number=m?+m[1]:1,siblings=t.installmentGroup?state.transactions.filter(x=>x.installmentGroup===t.installmentGroup):[],full=siblings.length===total,remaining=Math.max(0,total-number);return {total,number,remaining,approx:!full,value:full?siblings.reduce((sum,x)=>sum+(+x.amount||0),0):(+t.amount||0)*total,left:full?siblings.filter(x=>{const n=String(x.installmentLabel||'').match(/(\d+)\s*\//);return n&&+n[1]>number}).reduce((sum,x)=>sum+(+x.amount||0),0):remaining*(+t.amount||0)};}
+function parseInstallmentPair(t){
+ const m=String(t?.installmentLabel||'').match(/(?:parcela\s*)?(\d+)\s*\/\s*(\d+)/i);
+ let num=m?+m[1]:1;
+ let tot=+t?.installmentTotal||+t?.installments||(m?+m[2]:1);
+ if(m&&+m[2]>1)tot=+m[2];
+ if(tot<1)tot=1;
+ if(num<1)num=1;
+ if(num>tot)num=Math.min(num,tot);
+ return {number:num,total:tot,hasExplicit:!!m};
+}
+function findInstallmentSiblings(t){
+ if(!t)return [];
+ if(t.installmentGroup){
+  const byGroup=state.transactions.filter(x=>x.installmentGroup===t.installmentGroup);
+  if(byGroup.length>1)return byGroup;
+ }
+ const pair=parseInstallmentPair(t);
+ if(pair.total<=1)return t?[t]:[];
+ const descKey=String(t.description||'').trim().toLowerCase();
+ const accKey=String(t.account||t.payment||t.cardId||'').trim().toLowerCase();
+ const amtKey=Number(t.amount||0).toFixed(2);
+ return state.transactions.filter(x=>{
+  if(x.type!=='expense')return false;
+  if(t.installmentGroup&&x.installmentGroup===t.installmentGroup)return true;
+  const xp=parseInstallmentPair(x);
+  return xp.total===pair.total&&String(x.description||'').trim().toLowerCase()===descKey&&String(x.account||x.payment||x.cardId||'').trim().toLowerCase()===accKey&&Number(x.amount||0).toFixed(2)===amtKey;
+ });
+}
+function transactionInstallmentMetrics(t){
+ const pair=parseInstallmentPair(t);
+ const siblings=findInstallmentSiblings(t);
+ const total=pair.total;
+ const number=pair.number;
+ const remaining=Math.max(0,total-number);
+ const paidCount=Math.max(0,Math.min(total,number-1));
+ const installmentAmount=+t.amount||0;
+ const hasExactSiblings=siblings.length>=total&&total>1;
+ const value=hasExactSiblings
+  ?siblings.reduce((sum,x)=>sum+(+x.amount||0),0)
+  :Math.round(installmentAmount*total*100)/100;
+ const left=hasExactSiblings
+  ?siblings.filter(x=>{
+    const xp=parseInstallmentPair(x);
+    return xp.number>number;
+   }).reduce((sum,x)=>sum+(+x.amount||0),0)
+  :Math.round(installmentAmount*remaining*100)/100;
+ return {
+  total,
+  number,
+  paidCount,
+  remaining,
+  installmentAmount,
+  approx:!hasExactSiblings,
+  value,
+  left
+ };
+}
 
 function transactionVisualParts(t){const bank=t.account||inferAccountFromPayment(t.payment),color=bankPresentation(bank||'').color,category=[t.category,subcategoryLabel(t.subcategory)].filter(Boolean).join(' · ');return {bank,color,category,date:new Date(transactionHistoryDate(t)+'T12:00:00').toLocaleDateString('pt-BR')};}
 const excelColFilters={};
@@ -3942,7 +3998,7 @@ const EXCEL_COLS={
  payment:{label:'Meio de pagamento',get:t=>String(t.payment||'Não informado'),sortVal:t=>String(t.payment||'').toLowerCase()},
  kind:{label:'Tipo de gasto',get:t=>t.type==='income'?'Receita':(t.expenseKind||'Variável'),sortVal:t=>(t.type==='income'?'Receita':(t.expenseKind||'Variável')).toLowerCase()},
  amount:{label:'Valor',get:t=>fmt(t.amount),sortVal:t=>Number(t.amount)||0,numeric:true},
- status:{label:'Status / Parcelas',get:t=>t.type==='expense'&&isInstallmentTx(t)?(t.installmentLabel||((+t.installmentTotal||+t.installments||1)+'x')):(isPlannedTx(t)?'Previsto':'Lançado'),sortVal:t=>t.type==='expense'&&isInstallmentTx(t)?String(t.installmentLabel||''):(isPlannedTx(t)?'Previsto':'Lançado')},
+ status:{label:'Status / Parcelas',get:t=>{if(t.type==='expense'&&isInstallmentTx(t)){const m=transactionInstallmentMetrics(t);return `${m.number}/${m.total} (${fmt(m.installmentAmount)}/mês)`;}return isPlannedTx(t)?'Previsto':'Lançado';},sortVal:t=>{if(t.type==='expense'&&isInstallmentTx(t)){const m=transactionInstallmentMetrics(t);return `${String(m.number).padStart(3,'0')}/${String(m.total).padStart(3,'0')}`;}return isPlannedTx(t)?'Previsto':'Lançado';}},
  remaining:{label:'Valor restante',get:t=>fmt(transactionInstallmentMetrics(t).left),sortVal:t=>transactionInstallmentMetrics(t).left,numeric:true}
 };
 function applyExcelColumnFilters(rows,ignoreCol=null){
@@ -4063,9 +4119,36 @@ function transactionSheet(items,installments){
   ?`<span class="tx-ref-chip" style="--chip-color:#267b5d;color:var(--good);font-weight:700">↗ Entrada</span>`
   :`<span class="tx-ref-chip" style="--chip-color:#b34f47;color:var(--bad);font-weight:700">↘ Saída</span>`;
  const actions=t=>`<button class="btn" type="button" onclick="editTx('${esc(t.id)}')" aria-label="Editar ${esc(t.description)}">Editar</button><button class="btn danger" type="button" onclick="removeTx('${esc(t.id)}')" aria-label="Excluir ${esc(t.description)}">Excluir</button>`;
- const progress=m=>`<div class="tx-ref-progress"><span>${m.number} de ${m.total}</span><div role="progressbar" aria-label="Parcela atual" aria-valuemin="0" aria-valuemax="${m.total}" aria-valuenow="${m.number}"><i style="width:${Math.min(100,m.number/m.total*100)}%"></i></div></div>`;
- const body=items.map(t=>{const m=transactionInstallmentMetrics(t),v=transactionVisualParts(t);return `<tr data-tx-id="${esc(t.id)}"><td><div class="tx-ref-item"><span class="tx-ref-icon">${esc(txIcon(t))}</span><div><strong>${esc(t.description)}</strong>${(t.splitGroup||(t.tags||[]).includes('Compra dividida'))?'<span class="tx-split-badge" title="Parte de uma compra dividida">✂️ Dividida</span>':''}<small>${esc(t.establishment||'—')} · ${v.date}</small></div></div></td><td>${flowBadge(t)}</td><td>${chip(v.category)}</td><td>${chip(t.payment,v.color)}</td><td class="sheet-extra">${chip(t.type==='income'?'Receita':t.expenseKind||'Variável')}</td><td class="sheet-money ${t.type}">${fmt(t.amount)}</td><td>${t.type==='expense'&&isInstallmentTx(t)?progress(m):chip(isPlannedTx(t)?'Previsto':'Lançado')}</td>${installments?`<td class="sheet-money sheet-extra">${fmt(m.left)}${m.approx?'<small class="tx-estimate-label">Valor estimado</small>':''}</td>`:''}<td class="sheet-extra"><div class="sheet-actions">${actions(t)}</div></td></tr>`;}).join('');
- const mobile=items.map(t=>{const m=transactionInstallmentMetrics(t),v=transactionVisualParts(t);return `<article class="tx-ref-card" data-tx-id="${esc(t.id)}"><div class="tx-ref-reveal">${actions(t)}</div><div class="tx-ref-face"><div class="tx-ref-card-head"><span class="tx-ref-mobile-title"><span class="tx-ref-icon" aria-hidden="true">${esc(txIcon(t))}</span><strong>${esc(t.description)}</strong>${(t.splitGroup||(t.tags||[]).includes('Compra dividida'))?'<span class="tx-split-badge">✂️ Dividida</span>':''}</span><button class="tx-ref-more" type="button" aria-label="Mostrar ações de ${esc(t.description)}" onclick="this.closest('.tx-ref-card').classList.toggle('actions-open')">⋯</button></div><small>${esc(t.establishment||'—')} · ${v.date}</small><div class="tx-ref-tags">${flowBadge(t)}${chip(v.category)}${chip(v.bank||'Sem banco',v.color)}<span class="sheet-extra">${chip(isPlannedTx(t)?'Previsto':'Lançado')}</span></div><div class="tx-ref-card-bottom">${t.type==='expense'&&isInstallmentTx(t)?progress(m):chip(t.type==='income'?'Receita':t.expenseKind||'Variável')}<strong class="${t.type}">${fmt(t.amount)}</strong></div><div class="tx-ref-extra sheet-extra">${esc(t.payment||'—')}${installments?` · Restante: ${fmt(m.left)}${m.approx?'<small class="tx-estimate-label">Valor estimado</small>':''}`:''}</div></div></article>`;}).join('');
+ const progress=(m,t)=>{
+  const pDate=t?.date?new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR'):'';
+  const restCount=m.remaining;
+  return `<div class="tx-ref-progress">
+   <span><strong>${m.number} de ${m.total}</strong> · ${restCount===0?'Quitada':`${restCount} restante(s)`}</span>
+   <div role="progressbar" aria-label="Parcela atual" aria-valuemin="0" aria-valuemax="${m.total}" aria-valuenow="${m.number}"><i style="width:${Math.min(100,m.number/m.total*100)}%"></i></div>
+   ${pDate?`<small style="display:block;color:var(--muted);font-size:10px;margin-top:3px">Parcela em ${pDate}</small>`:''}
+  </div>`;
+ };
+ const body=items.map(t=>{
+  const m=transactionInstallmentMetrics(t),v=transactionVisualParts(t);
+  const buyDate=transactionPurchaseDate(t)?new Date(transactionPurchaseDate(t)+'T12:00:00').toLocaleDateString('pt-BR'):v.date;
+  const subLine=[esc(t.establishment||'—'),`Compra: ${buyDate}`,installments?`Total: ${fmt(m.value)}${m.approx?' (est.)':''}`:''].filter(Boolean).join(' · ');
+  return `<tr data-tx-id="${esc(t.id)}">
+   <td><div class="tx-ref-item"><span class="tx-ref-icon">${esc(txIcon(t))}</span><div><strong>${esc(t.description)}</strong>${(t.splitGroup||(t.tags||[]).includes('Compra dividida'))?'<span class="tx-split-badge" title="Parte de uma compra dividida">✂️ Dividida</span>':''}<small>${subLine}</small></div></div></td>
+   <td>${flowBadge(t)}</td>
+   <td>${chip(v.category)}</td>
+   <td>${chip(t.payment,v.color)}</td>
+   <td class="sheet-extra">${chip(t.type==='income'?'Receita':t.expenseKind||'Variável')}</td>
+   <td class="sheet-money ${t.type}">${fmt(t.amount)}${installments?`<small class="tx-estimate-label">Total: ${fmt(m.value)}</small>`:''}</td>
+   <td>${t.type==='expense'&&isInstallmentTx(t)?progress(m,t):chip(isPlannedTx(t)?'Previsto':'Lançado')}</td>
+   ${installments?`<td class="sheet-money sheet-extra"><strong>${fmt(m.left)}</strong><small class="tx-estimate-label">${m.remaining}x de ${fmt(m.installmentAmount)}${m.approx?' · Est.':''}</small></td>`:''}
+   <td class="sheet-extra"><div class="sheet-actions">${actions(t)}</div></td>
+  </tr>`;
+ }).join('');
+ const mobile=items.map(t=>{
+  const m=transactionInstallmentMetrics(t),v=transactionVisualParts(t);
+  const buyDate=transactionPurchaseDate(t)?new Date(transactionPurchaseDate(t)+'T12:00:00').toLocaleDateString('pt-BR'):v.date;
+  return `<article class="tx-ref-card" data-tx-id="${esc(t.id)}"><div class="tx-ref-reveal">${actions(t)}</div><div class="tx-ref-face"><div class="tx-ref-card-head"><span class="tx-ref-mobile-title"><span class="tx-ref-icon" aria-hidden="true">${esc(txIcon(t))}</span><strong>${esc(t.description)}</strong>${(t.splitGroup||(t.tags||[]).includes('Compra dividida'))?'<span class="tx-split-badge">✂️ Dividida</span>':''}</span><button class="tx-ref-more" type="button" aria-label="Mostrar ações de ${esc(t.description)}" onclick="this.closest('.tx-ref-card').classList.toggle('actions-open')">⋯</button></div><small>${esc(t.establishment||'—')} · Compra: ${buyDate}</small><div class="tx-ref-tags">${flowBadge(t)}${chip(v.category)}${chip(v.bank||'Sem banco',v.color)}<span class="sheet-extra">${chip(isPlannedTx(t)?'Previsto':'Lançado')}</span></div><div class="tx-ref-card-bottom">${t.type==='expense'&&isInstallmentTx(t)?progress(m,t):chip(t.type==='income'?'Receita':t.expenseKind||'Variável')}<strong class="${t.type}">${fmt(t.amount)}</strong></div><div class="tx-ref-extra sheet-extra">${esc(t.payment||'—')}${installments?` · Total: ${fmt(m.value)} · Restante: ${fmt(m.left)}${m.approx?' (est.)':''}`:''}</div></div></article>`;
+ }).join('');
  const total=items.reduce((sum,t)=>sum+(t.type==='income'?1:-1)*(+t.amount||0),0);
  return `<div class="tx-ref-desktop tx-sheet-scroll"><table class="tx-sheet"><thead><tr>${excelTh('item','Item / Estabelecimento')}${excelTh('flow','Movimento')}${excelTh('category','Categoria')}${excelTh('payment','Meio de pagamento')}${excelTh('kind','Tipo de gasto','sheet-extra')}${excelTh('amount',installments?'Valor da parcela':'Valor')}${excelTh('status',installments?'Parcelas':'Status / Parcelas')}${installments?excelTh('remaining','Valor restante¹','sheet-extra'):''}<th class="sheet-extra">Ações</th></tr></thead><tbody>${body}</tbody></table><div class="tx-ref-footer"><span>${installments?'Total das parcelas exibidas':'Resultado dos lançamentos exibidos'}</span><strong>${fmt(installments?Math.abs(total):total)}</strong></div></div><div class="tx-ref-mobile">${mobile}</div>`;
 }
@@ -4081,10 +4164,22 @@ $('.tx-view-tabs').addEventListener('click',event=>{const button=event.target.cl
 window.toggleTransactionDetails=(button,expanded)=>{button.closest('.tx-side-section').classList.toggle('tx-details-expanded',expanded);};
 function shiftTransactionMonth(direction){const el=$('#filterMonth'),base=el.value==='all'?currentMonth():el.value,[year,month]=base.split('-').map(Number),d=new Date(year,month-1+direction,1),key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(![...el.options].some(o=>o.value===key)){const option=document.createElement('option');option.value=key;option.textContent=d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});el.append(option);}el.value=key;clearExactDuplicateFilter(false);renderTransactions();}
 $('#txPreviousMonth').onclick=()=>shiftTransactionMonth(-1);$('#txNextMonth').onclick=()=>shiftTransactionMonth(1);
+function compareInstallmentTransactions(a,b){
+ const ma=transactionInstallmentMetrics(a),mb=transactionInstallmentMetrics(b);
+ const buyA=transactionPurchaseDate(a)||a.date||'',buyB=transactionPurchaseDate(b)||b.date||'';
+ return buyB.localeCompare(buyA)
+  ||String(a.description||'').localeCompare(String(b.description||''),'pt-BR')
+  ||(ma.number-mb.number)
+  ||String(a.date||'').localeCompare(String(b.date||''));
+}
 function getBaseFilteredTransactions(){
  const q=String($('#searchTx').value||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(),tp=$('#filterType').value,mo=$('#filterMonth').value,exactIds=exactNotificationTransactionIds?new Set(exactNotificationTransactionIds):null;
- const filtered=[...state.transactions].filter(t=>exactIds?exactIds.has(t.id):((!q||txSearchText(t).includes(q))&&(tp==='all'||t.type===tp)&&(mo==='all'||monthKey(t.type==='expense'&&isInstallmentTx(t)?t.date:transactionHistoryDate(t))===mo))).sort(compareTransactionsByPurchase);
- return exactIds?filtered:transactionTabRows(filtered);
+ const filtered=[...state.transactions].filter(t=>exactIds?exactIds.has(t.id):((!q||txSearchText(t).includes(q))&&(tp==='all'||t.type===tp)&&(mo==='all'||monthKey(t.type==='expense'&&isInstallmentTx(t)?t.date:transactionHistoryDate(t))===mo)));
+ const tabRows=exactIds?filtered:transactionTabRows(filtered);
+ if(!exactIds&&activeTransactionTab==='installments'){
+  return tabRows.sort(compareInstallmentTransactions);
+ }
+ return tabRows.sort(compareTransactionsByPurchase);
 }
 function renderTransactions(){document.querySelectorAll('[data-tx-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.txTab===activeTransactionTab)));populateMonthFilter();const exactIds=exactNotificationTransactionIds?new Set(exactNotificationTransactionIds):null;const baseRows=getBaseFilteredTransactions();const rows=sortExcelRows(applyExcelColumnFilters(baseRows));const hasAnyFilter=Object.keys(excelColFilters).length>0||!!excelSortState.col;const result=(rows.length||hasAnyFilter)?renderTransactionSections(rows):empty('Nenhuma transação encontrada.'),exactCopy=exactIds?.size===1?'Exibindo somente o lançamento selecionado.':`Exibindo somente os ${exactIds?.size||0} lançamentos apontados pela notificação.`,exactNotice=exactIds?`<div class="exact-duplicate-filter"><div><strong>Filtro exato da duplicidade</strong>${exactCopy}</div><button type="button" onclick="clearExactDuplicateFilter()">Limpar filtro</button></div>`:'';$('#allTx').innerHTML=exactNotice+result}
 window.clearExactDuplicateFilter=(rerender=true)=>{exactNotificationTransactionIds=null;if(rerender)renderTransactions()};
