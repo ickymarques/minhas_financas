@@ -2446,6 +2446,51 @@ html[data-theme="dark"] .payday-row-right span.settled {
   padding-right: 4px;
 }
 </style>
+<style id="mf-loan-reimbursement-link-css">
+/* ==========================================================================
+   VÍNCULO DE EMPRÉSTIMO DE LIMITE / REEMBOLSO DE TERCEIROS
+   ========================================================================== */
+.tx-loan-link-box[hidden] {
+  display: none !important;
+}
+.tx-loan-link-box {
+  border: 1px solid color-mix(in srgb, var(--soft-blue, #2563eb) 32%, var(--line));
+  background: color-mix(in srgb, var(--soft-blue, #2563eb) 6%, var(--surface2));
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 8px;
+}
+.tx-loan-link-box label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+.tx-loan-link-box small {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.tx-loan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(16, 185, 129, 0.14);
+  color: var(--good, #059669);
+  border: 1px solid rgba(16, 185, 129, 0.32);
+  vertical-align: middle;
+}
+.tx-loan-badge.unlinked {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--warn, #b45309);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+</style>
 </head>
 <body>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="uberFrontIcon" viewBox="0 0 48 48">
@@ -2775,6 +2820,16 @@ html[data-theme="dark"] .payday-row-right span.settled {
   <div class="field installment-fields" hidden><label>Total de parcelas</label><input name="installments" type="number" min="2" max="60" value="2"></div>
   <div class="field installment-fields" hidden><label>Parcelas já pagas</label><input name="paidInstallments" type="number" min="0" max="59" value="0"><small class="field-help">Use 0 para uma compra nova.</small></div>
   <div class="field full"><label>Tags</label><input name="tags" placeholder="Ex.: trabalho, viagem, reembolsável"></div>
+  <div class="field full tx-loan-link-box" id="txLoanExpenseLinkBox" hidden>
+    <label for="txLinkedIncomeId">🔗 Vincular pagamento / reembolso recebido desta compra</label>
+    <select name="linkedIncomeId" id="txLinkedIncomeId"></select>
+    <small id="txLoanExpenseHelp">Escolha a entrada/pagamento recebido da pessoa para acompanhar o acerto deste empréstimo de limite.</small>
+  </div>
+  <div class="field full tx-loan-link-box" id="txLoanIncomeLinkBox" hidden>
+    <label for="txLinkedExpenseId">🔗 Vincular à compra / empréstimo de limite que está sendo pago</label>
+    <select name="linkedExpenseId" id="txLinkedExpenseId"></select>
+    <small id="txLoanIncomeHelp">Marque esta entrada como pagamento/reembolso de uma compra de limite ou empréstimo.</small>
+  </div>
 </div><div class="modal-actions"><button class="btn" value="cancel" id="cancelTx">Fechar</button><button class="btn primary" value="default" id="saveTx">Salvar</button></div></form></dialog>
 
 <dialog id="uberScalesDialog"><form id="uberScalesForm" class="modal"><h3>Faixas dos gráficos</h3><p class="note">Escolha o mínimo e o máximo de cada escala. Os valores das corridas e os resultados financeiros permanecem iguais.</p><div class="form-grid"><div class="field full"><strong>Margem líquida (%)</strong></div><div class="field"><label for="marginMin">Mínimo</label><input id="marginMin" name="marginMin" type="number" min="0" step="0.1" required></div><div class="field"><label for="marginMax">Máximo</label><input id="marginMax" name="marginMax" type="number" min="0.1" step="0.1" required></div><div class="field full"><strong>Receita por km (R$/km)</strong></div><div class="field"><label for="revenueMin">Mínimo</label><input id="revenueMin" name="revenueMin" type="number" min="0" step="0.1" required></div><div class="field"><label for="revenueMax">Máximo</label><input id="revenueMax" name="revenueMax" type="number" min="0.1" step="0.1" required></div><div class="field full"><strong>Consumo médio (km/l)</strong></div><div class="field"><label for="consumptionMin">Mínimo</label><input id="consumptionMin" name="consumptionMin" type="number" min="0" step="0.1" required></div><div class="field"><label for="consumptionMax">Máximo</label><input id="consumptionMax" name="consumptionMax" type="number" min="0.1" step="0.1" required></div></div><div class="modal-actions"><button class="btn" type="button" onclick="document.getElementById('uberScalesDialog').close()">Cancelar</button><button class="btn primary" type="submit">Salvar parâmetros</button></div></form></dialog><dialog id="cardDialog"><form method="dialog" class="modal" id="cardForm"><h3 id="cardDialogTitle">Novo cartão</h3><input type="hidden" name="editingId"><div class="form-grid"><div class="field full"><label>Nome</label><input name="name" required placeholder="Ex.: Nubank"></div><div class="field"><label>Limite</label><input name="limit" type="number" step="0.01" required></div><div class="field"><label>Dia de fechamento</label><input name="closingDay" type="number" min="1" max="31" value="25"></div><div class="field"><label>Dia de vencimento</label><input name="dueDay" type="number" min="1" max="31" value="5"></div><div class="field full"><label class="checkline"><input name="blocked" type="checkbox"> Cartão bloqueado</label><small class="field-help">Use esta opção quando o cartão estiver temporariamente ou definitivamente bloqueado.</small></div></div><div class="modal-actions"><button class="btn" value="cancel">Cancelar</button><button class="btn primary" value="default" id="saveCard">Salvar</button></div></form></dialog>
@@ -3987,6 +4042,140 @@ function transactionInstallmentMetrics(t){
  };
 }
 
+
+// ==========================================================================
+// VÍNCULO BIDIRECIONAL: EMPRÉSTIMO DE LIMITE / COMPRAS DE TERCEIROS x PAGAMENTO
+// ==========================================================================
+function isLoanOrLimitExpense(t){
+ if(!t || t.type !== 'expense') return false;
+ const hay = `${t.category||''} ${t.subcategory||''} ${t.description||''} ${(t.tags||[]).join(' ')}`.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ return /emprestimo de limite|pix credito|dinheiro emprestado|emprestimo|reembolsavel|terceiro/.test(hay);
+}
+function isReimbursementOrPaymentIncome(t){
+ if(!t || t.type !== 'income') return false;
+ const hay = `${t.category||''} ${t.subcategory||''} ${t.description||''} ${(t.tags||[]).join(' ')}`.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ return /reembolso|pagamento|acerto|devolucao|estorno|limite|emprestimo/.test(hay);
+}
+function getLinkedIncomeForExpense(expTx){
+ if(!expTx) return null;
+ if(expTx.linkedIncomeId){
+  const direct = state.transactions.find(x => x.id === expTx.linkedIncomeId && x.type === 'income');
+  if(direct) return direct;
+ }
+ return state.transactions.find(x => x.type === 'income' && x.linkedExpenseId === expTx.id) || null;
+}
+function getLinkedExpenseForIncome(incTx){
+ if(!incTx) return null;
+ if(incTx.linkedExpenseId){
+  const direct = state.transactions.find(x => x.id === incTx.linkedExpenseId && x.type === 'expense');
+  if(direct) return direct;
+ }
+ return state.transactions.find(x => x.type === 'expense' && x.linkedIncomeId === incTx.id) || null;
+}
+function populateTxLoanLinks(currentTx=null){
+ const expBox = $('#txLoanExpenseLinkBox');
+ const incBox = $('#txLoanIncomeLinkBox');
+ const selInc = $('#txLinkedIncomeId');
+ const selExp = $('#txLinkedExpenseId');
+ if(!expBox || !incBox || !selInc || !selExp) return;
+
+ const isIncome = txIsIncome();
+ const catVal = $('#txCategory')?.value || '';
+ const subVal = $('#txSubcategory')?.value || '';
+ const descVal = $('#txForm [name=description]')?.value || '';
+ const probe = {
+  type: isIncome ? 'income' : 'expense',
+  category: catVal,
+  subcategory: subVal,
+  description: descVal,
+  tags: currentTx?.tags || []
+ };
+
+ const showExpenseLinker = !isIncome && (isLoanOrLimitExpense(probe) || !!currentTx?.linkedIncomeId || !!getLinkedIncomeForExpense(currentTx));
+ const showIncomeLinker = isIncome && (isReimbursementOrPaymentIncome(probe) || !!currentTx?.linkedExpenseId || !!getLinkedExpenseForIncome(currentTx));
+
+ expBox.hidden = !showExpenseLinker;
+ incBox.hidden = !showIncomeLinker;
+
+ if(showExpenseLinker){
+  const existingInc = getLinkedIncomeForExpense(currentTx);
+  const selectedId = currentTx?.linkedIncomeId || existingInc?.id || '';
+  const incomeCandidates = state.transactions
+   .filter(x => x.type === 'income' && x.id !== currentTx?.id)
+   .sort((a,b) => String(b.date||'').localeCompare(String(a.date||'')));
+  selInc.innerHTML = '<option value="">Nenhum pagamento vinculado ainda (Pendente)</option>' +
+   incomeCandidates.map(inc => {
+    const dt = inc.date ? new Date(inc.date+'T12:00:00').toLocaleDateString('pt-BR') : '';
+    return `<option value="${esc(inc.id)}" ${inc.id===selectedId?'selected':''}>${esc(inc.description)} · ${fmt(inc.amount)} (${dt})</option>`;
+   }).join('');
+ }
+
+ if(showIncomeLinker){
+  const existingExp = getLinkedExpenseForIncome(currentTx);
+  const selectedId = currentTx?.linkedExpenseId || existingExp?.id || '';
+  const expenseCandidates = state.transactions
+   .filter(x => x.type === 'expense' && x.id !== currentTx?.id)
+   .sort((a,b) => {
+    const prioA = isLoanOrLimitExpense(a) ? 0 : 1;
+    const prioB = isLoanOrLimitExpense(b) ? 0 : 1;
+    return (prioA - prioB) || String(b.date||'').localeCompare(String(a.date||''));
+   });
+  selExp.innerHTML = '<option value="">Nenhuma compra de limite vinculada</option>' +
+   expenseCandidates.map(exp => {
+    const dt = transactionPurchaseDate(exp) ? new Date(transactionPurchaseDate(exp)+'T12:00:00').toLocaleDateString('pt-BR') : '';
+    const tag = isLoanOrLimitExpense(exp) ? ' [Empréstimo/Limite]' : '';
+    return `<option value="${esc(exp.id)}" ${exp.id===selectedId?'selected':''}>${esc(exp.description)}${tag} · ${fmt(exp.amount)} (${dt})</option>`;
+   }).join('');
+ }
+}
+function syncLoanBidirectionalLinks(savedTx, formData){
+ if(!savedTx) return;
+ if(savedTx.type === 'expense'){
+  const chosenIncId = String(formData.get('linkedIncomeId') || '').trim();
+  savedTx.linkedIncomeId = chosenIncId;
+  state.transactions.forEach(t => {
+   if(t.type === 'income' && t.linkedExpenseId === savedTx.id && t.id !== chosenIncId){
+    delete t.linkedExpenseId;
+   }
+  });
+  if(chosenIncId){
+   const targetInc = state.transactions.find(t => t.id === chosenIncId && t.type === 'income');
+   if(targetInc) targetInc.linkedExpenseId = savedTx.id;
+  }
+ }else if(savedTx.type === 'income'){
+  const chosenExpId = String(formData.get('linkedExpenseId') || '').trim();
+  savedTx.linkedExpenseId = chosenExpId;
+  state.transactions.forEach(t => {
+   if(t.type === 'expense' && t.linkedIncomeId === savedTx.id && t.id !== chosenExpId){
+    delete t.linkedIncomeId;
+   }
+  });
+  if(chosenExpId){
+   const targetExp = state.transactions.find(t => t.id === chosenExpId && t.type === 'expense');
+   if(targetExp) targetExp.linkedIncomeId = savedTx.id;
+  }
+ }
+}
+function renderLoanLinkBadge(t){
+ if(!t) return '';
+ if(t.type === 'expense'){
+  const linkedInc = getLinkedIncomeForExpense(t);
+  if(linkedInc){
+   const dt = linkedInc.date ? new Date(linkedInc.date+'T12:00:00').toLocaleDateString('pt-BR') : '';
+   return `<span class="tx-loan-badge" title="Pago/reembolsado por: ${esc(linkedInc.description)} (${fmt(linkedInc.amount)} em ${dt})">🔗 Pago por: ${esc(linkedInc.description)} (${fmt(linkedInc.amount)})</span>`;
+  }
+  if(isLoanOrLimitExpense(t)){
+   return `<span class="tx-loan-badge unlinked" title="Aguardando vínculo com o pagamento da pessoa">🔗 Aguardando pagamento</span>`;
+  }
+ }else if(t.type === 'income'){
+  const linkedExp = getLinkedExpenseForIncome(t);
+  if(linkedExp){
+   return `<span class="tx-loan-badge" title="Pagamento/reembolso referente a: ${esc(linkedExp.description)} (${fmt(linkedExp.amount)})">🔗 Paga: ${esc(linkedExp.description)}</span>`;
+  }
+ }
+ return '';
+}
+
 function transactionVisualParts(t){const bank=t.account||inferAccountFromPayment(t.payment),color=bankPresentation(bank||'').color,category=[t.category,subcategoryLabel(t.subcategory)].filter(Boolean).join(' · ');return {bank,color,category,date:new Date(transactionHistoryDate(t)+'T12:00:00').toLocaleDateString('pt-BR')};}
 const excelColFilters={};
 let excelSortState={col:null,dir:'asc'};
@@ -4133,7 +4322,7 @@ function transactionSheet(items,installments){
   const buyDate=transactionPurchaseDate(t)?new Date(transactionPurchaseDate(t)+'T12:00:00').toLocaleDateString('pt-BR'):v.date;
   const subLine=[esc(t.establishment||'—'),`Compra: ${buyDate}`,installments?`Total: ${fmt(m.value)}${m.approx?' (est.)':''}`:''].filter(Boolean).join(' · ');
   return `<tr data-tx-id="${esc(t.id)}">
-   <td><div class="tx-ref-item"><span class="tx-ref-icon">${esc(txIcon(t))}</span><div><strong>${esc(t.description)}</strong>${(t.splitGroup||(t.tags||[]).includes('Compra dividida'))?'<span class="tx-split-badge" title="Parte de uma compra dividida">✂️ Dividida</span>':''}<small>${subLine}</small></div></div></td>
+   <td><div class="tx-ref-item"><span class="tx-ref-icon">${esc(txIcon(t))}</span><div><strong>${esc(t.description)}</strong>${(t.splitGroup||(t.tags||[]).includes('Compra dividida'))?'<span class="tx-split-badge" title="Parte de uma compra dividida">✂️ Dividida</span>':''}${renderLoanLinkBadge(t)}<small>${subLine}</small></div></div></td>
    <td>${flowBadge(t)}</td>
    <td>${chip(v.category)}</td>
    <td>${chip(t.payment,v.color)}</td>
@@ -4147,7 +4336,7 @@ function transactionSheet(items,installments){
  const mobile=items.map(t=>{
   const m=transactionInstallmentMetrics(t),v=transactionVisualParts(t);
   const buyDate=transactionPurchaseDate(t)?new Date(transactionPurchaseDate(t)+'T12:00:00').toLocaleDateString('pt-BR'):v.date;
-  return `<article class="tx-ref-card" data-tx-id="${esc(t.id)}"><div class="tx-ref-reveal">${actions(t)}</div><div class="tx-ref-face"><div class="tx-ref-card-head"><span class="tx-ref-mobile-title"><span class="tx-ref-icon" aria-hidden="true">${esc(txIcon(t))}</span><strong>${esc(t.description)}</strong>${(t.splitGroup||(t.tags||[]).includes('Compra dividida'))?'<span class="tx-split-badge">✂️ Dividida</span>':''}</span><button class="tx-ref-more" type="button" aria-label="Mostrar ações de ${esc(t.description)}" onclick="this.closest('.tx-ref-card').classList.toggle('actions-open')">⋯</button></div><small>${esc(t.establishment||'—')} · Compra: ${buyDate}</small><div class="tx-ref-tags">${flowBadge(t)}${chip(v.category)}${chip(v.bank||'Sem banco',v.color)}<span class="sheet-extra">${chip(isPlannedTx(t)?'Previsto':'Lançado')}</span></div><div class="tx-ref-card-bottom">${t.type==='expense'&&isInstallmentTx(t)?progress(m,t):chip(t.type==='income'?'Receita':t.expenseKind||'Variável')}<strong class="${t.type}">${fmt(t.amount)}</strong></div><div class="tx-ref-extra sheet-extra">${esc(t.payment||'—')}${installments?` · Total: ${fmt(m.value)} · Restante: ${fmt(m.left)}${m.approx?' (est.)':''}`:''}</div></div></article>`;
+  return `<article class="tx-ref-card" data-tx-id="${esc(t.id)}"><div class="tx-ref-reveal">${actions(t)}</div><div class="tx-ref-face"><div class="tx-ref-card-head"><span class="tx-ref-mobile-title"><span class="tx-ref-icon" aria-hidden="true">${esc(txIcon(t))}</span><strong>${esc(t.description)}</strong>${(t.splitGroup||(t.tags||[]).includes('Compra dividida'))?'<span class="tx-split-badge">✂️ Dividida</span>':''}${renderLoanLinkBadge(t)}</span><button class="tx-ref-more" type="button" aria-label="Mostrar ações de ${esc(t.description)}" onclick="this.closest('.tx-ref-card').classList.toggle('actions-open')">⋯</button></div><small>${esc(t.establishment||'—')} · Compra: ${buyDate}</small><div class="tx-ref-tags">${flowBadge(t)}${chip(v.category)}${chip(v.bank||'Sem banco',v.color)}<span class="sheet-extra">${chip(isPlannedTx(t)?'Previsto':'Lançado')}</span></div><div class="tx-ref-card-bottom">${t.type==='expense'&&isInstallmentTx(t)?progress(m,t):chip(t.type==='income'?'Receita':t.expenseKind||'Variável')}<strong class="${t.type}">${fmt(t.amount)}</strong></div><div class="tx-ref-extra sheet-extra">${esc(t.payment||'—')}${installments?` · Total: ${fmt(m.value)} · Restante: ${fmt(m.left)}${m.approx?' (est.)':''}`:''}</div></div></article>`;
  }).join('');
  const total=items.reduce((sum,t)=>sum+(t.type==='income'?1:-1)*(+t.amount||0),0);
  return `<div class="tx-ref-desktop tx-sheet-scroll"><table class="tx-sheet"><thead><tr>${excelTh('item','Item / Estabelecimento')}${excelTh('flow','Movimento')}${excelTh('category','Categoria')}${excelTh('payment','Meio de pagamento')}${excelTh('kind','Tipo de gasto','sheet-extra')}${excelTh('amount',installments?'Valor da parcela':'Valor')}${excelTh('status',installments?'Parcelas':'Status / Parcelas')}${installments?excelTh('remaining','Valor restante¹','sheet-extra'):''}<th class="sheet-extra">Ações</th></tr></thead><tbody>${body}</tbody></table><div class="tx-ref-footer"><span>${installments?'Total das parcelas exibidas':'Resultado dos lançamentos exibidos'}</span><strong>${fmt(installments?Math.abs(total):total)}</strong></div></div><div class="tx-ref-mobile">${mobile}</div>`;
@@ -4487,7 +4676,7 @@ function populateTxTaxonomy(){
  updatePayLaterFields();
  updateTxSubcategories();
 }
-function updateTxSubcategories(){const cat=$('#txCategory'),sub=$('#txSubcategory'),kind=$('#txForm [name=expenseKind]');if(!cat||!sub)return;if(txIsIncome()){sub.innerHTML='';if(kind)kind.value='';return}const opts=CATS[cat.value]||{};sub.innerHTML=Object.keys(opts).map(s=>`<option value="${esc(s)}">${esc(subcategoryLabel(s))}</option>`).join('');if(kind&&sub.value)kind.value=opts[sub.value]||'Variável'}
+function updateTxSubcategories(){const cat=$('#txCategory'),sub=$('#txSubcategory'),kind=$('#txForm [name=expenseKind]');if(!cat||!sub)return;if(txIsIncome()){sub.innerHTML='';if(kind)kind.value='';return}const opts=CATS[cat.value]||{};sub.innerHTML=Object.keys(opts).map(s=>`<option value="${esc(s)}">${esc(subcategoryLabel(s))}</option>`).join('');if(kind&&sub.value)kind.value=opts[sub.value]||'Variável'};populateTxLoanLinks(editingTxId?state.transactions.find(x=>x.id===editingTxId):null)
 function uberCalc(u){const fuel=(u.km>0&&u.consumption>0)?(u.km/u.consumption)*u.fuelPrice:0;const maintenance=u.gross*(u.maintenancePct/100);const insurance=Math.round((Number(u.gross)||0)*0.016*100)/100;const net=u.gross+u.extra-fuel-maintenance-(Number(u.otherCosts)||0)-insurance;return{fuel,maintenance,insurance,net}}
 function shiftUberMonth(direction){const el=$('#uberMonthFilter'),base=el.value==='all'?currentMonth():el.value,[year,month]=base.split('-').map(Number),date=new Date(year,month-1+direction,1),key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0');if(!Array.from(el.options).some(o=>o.value===key)){const option=document.createElement('option');option.value=key;option.textContent=date.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});el.append(option);}el.value=key;renderUber();}
 
@@ -4674,7 +4863,7 @@ $('#retryInvestmentCdi').onclick=()=>refreshCdiRate(true);
 refreshCdiRate();
 
 function openTx(type='expense'){editingTxId=null;$('#txForm').reset();$('#txForm [name=type]').value=type;populateTxTaxonomy();$('#txDialogTitle').textContent=type==='income'?'Nova entrada':'Nova despesa';$('#txForm [name=date]').value=today();$('#txIsInstallment').checked=false;if($('#txIsSplit'))$('#txIsSplit').checked=false;txSplitParts=[];$('#txPayLater').checked=false;if($('#txPayOnPayday'))$('#txPayOnPayday').checked=false;$('#txForm [name=paymentDate]').value='';$('#txForm [name=installments]').value=2;$('#txForm [name=paidInstallments]').value=0;updateInstallmentFields();updateSplitFields();updatePayLaterFields();$('#txDialog').showModal()}
-window.editTx=id=>{const t=state.transactions.find(x=>x.id===id);if(!t)return;editingTxId=id;const f=$('#txForm');f.reset();f.elements.type.value=t.type;populateTxTaxonomy();$('#txDialogTitle').textContent=t.type==='income'?'Editar entrada':'Editar despesa';f.elements.amount.value=t.amount;f.elements.description.value=t.description||'';f.elements.establishment.value=t.establishment||'';f.elements.category.value=t.category||(t.type==='income'?INCOME_CATEGORIES[0]:Object.keys(CATS)[0]);updateTxSubcategories();if(t.type!=='income'){f.elements.subcategory.value=t.subcategory||'';f.elements.expenseKind.value=t.expenseKind||'Variável'}fillTransactionPaymentFields(t);f.elements.date.value=t.date;f.elements.isInstallment.checked=(t.installmentTotal||1)>1;if(f.elements.isSplit)f.elements.isSplit.checked=false;txSplitParts=[];updateSplitFields();f.elements.payLater.checked=MFReminders.pending(t)||!!t.payOnPayday;if(f.elements.payOnPayday)f.elements.payOnPayday.checked=!!t.payOnPayday;f.elements.paymentDate.value=t.paymentDate||'';if((t.payLater||t.payOnPayday)&&t.purchaseDate)f.elements.date.value=t.purchaseDate;f.elements.installments.value=t.installmentTotal||2;f.elements.paidInstallments.value=t.installmentPaid||0;updateInstallmentFields();updatePayLaterFields();f.elements.isInstallment.disabled=true;f.elements.installments.disabled=true;f.elements.paidInstallments.disabled=true;f.elements.tags.value=(t.tags||[]).join(', ');$('#txDialog').showModal()};
+window.editTx=id=>{const t=state.transactions.find(x=>x.id===id);if(!t)return;editingTxId=id;const f=$('#txForm');f.reset();f.elements.type.value=t.type;populateTxTaxonomy();$('#txDialogTitle').textContent=t.type==='income'?'Editar entrada':'Editar despesa';f.elements.amount.value=t.amount;f.elements.description.value=t.description||'';f.elements.establishment.value=t.establishment||'';f.elements.category.value=t.category||(t.type==='income'?INCOME_CATEGORIES[0]:Object.keys(CATS)[0]);updateTxSubcategories();if(t.type!=='income'){f.elements.subcategory.value=t.subcategory||'';f.elements.expenseKind.value=t.expenseKind||'Variável'}fillTransactionPaymentFields(t);f.elements.date.value=t.date;f.elements.isInstallment.checked=(t.installmentTotal||1)>1;if(f.elements.isSplit)f.elements.isSplit.checked=false;txSplitParts=[];updateSplitFields();f.elements.payLater.checked=MFReminders.pending(t)||!!t.payOnPayday;if(f.elements.payOnPayday)f.elements.payOnPayday.checked=!!t.payOnPayday;f.elements.paymentDate.value=t.paymentDate||'';if((t.payLater||t.payOnPayday)&&t.purchaseDate)f.elements.date.value=t.purchaseDate;f.elements.installments.value=t.installmentTotal||2;f.elements.paidInstallments.value=t.installmentPaid||0;updateInstallmentFields();updatePayLaterFields();f.elements.isInstallment.disabled=true;f.elements.installments.disabled=true;f.elements.paidInstallments.disabled=true;f.elements.tags.value=(t.tags||[]).join(', ');populateTxLoanLinks(t);$('#txDialog').showModal()};
 $('#txDialog').addEventListener('close',()=>{$('#txForm [name=isInstallment]').disabled=false;$('#txForm [name=installments]').disabled=false;$('#txForm [name=paidInstallments]').disabled=false;editingTxId=null});
 $('#cancelTx').onclick=e=>{e.preventDefault();$('#txDialog').close()};
 $('#txDialog').addEventListener('click',e=>{if(e.target===$('#txDialog'))$('#txDialog').close()});
@@ -4724,6 +4913,8 @@ $('#saveTx').onclick=e=>{e.preventDefault();if(!$('#txForm').reportValidity())re
  }const base={type:f.get('type'),amount:+f.get('amount'),description:f.get('description'),establishment:f.get('establishment')||'',category:f.get('category'),subcategory:isIncome?'':(f.get('subcategory')||''),expenseKind:isIncome?'':(f.get('expenseKind')||''),date:(f.get('payLater')==='on'&&f.get('paymentDate'))?f.get('paymentDate'):f.get('date'),purchaseDate:isIncome?'':f.get('date'),payLater:f.get('payLater')==='on',payOnPayday:!isIncome&&f.get('payLater')==='on'&&f.get('payOnPayday')==='on',settlementStatus:f.get('payLater')==='on'?'pending':'settled',paid:f.get('payLater')!=='on',received:f.get('payLater')!=='on',paymentDate:(f.get('payLater')==='on')?(f.get('paymentDate')||''):'',account:f.get('account')||'',payment:transactionPaymentValue(f.get('account'),f.get('payment')),cardId:'',installments:1,tags:String(f.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean)};base.cardId=inferCardId(base);
  if(editingTxId){const i=state.transactions.findIndex(x=>x.id===editingTxId);if(i>=0){const original=state.transactions[i],installmentMatch=String(original.installmentLabel||'').match(/(?:Parcela\s*)?(\d+)\s*\/\s*(\d+)/i),isInstallmentEdit=(+original.installmentTotal||1)>1||!!original.installmentGroup||!!installmentMatch;if(isInstallmentEdit&&confirm('Esta compra possui parcelas. Deseja aplicar esta alteração a todos os lançamentos desta compra?')){let related=[];if(original.installmentGroup){related=state.transactions.filter(x=>x.installmentGroup===original.installmentGroup)}else{const total=+original.installmentTotal||(installmentMatch?+installmentMatch[2]:0);related=state.transactions.filter(x=>{const m=String(x.installmentLabel||'').match(/(?:Parcela\s*)?(\d+)\s*\/\s*(\d+)/i);return x.id===original.id||(m&&+m[2]===total&&x.description===original.description&&x.establishment===original.establishment&&x.account===original.account&&x.payment===original.payment)})}const originalDate=original.date;related.forEach(x=>{const keep={id:x.id,date:x.date,installmentGroup:x.installmentGroup,installmentTotal:x.installmentTotal,installmentPaid:x.installmentPaid,installmentLabel:x.installmentLabel};Object.assign(x,base,keep);if(base.date!==originalDate){const oldD=new Date(originalDate+'T12:00:00'),newD=new Date(base.date+'T12:00:00'),xd=new Date(x.date+'T12:00:00');const monthDiff=(newD.getFullYear()-oldD.getFullYear())*12+(newD.getMonth()-oldD.getMonth());xd.setMonth(xd.getMonth()+monthDiff);xd.setDate(newD.getDate());x.date=xd.toISOString().slice(0,10)}})}else state.transactions[i]={...state.transactions[i],...base};}}
  else {const parcelada=!isIncome&&f.get('isInstallment')==='on',n=parcelada?Math.max(2,+f.get('installments')||2):1,paid=parcelada?Math.max(0,Math.min(n-1,+f.get('paidInstallments')||0)):0;if(n>1){const total=base.amount,part=Math.round((total/n)*100)/100,group=uid();for(let k=paid;k<n;k++){const d=new Date(base.date+'T12:00:00');d.setMonth(d.getMonth()+(k-paid));const amt=k===n-1?Math.round((total-part*(n-1))*100)/100:part;state.transactions.push({...base,id:uid(),amount:amt,date:d.toISOString().slice(0,10),installmentGroup:group,installmentTotal:n,installmentPaid:paid,installmentLabel:`Parcela ${k+1}/${n}`});}}else state.transactions.push({id:uid(),...base,installmentTotal:1,installmentPaid:0});}
+ const justSaved=editingTxId?state.transactions.find(x=>x.id===editingTxId):state.transactions.at(-1);
+ syncLoanBidirectionalLinks(justSaved||base,f);
  $('#txDialog').close();save()}
 $('#addCard').onclick=()=>{const f=$('#cardForm');f.reset();f.elements.editingId.value='';$('#cardDialogTitle').textContent='Novo cartão';$('#cardDialog').showModal()};window.editCard=id=>{const c=state.cards.find(x=>x.id===id);if(!c)return;const f=$('#cardForm');f.reset();f.elements.editingId.value=c.id;f.elements.name.value=c.name||'';f.elements.limit.value=c.limit||0;f.elements.closingDay.value=c.closingDay||25;f.elements.dueDay.value=c.dueDay||5;f.elements.blocked.checked=!!c.blocked;$('#cardDialogTitle').textContent='Editar cartão';$('#cardDialog').showModal()};$('#saveCard').onclick=e=>{e.preventDefault();if(!$('#cardForm').reportValidity())return;const f=new FormData($('#cardForm')),editingId=f.get('editingId'),data={name:f.get('name'),limit:+f.get('limit'),closingDay:+f.get('closingDay'),dueDay:+f.get('dueDay'),blocked:f.get('blocked')==='on'};if(editingId){const i=state.cards.findIndex(x=>x.id===editingId);if(i>=0)state.cards[i]={...state.cards[i],...data}}else state.cards.push({id:uid(),...data});$('#cardDialog').close();save()}
 $('#addBudget').onclick=()=>{const form=$('#budgetForm');form.reset();form.elements.editingId.value='';fillBudgetCategories();$('#budgetDialogTitle').textContent='Novo limite mensal';$('#budgetDialog').showModal()};$('#budgetCategory').addEventListener('change',()=>fillBudgetSubcategories());$('#saveBudget').onclick=e=>{e.preventDefault();if(!$('#budgetForm').reportValidity())return;const f=new FormData($('#budgetForm')),editingId=f.get('editingId'),data={category:f.get('category'),subcategory:f.get('subcategory')||'',limit:+f.get('limit')};if(editingId){const i=state.budgets.findIndex(x=>x.id===editingId);if(i>=0)state.budgets[i]={...state.budgets[i],...data}}else state.budgets.push({id:uid(),...data});$('#budgetDialog').close();save()}
