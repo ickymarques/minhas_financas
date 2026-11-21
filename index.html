@@ -1257,6 +1257,185 @@ html[data-theme="dark"] .projection-flow-track{background:#34465e}
   gap: 5px;
   flex-shrink: 0;
 }
+
+/* Aba Guia de Classificação */
+.guide-hero-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.guide-hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.guide-hero-top h3 {
+  margin: 0;
+  font-size: 17px;
+}
+.guide-hero-top p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 78ch;
+}
+.guide-concept-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 760px) {
+  .guide-concept-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.guide-concept-box {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 6px;
+}
+.guide-concept-box strong {
+  font-size: 13.5px;
+  color: var(--text);
+}
+.guide-concept-box p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.guide-concept-box small {
+  font-size: 11.5px;
+  color: var(--text);
+  line-height: 1.45;
+}
+.guide-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.guide-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.guide-filter-pill {
+  border: 1px solid var(--line);
+  background: var(--surface2);
+  color: var(--muted);
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.guide-filter-pill.active {
+  background: var(--soft-blue, #2563eb);
+  border-color: var(--soft-blue, #2563eb);
+  color: #fff;
+}
+.guide-cats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 900px) {
+  .guide-cats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.guide-cat-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 10px;
+}
+.guide-cat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.guide-cat-head h4 {
+  margin: 0;
+  font-size: 15px;
+}
+.guide-cat-head p {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.guide-sub-table {
+  display: grid;
+  gap: 7px;
+}
+.guide-sub-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 11px;
+  border-radius: 11px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  font-size: 12.5px;
+}
+.guide-sub-main {
+  min-width: 0;
+}
+.guide-sub-main strong {
+  display: block;
+  font-size: 12.5px;
+  color: var(--text);
+}
+.guide-sub-main small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.guide-kind-tag {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.guide-kind-tag.fixo {
+  color: var(--soft-blue, #2563eb);
+  border-color: color-mix(in srgb, var(--soft-blue, #2563eb) 30%, var(--line));
+}
+.guide-kind-tag.entrada {
+  color: var(--good);
+  border-color: color-mix(in srgb, var(--good) 30%, var(--line));
+}
+
 .cat-mini-btn {
   min-height: 30px !important;
   padding: 4px 8px !important;
@@ -3013,7 +3192,7 @@ html[data-theme="dark"] .payday-row-right span.settled {
       <div class="card section">
         <div class="section-head"><h2>Transações</h2><button class="btn primary" id="addTx2">+ Nova</button></div>
         <div class="tx-search-bar"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="searchTx" type="search" aria-label="Pesquisar transações" placeholder="Busque por compra, banco, categoria ou valor..."><input type="hidden" id="filterType" value="all"></div>
-        <div class="tx-navigation-row"><div class="tx-view-tabs" role="tablist" aria-label="Tipos de transações"><button type="button" role="tab" aria-selected="true" data-tx-tab="all">Lançamentos</button><button type="button" role="tab" aria-selected="false" data-tx-tab="installments">Parcelados</button><button type="button" role="tab" aria-selected="false" data-tx-tab="cash">À vista</button><button type="button" role="tab" aria-selected="false" data-tx-tab="categorization" class="tx-cat-tab-btn"><svg class="tx-cat-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="8" height="7" rx="2"/><rect x="13" y="4" width="8" height="7" rx="2"/><rect x="3" y="13" width="8" height="7" rx="2"/><circle cx="17" cy="16.5" r="3"/><path d="m19.2 18.7 1.8 1.8"/></svg><span>Categorização</span></button></div><div class="tx-month-navigation"><button class="btn" id="txPreviousMonth" type="button" aria-label="Mês anterior"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 6-6 6 6 6"/></svg></button><select id="filterMonth" aria-label="Mês das transações"></select><button class="btn" id="txNextMonth" type="button" aria-label="Próximo mês"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 6 6 6-6 6"/></svg></button></div></div><div id="allTx" role="tabpanel"></div>
+        <div class="tx-navigation-row"><div class="tx-view-tabs" role="tablist" aria-label="Tipos de transações"><button type="button" role="tab" aria-selected="true" data-tx-tab="all">Lançamentos</button><button type="button" role="tab" aria-selected="false" data-tx-tab="installments">Parcelados</button><button type="button" role="tab" aria-selected="false" data-tx-tab="cash">À vista</button><button type="button" role="tab" aria-selected="false" data-tx-tab="categorization" class="tx-cat-tab-btn"><svg class="tx-cat-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="8" height="7" rx="2"/><rect x="13" y="4" width="8" height="7" rx="2"/><rect x="3" y="13" width="8" height="7" rx="2"/><circle cx="17" cy="16.5" r="3"/><path d="m19.2 18.7 1.8 1.8"/></svg><span>Categorização</span></button><button type="button" role="tab" aria-selected="false" data-tx-tab="classification_guide" class="tx-cat-tab-btn"><svg class="tx-cat-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg><span>Guia de Classificação</span></button></div><div class="tx-month-navigation"><button class="btn" id="txPreviousMonth" type="button" aria-label="Mês anterior"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 6-6 6 6 6"/></svg></button><select id="filterMonth" aria-label="Mês das transações"></select><button class="btn" id="txNextMonth" type="button" aria-label="Próximo mês"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 6 6 6-6 6"/></svg></button></div></div><div id="allTx" role="tabpanel"></div>
       </div>
     </section>
 
@@ -5089,6 +5268,12 @@ function renderTransactions(){
   renderCategorizationManager();
   return;
  }
+ if(activeTransactionTab==='classification_guide'){
+  if(searchBar)searchBar.hidden=true;
+  if(navRow)navRow.querySelector('.tx-month-navigation').hidden=true;
+  renderClassificationGuide();
+  return;
+ }
  if(searchBar)searchBar.hidden=false;
  if(navRow)navRow.querySelector('.tx-month-navigation').hidden=false;
  populateMonthFilter();const exactIds=exactNotificationTransactionIds?new Set(exactNotificationTransactionIds):null;const baseRows=getBaseFilteredTransactions();const rows=sortExcelRows(applyExcelColumnFilters(baseRows));const hasAnyFilter=Object.keys(excelColFilters).length>0||!!excelSortState.col;const result=(rows.length||hasAnyFilter)?renderTransactionSections(rows):empty('Nenhuma transação encontrada.'),exactCopy=exactIds?.size===1?'Exibindo somente o lançamento selecionado.':`Exibindo somente os ${exactIds?.size||0} lançamentos apontados pela notificação.`,exactNotice=exactIds?`<div class="exact-duplicate-filter"><div><strong>Filtro exato da duplicidade</strong>${exactCopy}</div><button type="button" onclick="clearExactDuplicateFilter()">Limpar filtro</button></div>`:'';$('#allTx').innerHTML=exactNotice+result
@@ -5097,6 +5282,262 @@ function renderTransactions(){
 let catManagerScope = 'expense';
 let catManagerQuery = '';
 let catManagerSelectedCat = '';
+
+
+let guideScopeFilter = 'all';
+let guideSearchQuery = '';
+
+const EXPENSE_CAT_DESCRIPTIONS = {
+ "Moradia": "Custos de habitação, contas da casa, manutenção predial e financiamento/seguro residencial.",
+ "Carro": "Gastos operacionais, manutenção, documentação e seguro do veículo.",
+ "Transporte": "Deslocamentos urbanos por aplicativo, transporte público, estacionamento e pedágios.",
+ "Alimentação": "Compras de mercado, padaria, feira, doces, refeições fora e delivery.",
+ "Eletrônicos": "Aparelhos celulares, computadores, TVs, acessórios tech e eletroportáteis/eletrodomésticos.",
+ "Serviços": "Assinaturas, serviços em nuvem e contratação de profissionais ou serviços gerais.",
+ "Saúde": "Plano de saúde, consultas, exames, farmácia, odontologia e acompanhamento terapêutico.",
+ "Educação": "Mensalidades de faculdade, cursos livres/online, livros e materiais de estudo.",
+ "Pessoais": "Roupas, calçados, acessórios pessoais, cuidados estéticos, higiene e academia.",
+ "Lazer": "Bebidas, viagens, hospedagem, confraternizações, passeios, entretenimento, streaming e hobbies.",
+ "Financeiro": "Empréstimos, financiamentos, parcelamentos, investimentos e tarifas bancárias.",
+ "Pets": "Alimentação, veterinário, remédios e acessórios dos animais de estimação.",
+ "Família": "Gastos voltados a familiares, presentes ou terapia familiar.",
+ "Doação": "Apoio financeiro ou doações para família, instituições ou outras causas.",
+ "Crédito": "Movimentações de empréstimo de limite e Pix no crédito.",
+ "Presentes": "Presentes para amigos, namorado(a) ou cônjuge.",
+ "Documentação": "Emissão ou renovação de documentos pessoais e papéis diversos.",
+ "Outros": "Despesas pontuais que não se encaixam nos demais grupos."
+};
+
+const INCOME_CAT_DESCRIPTIONS = {
+ "Salário": "Remuneração principal recorrente, adiantamentos ou 13º salário.",
+ "Benefícios": "Benefícios recebidos como vale-alimentação ou abono/PIS.",
+ "Renda extra": "Ganhos complementares como corridas de aplicativo (Uber) ou vendas/serviços extras.",
+ "Reembolso": "Devoluções ou acertos financeiros recebidos de terceiros ou estornos.",
+ "Investimentos": "Rendimentos obtidos de aplicações financeiras.",
+ "Outros": "Outras entradas eventuais."
+};
+
+const SUB_USAGE_EXAMPLES = {
+ "Condomínio 🔒": "Taxa condominial mensal do apartamento ou condomínio.",
+ "Energia elétrica 💡": "Conta de luz da residência (ex.: CPFL).",
+ "Água e esgoto 💦": "Conta de água e saneamento mensal.",
+ "Gás 🔥": "Botijão de gás ou gás encanado residencial.",
+ "Internet e telefone 🌐": "Plano de banda larga, fibra ou linha telefônica/celular.",
+ "Manutenção e reparos 🔧": "Consertos pontuais na casa (ex.: fechadura, dobradiça, reparo geral).",
+ "Pequenas reformas 🛠️": "Melhorias ou ajustes leves no imóvel.",
+ "Utensílios de cozinha 🍽️": "Panelas, talheres, potes, copos e itens de preparo/servir.",
+ "Móveis e decoração 🛋️": "Sofás, mesas, cadeiras, quadros, tapetes e itens decorativos.",
+ "Enxoval de casa 🛏️": "Lençóis, fronhas, toalhas de banho e roupa de cama.",
+ "Hidráulica 🚿": "Torneiras, registros, sifões e consertos hidráulicos.",
+ "Evolução de obra 🏗️": "Etapas ou aportes ligados à construção/evolução de obra.",
+ "Financiamento 🏦": "Parcela de financiamento imobiliário.",
+ "Seguro residencial 🏦": "Apólice de proteção do imóvel.",
+ "Combustível ⛽": "Abastecimento de etanol, gasolina ou GNV.",
+ "Manutenção corretiva 🔧": "Consertos de falhas ou peças quebradas (ex.: freio, bico, manopla).",
+ "Limpeza e hienização 🧽": "Lavagem externa, higienização interna ou estética automotiva.",
+ "Manutenção preventiva 🛠️": "Troca de óleo, filtros, revisão periódica e alinhamento.",
+ "Seguro auto 🛡️": "Parcela ou renovação do seguro do carro.",
+ "IPVA / Licenciamento 📄": "Imposto anual do veículo, licenciamento e taxas veiculares.",
+ "Transporte por aplicativo 🚕": "Corridas de Uber, 99 ou táxi quando não for o carro próprio.",
+ "Transporte público 🚌": "Ônibus, metrô, trem ou recarga de vale-transporte.",
+ "Estacionamento e pedágio 🅿️": "Zona azul, estacionamentos pagos e praças de pedágio.",
+ "Supermercado 🛒": "Compra do mês ou reposição de itens básicos de mercado.",
+ "Doces 🍫": "Chocolates, bombons, bolos, sorvetes, brownies e sobremesas.",
+ "Hortifruti / Feira 🥦": "Frutas, verduras, legumes e itens de feira livre.",
+ "Padaria 🥖": "Pães, frios, café da manhã ou lanches de padaria.",
+ "Restaurantes / Lanches 🍔": "Refeições em restaurantes, lanches, marmitas ou lanchonetes.",
+ "Delivery 📦": "Pedidos entregues em casa (ex.: iFood, Rappi ou entrega direta).",
+ "Celular 📱": "Aparelho smartphone ou troca de telefone.",
+ "Informática 💻": "Notebook, PC, monitor, memória RAM, teclado ou mouse.",
+ "Televisão 📺": "Smart TV ou televisores.",
+ "Acessórios 🎧": "Fones de ouvido, cabos, carregadores, capinhas e adaptadores.",
+ "Eletroportáteis 🍳": "Air fryer, cafeteira, liquidificador, micro-ondas ou ferro.",
+ "Eletrodomésticos 🧊": "Geladeira, fogão, máquina de lavar ou lava-louças.",
+ "Assinaturas 🔗": "Serviços digitais recorrentes (ex.: Spotify, clubes, softwares).",
+ "Serviços de nuvem ☁️": "Armazenamento em nuvem (ex.: iCloud, Google One).",
+ "Encanador 🚰": "Serviço profissional de encanamento e vazamentos.",
+ "Eletricista 💡": "Serviço profissional de parte elétrica e disjuntores.",
+ "Pedreiro 🧱": "Mão de obra de alvenaria, piso ou reforma.",
+ "Serviços gerais 🧹": "Diarista, limpeza pesada ou serviços avulsos.",
+ "Plano de saúde 🏥": "Mensalidade de convênio médico.",
+ "Consultas médicas 🩺": "Atendimentos médicos particulares ou coparticipação.",
+ "Exames / Laboratórios 🧪": "Exames de sangue, imagem ou análises clínicas.",
+ "Medicamentos 💊": "Remédios de farmácia, receitas ou uso contínuo.",
+ "Odontologia 😁": "Dentista, limpeza, canal, aparelho ou manutenção odontológica.",
+ "Terapias 🧠": "Psicólogo, psiquiatra ou sessões terapêuticas.",
+ "Faculdade 🎓": "Mensalidade de graduação, pós ou curso superior.",
+ "Cursos livres / online 📚": "Cursos de capacitação, idiomas ou plataformas online.",
+ "Material escolar / livros 📖": "Livros técnicos/literários, cadernos e materiais de estudo.",
+ "Vestuário 👕": "Camisetas, calças, blusas, jaquetas e peças de roupa.",
+ "Calçados 👟": "Tênis, sapatos, sandálias, botas e chinelos.",
+ "Acessórios ⌚": "Relógios, cintos, bonés, bolsas ou óculos.",
+ "Cabeleireiro 💇": "Corte de cabelo, escova, coloração ou barbearia.",
+ "Cosméticos 💄": "Maquiagem, cremes e produtos de beleza.",
+ "Perfumes 🌸": "Perfumes, colônias ou body splash.",
+ "Cuidados pessoais 🧴": "Sabonetes, desodorante, shampoo, skincare e higiene diária.",
+ "Academia 🏋️": "Mensalidade de academia, studio ou treino físico.",
+ "Bebidas / drinks 🍻": "Cervejas, drinks, vinhos ou bebidas fora de casa.",
+ "Viagens ✈️": "Passagens, passeios de viagem ou custos de deslocamento em viagem.",
+ "Hospedagem 🏨": "Hotéis, pousadas, Airbnb ou diárias.",
+ "Confraternização 🍽️": "Churrascos, encontros com amigos/família ou jantares comemorativos.",
+ "Passeios 🌳": "Parques, trilhas, bate-volta ou passeios no fim de semana.",
+ "Cinema / Teatro / Shows 🎬": "Ingressos de cinema, peças, shows ou eventos culturais.",
+ "Streaming 📺": "Assinaturas de vídeo/ entretenimento (ex.: Netflix, Prime, Disney+).",
+ "Jogos / hobbies 🎮": "Games, consoles, itens colecionáveis ou materiais de hobby.",
+ "Empréstimos 💰": "Parcelas ou acertos de empréstimos pessoais.",
+ "Financiamentos 🏦": "Parcelas de financiamento em geral.",
+ "Parcelamentos 🧾": "Parcelamentos de fatura ou acordos parcelados.",
+ "Investimentos 📈": "Aportes financeiros classificados como movimentação financeira.",
+ "Tarifas bancárias 💸": "Taxas de conta, anuidade, TED/Pix pago ou tarifas do banco.",
+ "Ração 🐶": "Ração seca, úmida ou petiscos de rotina do pet.",
+ "Veterinário 🐾": "Consultas, vacinas ou atendimento veterinário do pet.",
+ "Medicamentos 💊": "Remédios, antipulgas ou tratamentos do pet.",
+ "Acessórios 🦴": "Coleiras, camas, comedouros ou brinquedos do pet.",
+ "Presentes 🎁": "Presentes dados a membros da família.",
+ "Terapia 🧠": "Acompanhamento terapêutico familiar.",
+ "Família": "Apoio ou transferência para parentes.",
+ "Instituições": "Doações para ONGs, igrejas ou entidades beneficentes.",
+ "Outros": "Outras doações ou contribuições pontuais.",
+ "Empréstimo de limite 💳": "Uso de limite do cartão para terceiros ou empréstimo de limite.",
+ "Pix crédito 📲": "Pagamento via Pix utilizando o limite do cartão de crédito.",
+ "Amigos 🎁": "Presentes de aniversário ou ocasiões para amigos.",
+ "Namorado / Casal ❤️": "Presentes ou mimos para o(a) parceiro(a) / relacionamento.",
+ "Documentos pessoais 📄": "RG, CNH, passaporte, certidões ou taxas de documentos.",
+ "🗂️ Outros": "Outros itens de documentação.",
+ "Geral": "Gasto geral sem subcategoria específica."
+};
+
+function renderClassificationGuide(){
+ const host = $('#allTx');
+ if(!host) return;
+ const qNorm = String(guideSearchQuery||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+
+ const expenseEntries = Object.entries(CATS).map(([cat, subsObj]) => {
+  const subs = Object.entries(subsObj||{}).map(([name, kind]) => ({
+   name,
+   kind: kind || 'Variável',
+   example: SUB_USAGE_EXAMPLES[name] || `Lançamentos de ${cat.toLowerCase()} em ${subcategoryLabel(name).toLowerCase()}.`
+  }));
+  return {
+   scope: 'expense',
+   scopeLabel: 'Saída',
+   category: cat,
+   description: EXPENSE_CAT_DESCRIPTIONS[cat] || `Despesas relacionadas a ${cat}.`,
+   subs
+  };
+ });
+
+ const incomeEntries = INCOME_CATEGORIES.map(cat => {
+  const subs = (INCOME_SUBS[cat]||[]).map(name => ({
+   name,
+   kind: 'Entrada',
+   example: SUB_USAGE_EXAMPLES[name] || `Entradas de ${cat.toLowerCase()} em ${subcategoryLabel(name).toLowerCase()}.`
+  }));
+  return {
+   scope: 'income',
+   scopeLabel: 'Entrada',
+   category: cat,
+   description: INCOME_CAT_DESCRIPTIONS[cat] || `Receitas relacionadas a ${cat}.`,
+   subs
+  };
+ });
+
+ let combined = [];
+ if(guideScopeFilter === 'expense') combined = expenseEntries;
+ else if(guideScopeFilter === 'income') combined = incomeEntries;
+ else combined = [...expenseEntries, ...incomeEntries];
+
+ const filteredGroups = combined.map(grp => {
+  if(!qNorm) return grp;
+  const catHit = grp.category.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().includes(qNorm)
+    || grp.description.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().includes(qNorm);
+  const matchingSubs = grp.subs.filter(s =>
+   s.name.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().includes(qNorm)
+   || s.example.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().includes(qNorm)
+   || s.kind.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().includes(qNorm)
+  );
+  if(catHit) return grp;
+  if(matchingSubs.length) return { ...grp, subs: matchingSubs };
+  return null;
+ }).filter(Boolean);
+
+ const totalSubsShown = filteredGroups.reduce((acc, g) => acc + g.subs.length, 0);
+
+ host.innerHTML = `
+  <div class="cat-manager-wrap">
+   <div class="guide-hero-card">
+    <div class="guide-hero-top">
+     <div>
+      <h3>Como classificar suas despesas e entradas</h3>
+      <p>Use esta referência rápida para escolher a <strong>Categoria</strong> certa e a <strong>Subcategoria</strong> mais precisa ao lançar uma movimentação, mantendo seus relatórios, limites e projeções organizados.</p>
+     </div>
+     <span class="copilot-badge">${filteredGroups.length} categorias · ${totalSubsShown} subcategorias</span>
+    </div>
+    <div class="guide-concept-grid">
+     <div class="guide-concept-box">
+      <strong>📁 O que é a Categoria?</strong>
+      <p>É o <strong>grande grupo</strong> que resume a natureza da movimentação — por exemplo, onde o gasto aconteceu ou de onde o dinheiro veio.</p>
+      <small>Exemplos: <b>Moradia</b>, <b>Carro</b>, <b>Alimentação</b>, <b>Serviços</b>, <b>Financeiro</b>, <b>Crédito</b>, <b>Salário</b> e <b>Renda extra</b>.</small>
+     </div>
+     <div class="guide-concept-box">
+      <strong>🏷️ O que é a Subcategoria?</strong>
+      <p>É o <strong>detalhe específico</strong> dentro da categoria, mostrando exatamente qual item, conta ou serviço gerou o lançamento.</p>
+      <small>Exemplos: <b>Condomínio 🔒</b> e <b>Internet e telefone 🌐</b> em <em>Moradia</em>; <b>Combustível ⛽</b> em <em>Carro</em>; <b>Supermercado 🛒</b> em <em>Alimentação</em>; <b>Assinaturas 🔗</b> em <em>Serviços</em>; <b>Pix crédito 📲</b> em <em>Crédito</em>.</small>
+     </div>
+    </div>
+   </div>
+
+   <div class="guide-toolbar">
+    <div class="guide-filter-pills" role="group" aria-label="Filtrar guia por tipo">
+     <button type="button" class="guide-filter-pill ${guideScopeFilter==='all'?'active':''}" onclick="setGuideScopeFilter('all')">Todas</button>
+     <button type="button" class="guide-filter-pill ${guideScopeFilter==='expense'?'active':''}" onclick="setGuideScopeFilter('expense')">↘ Saídas (Despesas)</button>
+     <button type="button" class="guide-filter-pill ${guideScopeFilter==='income'?'active':''}" onclick="setGuideScopeFilter('income')">↗ Entradas (Receitas)</button>
+    </div>
+    <div class="cat-manager-search" style="flex:1 1 280px;max-width:440px">
+     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+     <input id="guideSearchInput" type="search" value="${esc(guideSearchQuery)}" placeholder="Buscar categoria, subcategoria ou exemplo..." oninput="onGuideSearch(this.value)">
+     ${guideSearchQuery ? `<button type="button" class="cat-search-clear" onclick="onGuideSearch('')" aria-label="Limpar busca">×</button>` : ''}
+    </div>
+   </div>
+
+   <div class="guide-cats-grid">
+    ${filteredGroups.length ? filteredGroups.map(grp => `
+     <article class="guide-cat-card">
+      <div class="guide-cat-head">
+       <div>
+        <h4>${esc(grp.category)} <span style="font-size:11px;font-weight:700;color:var(--muted)">(${grp.scopeLabel})</span></h4>
+        <p>${esc(grp.description)}</p>
+       </div>
+       <span class="pill">${grp.subs.length} sub</span>
+      </div>
+      <div class="guide-sub-table">
+       ${grp.subs.map(sub => {
+        const kindClass = sub.kind === 'Entrada' ? 'entrada' : (sub.kind === 'Fixo' ? 'fixo' : '');
+        return `<div class="guide-sub-row">
+         <div class="guide-sub-main">
+          <strong>${esc(subcategoryLabel(sub.name))}</strong>
+          <small>${esc(sub.example)}</small>
+         </div>
+         <span class="guide-kind-tag ${kindClass}">${esc(sub.kind)}</span>
+        </div>`;
+       }).join('')}
+      </div>
+     </article>
+    `).join('') : empty('Nenhuma categoria ou subcategoria corresponde à busca.')}
+   </div>
+  </div>`;
+}
+
+window.setGuideScopeFilter = scope => {
+ guideScopeFilter = ['expense','income'].includes(scope) ? scope : 'all';
+ renderClassificationGuide();
+};
+window.onGuideSearch = val => {
+ guideSearchQuery = val;
+ renderClassificationGuide();
+ const inp = $('#guideSearchInput');
+ if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+};
 
 function renderCategorizationManager(){
  const host = $('#allTx');
