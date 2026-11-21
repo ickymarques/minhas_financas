@@ -2448,7 +2448,7 @@ html[data-theme="dark"] .payday-row-right span.settled {
 </style>
 <style id="mf-loan-reimbursement-link-css">
 /* ==========================================================================
-   VÍNCULO DE EMPRÉSTIMO DE LIMITE / REEMBOLSO DE TERCEIROS
+   VÍNCULO DE EMPRÉSTIMO DE LIMITE / CRIAÇÃO DIRETA DE REEMBOLSO EM RECEITAS
    ========================================================================== */
 .tx-loan-link-box[hidden] {
   display: none !important;
@@ -2457,19 +2457,37 @@ html[data-theme="dark"] .payday-row-right span.settled {
   border: 1px solid color-mix(in srgb, var(--soft-blue, #2563eb) 32%, var(--line));
   background: color-mix(in srgb, var(--soft-blue, #2563eb) 6%, var(--surface2));
   border-radius: 14px;
-  padding: 12px 14px;
+  padding: 14px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
-.tx-loan-link-box label {
-  font-size: 12px;
-  font-weight: 700;
+.tx-loan-link-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tx-loan-link-header strong {
+  font-size: 13px;
   color: var(--text);
 }
-.tx-loan-link-box small {
+.tx-loan-link-header small {
   font-size: 11px;
   color: var(--muted);
-  line-height: 1.4;
+}
+.tx-reimb-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 600px) {
+  .tx-reimb-fields {
+    grid-template-columns: 1fr;
+  }
+}
+.tx-reimb-fields[hidden] {
+  display: none !important;
 }
 .tx-loan-badge {
   display: inline-flex;
@@ -2821,15 +2839,54 @@ html[data-theme="dark"] .payday-row-right span.settled {
   <div class="field installment-fields" hidden><label>Parcelas já pagas</label><input name="paidInstallments" type="number" min="0" max="59" value="0"><small class="field-help">Use 0 para uma compra nova.</small></div>
   <div class="field full"><label>Tags</label><input name="tags" placeholder="Ex.: trabalho, viagem, reembolsável"></div>
   <div class="field full tx-loan-link-box" id="txLoanExpenseLinkBox" hidden>
-    <label for="txLinkedIncomeId">🔗 Vincular pagamento / reembolso recebido desta compra</label>
-    <select name="linkedIncomeId" id="txLinkedIncomeId"></select>
-    <small id="txLoanExpenseHelp">Escolha a entrada/pagamento recebido da pessoa para acompanhar o acerto deste empréstimo de limite.</small>
+    <div class="tx-loan-link-header">
+      <strong>🔗 Reembolso / pagamento em Receitas</strong>
+      <small>Cria ou vincula a entrada de acerto desta compra</small>
+    </div>
+    <label class="installment-toggle" style="margin:0;padding:10px 12px">
+      <span><strong>Criar lançamento de reembolso em Receitas ao salvar</strong><small>Gera a entrada vinculada automaticamente na categoria Reembolso.</small></span>
+      <span class="switch"><input type="checkbox" name="createReimbursementIncome" id="txCreateReimbursementIncome" checked><span class="switch-track"></span></span>
+    </label>
+    <div class="tx-reimb-fields" id="txReimbursementBuilderFields">
+      <div class="field full">
+        <label for="txReimbDescription">Descrição do reembolso (quem pagou / referência)</label>
+        <input type="text" name="reimbDescription" id="txReimbDescription" placeholder="Ex.: Pagamento / Reembolso — Trança de cabelo...">
+      </div>
+      <div class="field">
+        <label for="txReimbAmount">Valor a receber (R$)</label>
+        <input type="number" step="0.01" min="0.01" name="reimbAmount" id="txReimbAmount" placeholder="0,00">
+      </div>
+      <div class="field">
+        <label for="txReimbDate">Data do pagamento / previsão</label>
+        <input type="date" name="reimbDate" id="txReimbDate">
+      </div>
+      <div class="field">
+        <label for="txReimbAccount">Banco / Conta de recebimento</label>
+        <select name="reimbAccount" id="txReimbAccount"></select>
+      </div>
+      <div class="field">
+        <label for="txReimbStatus">Situação do pagamento</label>
+        <select name="reimbStatus" id="txReimbStatus">
+          <option value="settled">Já recebido (Lançado)</option>
+          <option value="pending">Aguardando pagamento (Previsto)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" id="txExistingIncomePickerWrap">
+      <label for="txLinkedIncomeId">Ou vincular a uma receita já cadastrada</label>
+      <select name="linkedIncomeId" id="txLinkedIncomeId"></select>
+    </div>
   </div>
   <div class="field full tx-loan-link-box" id="txLoanIncomeLinkBox" hidden>
-    <label for="txLinkedExpenseId">🔗 Vincular à compra / empréstimo de limite que está sendo pago</label>
-    <select name="linkedExpenseId" id="txLinkedExpenseId"></select>
-    <small id="txLoanIncomeHelp">Marque esta entrada como pagamento/reembolso de uma compra de limite ou empréstimo.</small>
-  </div>
+    <div class="tx-loan-link-header">
+      <strong>🔗 Vínculo com compra / empréstimo de limite</strong>
+      <small>Conecta esta entrada à despesa de origem</small>
+    </div>
+    <div class="field">
+      <label for="txLinkedExpenseId">Compra / empréstimo de limite que está sendo pago</label>
+      <select name="linkedExpenseId" id="txLinkedExpenseId"></select>
+    </div>
+  </div></div>
 </div><div class="modal-actions"><button class="btn" value="cancel" id="cancelTx">Fechar</button><button class="btn primary" value="default" id="saveTx">Salvar</button></div></form></dialog>
 
 <dialog id="uberScalesDialog"><form id="uberScalesForm" class="modal"><h3>Faixas dos gráficos</h3><p class="note">Escolha o mínimo e o máximo de cada escala. Os valores das corridas e os resultados financeiros permanecem iguais.</p><div class="form-grid"><div class="field full"><strong>Margem líquida (%)</strong></div><div class="field"><label for="marginMin">Mínimo</label><input id="marginMin" name="marginMin" type="number" min="0" step="0.1" required></div><div class="field"><label for="marginMax">Máximo</label><input id="marginMax" name="marginMax" type="number" min="0.1" step="0.1" required></div><div class="field full"><strong>Receita por km (R$/km)</strong></div><div class="field"><label for="revenueMin">Mínimo</label><input id="revenueMin" name="revenueMin" type="number" min="0" step="0.1" required></div><div class="field"><label for="revenueMax">Máximo</label><input id="revenueMax" name="revenueMax" type="number" min="0.1" step="0.1" required></div><div class="field full"><strong>Consumo médio (km/l)</strong></div><div class="field"><label for="consumptionMin">Mínimo</label><input id="consumptionMin" name="consumptionMin" type="number" min="0" step="0.1" required></div><div class="field"><label for="consumptionMax">Máximo</label><input id="consumptionMax" name="consumptionMax" type="number" min="0.1" step="0.1" required></div></div><div class="modal-actions"><button class="btn" type="button" onclick="document.getElementById('uberScalesDialog').close()">Cancelar</button><button class="btn primary" type="submit">Salvar parâmetros</button></div></form></dialog><dialog id="cardDialog"><form method="dialog" class="modal" id="cardForm"><h3 id="cardDialogTitle">Novo cartão</h3><input type="hidden" name="editingId"><div class="form-grid"><div class="field full"><label>Nome</label><input name="name" required placeholder="Ex.: Nubank"></div><div class="field"><label>Limite</label><input name="limit" type="number" step="0.01" required></div><div class="field"><label>Dia de fechamento</label><input name="closingDay" type="number" min="1" max="31" value="25"></div><div class="field"><label>Dia de vencimento</label><input name="dueDay" type="number" min="1" max="31" value="5"></div><div class="field full"><label class="checkline"><input name="blocked" type="checkbox"> Cartão bloqueado</label><small class="field-help">Use esta opção quando o cartão estiver temporariamente ou definitivamente bloqueado.</small></div></div><div class="modal-actions"><button class="btn" value="cancel">Cancelar</button><button class="btn primary" value="default" id="saveCard">Salvar</button></div></form></dialog>
@@ -4044,7 +4101,7 @@ function transactionInstallmentMetrics(t){
 
 
 // ==========================================================================
-// VÍNCULO BIDIRECIONAL: EMPRÉSTIMO DE LIMITE / COMPRAS DE TERCEIROS x PAGAMENTO
+// VÍNCULO DE EMPRÉSTIMO DE LIMITE & CRIAÇÃO DIRETA DE REEMBOLSO EM RECEITAS
 // ==========================================================================
 function isLoanOrLimitExpense(t){
  if(!t || t.type !== 'expense') return false;
@@ -4072,6 +4129,15 @@ function getLinkedExpenseForIncome(incTx){
  }
  return state.transactions.find(x => x.type === 'expense' && x.linkedIncomeId === incTx.id) || null;
 }
+function syncReimbursementBuilderVisibility(){
+ const chk = $('#txCreateReimbursementIncome');
+ const fields = $('#txReimbursementBuilderFields');
+ const existingWrap = $('#txExistingIncomePickerWrap');
+ if(!chk || !fields) return;
+ const creating = !!chk.checked;
+ fields.hidden = !creating;
+ if(existingWrap) existingWrap.hidden = creating;
+}
 function populateTxLoanLinks(currentTx=null){
  const expBox = $('#txLoanExpenseLinkBox');
  const incBox = $('#txLoanIncomeLinkBox');
@@ -4083,6 +4149,10 @@ function populateTxLoanLinks(currentTx=null){
  const catVal = $('#txCategory')?.value || '';
  const subVal = $('#txSubcategory')?.value || '';
  const descVal = $('#txForm [name=description]')?.value || '';
+ const amtVal = $('#txForm [name=amount]')?.value || '';
+ const dateVal = $('#txForm [name=date]')?.value || today();
+ const bankVal = $('#txBank')?.value || '';
+
  const probe = {
   type: isIncome ? 'income' : 'expense',
   category: catVal,
@@ -4099,11 +4169,42 @@ function populateTxLoanLinks(currentTx=null){
 
  if(showExpenseLinker){
   const existingInc = getLinkedIncomeForExpense(currentTx);
+  const chkCreate = $('#txCreateReimbursementIncome');
+  const descInput = $('#txReimbDescription');
+  const amtInput = $('#txReimbAmount');
+  const dateInput = $('#txReimbDate');
+  const accSelect = $('#txReimbAccount');
+  const statusSelect = $('#txReimbStatus');
+
+  if(accSelect){
+   const banks = [...new Set([...userBanks(), ...(bankVal ? [bankVal] : [])])];
+   accSelect.innerHTML = '<option value="">Pix / Sem banco fixo</option>' +
+    banks.map(b => `<option value="${esc(b)}">${esc(bankPresentation(b).label||b)}</option>`).join('');
+   accSelect.value = existingInc?.account || bankVal || banks[0] || '';
+  }
+
+  if(existingInc){
+   if(chkCreate) chkCreate.checked = true;
+   if(descInput) descInput.value = existingInc.description || '';
+   if(amtInput) amtInput.value = existingInc.amount || amtVal || '';
+   if(dateInput) dateInput.value = existingInc.date || dateVal;
+   if(statusSelect) statusSelect.value = existingInc.settlementStatus === 'pending' ? 'pending' : 'settled';
+  }else{
+   if(chkCreate) chkCreate.checked = true;
+   const defaultReimbTitle = descVal.trim() ? `Reembolso — ${descVal.trim()}` : 'Reembolso de empréstimo de limite';
+   if(descInput && !descInput.dataset.userEdited) descInput.value = defaultReimbTitle;
+   if(amtInput && !amtInput.dataset.userEdited && amtVal) amtInput.value = amtVal;
+   if(dateInput && !dateInput.dataset.userEdited) dateInput.value = dateVal;
+   if(statusSelect && !statusSelect.dataset.userEdited) statusSelect.value = 'settled';
+  }
+
+  syncReimbursementBuilderVisibility();
+
   const selectedId = currentTx?.linkedIncomeId || existingInc?.id || '';
   const incomeCandidates = state.transactions
    .filter(x => x.type === 'income' && x.id !== currentTx?.id)
    .sort((a,b) => String(b.date||'').localeCompare(String(a.date||'')));
-  selInc.innerHTML = '<option value="">Nenhum pagamento vinculado ainda (Pendente)</option>' +
+  selInc.innerHTML = '<option value="">Selecione uma receita existente...</option>' +
    incomeCandidates.map(inc => {
     const dt = inc.date ? new Date(inc.date+'T12:00:00').toLocaleDateString('pt-BR') : '';
     return `<option value="${esc(inc.id)}" ${inc.id===selectedId?'selected':''}>${esc(inc.description)} · ${fmt(inc.amount)} (${dt})</option>`;
@@ -4128,19 +4229,94 @@ function populateTxLoanLinks(currentTx=null){
    }).join('');
  }
 }
+document.addEventListener('change', e => {
+ if(e.target && e.target.id === 'txCreateReimbursementIncome'){
+  syncReimbursementBuilderVisibility();
+ }
+ if(e.target && ['txReimbDescription','txReimbAmount','txReimbDate','txReimbStatus'].includes(e.target.id)){
+  e.target.dataset.userEdited = '1';
+ }
+});
+document.addEventListener('input', e => {
+ if(e.target && e.target.name === 'description'){
+  const reimbDesc = $('#txReimbDescription');
+  if(reimbDesc && !reimbDesc.dataset.userEdited){
+   reimbDesc.value = e.target.value.trim() ? `Reembolso — ${e.target.value.trim()}` : 'Reembolso de empréstimo de limite';
+  }
+ }
+ if(e.target && e.target.name === 'amount'){
+  const reimbAmt = $('#txReimbAmount');
+  if(reimbAmt && !reimbAmt.dataset.userEdited){
+   reimbAmt.value = e.target.value;
+  }
+ }
+});
 function syncLoanBidirectionalLinks(savedTx, formData){
  if(!savedTx) return;
  if(savedTx.type === 'expense'){
-  const chosenIncId = String(formData.get('linkedIncomeId') || '').trim();
-  savedTx.linkedIncomeId = chosenIncId;
-  state.transactions.forEach(t => {
-   if(t.type === 'income' && t.linkedExpenseId === savedTx.id && t.id !== chosenIncId){
-    delete t.linkedExpenseId;
+  const createReimb = formData.get('createReimbursementIncome') === 'on';
+  const existingLinked = getLinkedIncomeForExpense(savedTx);
+  if(createReimb){
+   const reimbDesc = String(formData.get('reimbDescription') || '').trim() || `Reembolso — ${savedTx.description||'Empréstimo de limite'}`;
+   const reimbAmount = Number(formData.get('reimbAmount')) > 0 ? Number(formData.get('reimbAmount')) : Number(savedTx.amount || 0);
+   const reimbDate = String(formData.get('reimbDate') || '').trim() || savedTx.date || today();
+   const reimbAccount = String(formData.get('reimbAccount') || '').trim() || savedTx.account || '';
+   const reimbStatus = formData.get('reimbStatus') === 'pending' ? 'pending' : 'settled';
+   const reimbPayment = reimbAccount ? `${reimbAccount} - Pix` : 'Pix';
+
+   if(existingLinked){
+    existingLinked.description = reimbDesc;
+    existingLinked.amount = reimbAmount;
+    existingLinked.date = reimbDate;
+    existingLinked.account = reimbAccount;
+    existingLinked.payment = reimbPayment;
+    existingLinked.category = 'Reembolso';
+    existingLinked.settlementStatus = reimbStatus;
+    existingLinked.received = reimbStatus === 'settled';
+    existingLinked.linkedExpenseId = savedTx.id;
+    savedTx.linkedIncomeId = existingLinked.id;
+   }else if(reimbAmount > 0){
+    const newIncId = uid();
+    state.transactions.push({
+     id: newIncId,
+     type: 'income',
+     amount: reimbAmount,
+     description: reimbDesc,
+     establishment: savedTx.establishment || '',
+     category: 'Reembolso',
+     subcategory: '',
+     expenseKind: '',
+     date: reimbDate,
+     purchaseDate: '',
+     payLater: reimbStatus === 'pending',
+     payOnPayday: false,
+     settlementStatus: reimbStatus,
+     paid: reimbStatus === 'settled',
+     received: reimbStatus === 'settled',
+     paymentDate: reimbStatus === 'pending' ? reimbDate : '',
+     account: reimbAccount,
+     payment: reimbPayment,
+     cardId: '',
+     installments: 1,
+     installmentTotal: 1,
+     installmentPaid: 0,
+     tags: ['Reembolso', 'Empréstimo de limite'],
+     linkedExpenseId: savedTx.id
+    });
+    savedTx.linkedIncomeId = newIncId;
    }
-  });
-  if(chosenIncId){
-   const targetInc = state.transactions.find(t => t.id === chosenIncId && t.type === 'income');
-   if(targetInc) targetInc.linkedExpenseId = savedTx.id;
+  }else{
+   const chosenIncId = String(formData.get('linkedIncomeId') || '').trim();
+   savedTx.linkedIncomeId = chosenIncId;
+   state.transactions.forEach(t => {
+    if(t.type === 'income' && t.linkedExpenseId === savedTx.id && t.id !== chosenIncId){
+     delete t.linkedExpenseId;
+    }
+   });
+   if(chosenIncId){
+    const targetInc = state.transactions.find(t => t.id === chosenIncId && t.type === 'income');
+    if(targetInc) targetInc.linkedExpenseId = savedTx.id;
+   }
   }
  }else if(savedTx.type === 'income'){
   const chosenExpId = String(formData.get('linkedExpenseId') || '').trim();
@@ -4161,8 +4337,9 @@ function renderLoanLinkBadge(t){
  if(t.type === 'expense'){
   const linkedInc = getLinkedIncomeForExpense(t);
   if(linkedInc){
+   const isPending = linkedInc.settlementStatus === 'pending' || MFReminders.pending(linkedInc);
    const dt = linkedInc.date ? new Date(linkedInc.date+'T12:00:00').toLocaleDateString('pt-BR') : '';
-   return `<span class="tx-loan-badge" title="Pago/reembolsado por: ${esc(linkedInc.description)} (${fmt(linkedInc.amount)} em ${dt})">🔗 Pago por: ${esc(linkedInc.description)} (${fmt(linkedInc.amount)})</span>`;
+   return `<span class="tx-loan-badge ${isPending?'unlinked':''}" title="${isPending?'Reembolso previsto':'Pago/reembolsado'} por: ${esc(linkedInc.description)} (${fmt(linkedInc.amount)} em ${dt})">🔗 ${isPending?'Reembolso previsto':'Pago por'}: ${esc(linkedInc.description)} (${fmt(linkedInc.amount)})</span>`;
   }
   if(isLoanOrLimitExpense(t)){
    return `<span class="tx-loan-badge unlinked" title="Aguardando vínculo com o pagamento da pessoa">🔗 Aguardando pagamento</span>`;
