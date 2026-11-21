@@ -4733,8 +4733,8 @@ function transactionInstallmentMetrics(t){
 // ==========================================================================
 function isLoanOrLimitExpense(t){
  if(!t || t.type !== 'expense') return false;
- const hay = `${t.category||''} ${t.subcategory||''} ${t.description||''} ${(t.tags||[]).join(' ')}`.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
- return /emprestimo de limite|pix credito|dinheiro emprestado|emprestimo|reembolsavel|terceiro/.test(hay);
+ const norm = s => String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ return norm(t.category) === 'credito' && norm(t.subcategory).includes('emprestimo de limite');
 }
 function isReimbursementOrPaymentIncome(t){
  if(!t || t.type !== 'income') return false;
@@ -4882,6 +4882,8 @@ document.addEventListener('input', e => {
 function syncLoanBidirectionalLinks(savedTx, formData){
  if(!savedTx) return;
  if(savedTx.type === 'expense'){
+  const eligible = isLoanOrLimitExpense(savedTx) || !!savedTx.linkedIncomeId || !!getLinkedIncomeForExpense(savedTx);
+  if(!eligible) return;
   const createReimb = formData.get('createReimbursementIncome') === 'on';
   const existingLinked = getLinkedIncomeForExpense(savedTx);
   if(createReimb){
@@ -6363,7 +6365,7 @@ $('#saveRec').onclick=e=>{e.preventDefault();const form=$('#recForm');if(!form.r
 $('#txForm [name=type]').addEventListener('change',()=>{populateTxTaxonomy();$('#txDialogTitle').textContent=txIsIncome()?'Nova entrada':'Nova despesa'});
 $('#txIsInstallment').addEventListener('change',updateInstallmentFields);
 $('#txPayLater').addEventListener('change',updatePayLaterFields);
-$('#txCategory').addEventListener('change',updateTxSubcategories);$('#txSubcategory').addEventListener('change',()=>{const opts=CATS[$('#txCategory').value]||{};$('#txForm [name=expenseKind]').value=opts[$('#txSubcategory').value]||'Variável'});$('#uberMonthFilter').addEventListener('change',renderUber);
+$('#txCategory').addEventListener('change',updateTxSubcategories);$('#txSubcategory').addEventListener('change',()=>{const opts=CATS[$('#txCategory').value]||{};$('#txForm [name=expenseKind]').value=opts[$('#txSubcategory').value]||'Variável';populateTxLoanLinks(editingTxId?state.transactions.find(x=>x.id===editingTxId):null)});$('#uberMonthFilter').addEventListener('change',renderUber);
 $('#uberForm').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.currentTarget);const base={date:f.get('date'),trips:+f.get('trips')||0,minutesOnline:(+f.get('hours')||0)*60+(+f.get('minutes')||0),gross:+f.get('gross')||0,extra:+f.get('extra')||0,km:+f.get('km')||0,consumption:+f.get('consumption')||0,fuelPrice:+f.get('fuelPrice')||0,otherCosts:+f.get('otherCosts')||0,maintenancePct:+f.get('maintenancePct')||0,piggy:f.get('piggy')==='on'};Object.assign(base,uberCalc(base));
  if(editingUberId){
    const i=state.uber.findIndex(x=>x.id===editingUberId);
