@@ -5506,7 +5506,7 @@ function compareInstallmentTransactions(a,b){
 }
 function getBaseFilteredTransactions(){
  const q=String($('#searchTx').value||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(),tp=$('#filterType').value,mo=$('#filterMonth').value,exactIds=exactNotificationTransactionIds?new Set(exactNotificationTransactionIds):null;
- const filtered=[...state.transactions].filter(t=>exactIds?exactIds.has(t.id):((!q||txSearchText(t).includes(q))&&(tp==='all'||t.type===tp)&&(mo==='all'||monthKey(t.type==='expense'&&isInstallmentTx(t)?t.date:transactionHistoryDate(t))===mo)));
+ const filtered=[...state.transactions].filter(t=>exactIds?exactIds.has(t.id):((!q||txSearchText(t).includes(q))&&(tp==='all'||t.type===tp)&&(mo==='all'||effectiveAccountingMonth(t)===mo)));
  const tabRows=exactIds?filtered:transactionTabRows(filtered);
  if(!exactIds&&activeTransactionTab==='installments'){
   return tabRows.sort(compareInstallmentTransactions);
@@ -6058,9 +6058,33 @@ $('#recentTx').addEventListener('click',event=>{const item=event.target.closest(
 
 
 function cardBrand(c){const n=String(c.name||'').toLowerCase();if(n.includes('c6'))return{key:'c6',label:'C6',mark:'C6'};if(n.includes('itaú')||n.includes('itau'))return{key:'itau',label:'Itaú',mark:'itaú'};if(n.includes('mercado pago'))return{key:'mercadopago',label:'Mercado Pago',mark:'MP'};if(n.includes('nubank'))return{key:'nubank',label:'Nubank',mark:'Nu'};if(n.includes('amazon'))return{key:'amazon',label:'Amazon',mark:'amazon'};return{key:'generic',label:c.name||'Cartão',mark:(c.name||'C').slice(0,2).toUpperCase()}}
-function renderCards(){if(!state.cards.length){$('#cardsList').innerHTML=empty('Cadastre seu primeiro cartão.');$('#cardSummary').innerHTML=empty('Sem cartões cadastrados.');return}$('#cardsList').innerHTML='<div class="credit-card-grid">'+state.cards.map(c=>{const used=cardUsed(c.id),limit=+c.limit||0,pct=limit?Math.min(100,(used/limit)*100):0,available=Math.max(0,limit-used),brand=cardBrand(c);return `<article class="credit-card-item brand-${brand.key} ${c.blocked?'is-blocked':''}"><div class="credit-card-brandrow"><div class="credit-card-logo" aria-label="${esc(brand.label)}">${esc(brand.mark)}</div>${c.blocked?'<span class="card-blocked-badge">🔒 Bloqueado</span>':'<span class="card-active-badge">Ativo</span>'}</div><div class="credit-card-head"><div><span class="credit-card-kicker">Cartão de crédito</span><h3>${esc(c.name)}</h3></div><div class="credit-card-actions"><button class="btn" onclick="editCard('${c.id}')">Editar</button><button class="btn danger" onclick="removeCard('${c.id}')">Excluir</button></div></div><div class="credit-card-cycle"><span>Fecha dia <strong>${c.closingDay}</strong></span><span>Vence dia <strong>${c.dueDay}</strong></span></div><div class="credit-card-metrics"><div><span>Limite</span><strong>${fmt(limit)}</strong></div><div><span>Utilizado</span><strong>${fmt(used)}</strong></div><div><span>Disponível</span><strong>${fmt(available)}</strong></div></div><div class="credit-card-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct)}"><span style="width:${pct}%"></span></div><div class="credit-card-progress-label"><span>${Math.round(pct)}% utilizado</span><span>${limit?fmt(limit):'Limite não informado'}</span></div></article>`}).join('')+'</div>';$('#cardSummary').innerHTML=state.cards.map(c=>`<div class="card-invoice-row"><div><strong>${esc(c.name)}</strong><div class="note">${c.blocked?'Cartão bloqueado · ':''}Próximo mês: ${fmt(invoiceFor(c.id,nextMonthKey()))}</div></div><div><span class="note">Fatura atual</span><strong>${fmt(currentInvoice(c.id))}</strong></div></div>`).join('')}
-function cardUsed(id){const cm=currentMonth();return state.transactions.filter(t=>t.cardId===id&&t.type==='expense'&&monthKey(t.date)>=cm).reduce((s,t)=>s+(+t.amount),0)}
-function invoiceFor(id,key){return state.transactions.filter(t=>t.cardId===id&&t.type==='expense'&&monthKey(t.date)===key).reduce((s,t)=>s+(+t.amount),0)}
+function renderCards(){if(!state.cards.length){$('#cardsList').innerHTML=empty('Cadastre seu primeiro cartão.');$('#cardSummary').innerHTML=empty('Sem cartões cadastrados.');return}$('#cardsList').innerHTML='<div class="credit-card-grid">'+state.cards.map(c=>{const used=cardUsed(c.id),limit=+c.limit||0,pct=limit?Math.min(100,(used/limit)*100):0,available=Math.max(0,limit-used),brand=cardBrand(c);return `<article class="credit-card-item brand-${brand.key} ${c.blocked?'is-blocked':''}"><div class="credit-card-brandrow"><div class="credit-card-logo" aria-label="${esc(brand.label)}">${esc(brand.mark)}</div>${c.blocked?'<span class="card-blocked-badge">🔒 Bloqueado</span>':'<span class="card-active-badge">Ativo</span>'}</div><div class="credit-card-head"><div><span class="credit-card-kicker">Cartão de crédito</span><h3>${esc(c.name)}</h3></div><div class="credit-card-actions"><button class="btn" onclick="editCard('${c.id}')">Editar</button><button class="btn danger" onclick="removeCard('${c.id}')">Excluir</button></div></div><div class="credit-card-cycle"><span>Fecha dia <strong>${c.closingDay}</strong></span><span>Vence dia <strong>${c.dueDay}</strong></span></div><div class="credit-card-metrics"><div><span>Limite</span><strong>${fmt(limit)}</strong></div><div><span>Utilizado</span><strong>${fmt(used)}</strong></div><div><span>Disponível</span><strong>${fmt(available)}</strong></div></div><div class="credit-card-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct)}"><span style="width:${pct}%"></span></div><div class="credit-card-progress-label"><span>${Math.round(pct)}% utilizado</span><span>${limit?fmt(limit):'Limite não informado'}</span></div></article>`}).join('')+'</div>';const refMonth=(typeof getDashboardMonth==='function'&&$('#dashboard')?.classList.contains('active'))?getDashboardMonth():currentMonth();
+const [ry,rm]=refMonth.split('-').map(Number);
+const nextRefDate=new Date(ry,(rm||1),1);
+const nextRefKey=`${nextRefDate.getFullYear()}-${String(nextRefDate.getMonth()+1).padStart(2,'0')}`;
+const refMonthLabel=new Date(refMonth+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'short',year:'2-digit'});
+$('#cardSummary').innerHTML=state.cards.map(c=>`<div class="card-invoice-row"><div><strong>${esc(c.name)}</strong><div class="note">${c.blocked?'Cartão bloqueado · ':''}Próximo mês: ${fmt(invoiceFor(c.id,nextRefKey))}</div></div><div><span class="note">Fatura (${esc(refMonthLabel)})</span><strong>${fmt(invoiceFor(c.id,refMonth))}</strong></div></div>`).join('')}
+function txBelongsToCard(t,card){
+ if(!t||!card||t.type!=='expense')return false;
+ if(t.cardId===card.id)return true;
+ const pay=String(t.payment||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ const acc=String(t.account||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ const cname=String(card.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ if(!cname)return false;
+ const isCredit=pay.includes('credito')||!!t.cardId;
+ return isCredit&&(pay.includes(cname)||acc.includes(cname));
+}
+function cardUsed(id){
+ const card=state.cards.find(c=>c.id===id);
+ if(!card)return 0;
+ const cm=currentMonth();
+ return state.transactions.filter(t=>txBelongsToCard(t,card)&&effectiveAccountingMonth(t)>=cm).reduce((s,t)=>s+(+t.amount||0),0);
+}
+function invoiceFor(id,key){
+ const card=state.cards.find(c=>c.id===id);
+ if(!card)return 0;
+ return state.transactions.filter(t=>txBelongsToCard(t,card)&&effectiveAccountingMonth(t)===key).reduce((s,t)=>s+(+t.amount||0),0);
+}
 function currentInvoice(id){return invoiceFor(id,currentMonth())}
 function nextMonthKey(){const d=new Date();d.setMonth(d.getMonth()+1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 window.removeCard=id=>{if(confirm('Excluir este cartão? As transações serão mantidas.')){state.cards=state.cards.filter(x=>x.id!==id);state.transactions.forEach(t=>{if(t.cardId===id)t.cardId=''});save()}}
