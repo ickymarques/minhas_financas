@@ -3044,6 +3044,74 @@ html[data-theme="dark"] .payday-row-right span.settled {
   border-color: rgba(245, 158, 11, 0.35);
 }
 </style>
+
+<style id="mf-dashboard-month-picker-css">
+.dashboard-month-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 2px 4px;
+  box-shadow: 0 2px 8px rgba(31, 55, 86, 0.04);
+}
+.dashboard-month-picker[hidden] {
+  display: none !important;
+}
+.dashboard-month-picker .dash-month-btn {
+  width: 30px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 18px !important;
+  font-weight: 700;
+  color: var(--muted);
+  display: grid !important;
+  place-items: center;
+  border-radius: 9px !important;
+}
+.dashboard-month-picker .dash-month-btn:hover {
+  background: var(--surface2) !important;
+  color: var(--text);
+}
+.dashboard-month-picker select {
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 8px;
+  border-radius: 9px;
+  cursor: pointer;
+  text-transform: capitalize;
+  min-width: 145px;
+  text-align: center;
+}
+.dashboard-month-picker select:focus {
+  outline: none;
+  background: var(--surface2) !important;
+}
+@media (max-width: 760px) {
+  .dashboard-month-picker {
+    padding: 1px 2px;
+    border-radius: 12px;
+  }
+  .dashboard-month-picker .dash-month-btn {
+    display: none !important;
+  }
+  .dashboard-month-picker select {
+    min-width: 112px;
+    max-width: 135px;
+    font-size: 12px;
+    padding: 7px 6px;
+  }
+}
+</style>
+
 </head>
 <body>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="uberFrontIcon" viewBox="0 0 48 48">
@@ -3128,7 +3196,7 @@ html[data-theme="dark"] .payday-row-right span.settled {
     <div class="topbar">
       <button id="menuOpen" class="mobile-menu-control" type="button" aria-label="Abrir menu" aria-controls="appSidebar" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <div><h1 id="viewTitle">Início</h1><p id="viewSubtitle">Visão geral das suas finanças.</p></div>
-      <div class="actions"><button type="button" class="mobile-avatar" id="mobileAvatar" aria-label="Abrir meu perfil" data-profile-section="profile-settings">MF</button><button class="notification-button" id="notificationButton" type="button" aria-label="Abrir central de notificações"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span class="notification-badge" id="notificationBadge" hidden>0</span></button><button class="btn" id="syncTop">☁ Sincronizar</button><button class="btn" id="backupTop">Backup</button><button class="desktop-top-launch income" id="desktopIncome"><span>↗</span> Entrada</button><button class="desktop-top-launch expense" id="desktopExpense"><span>↘</span> Saída</button></div>
+      <div class="actions"><button type="button" class="mobile-avatar" id="mobileAvatar" aria-label="Abrir meu perfil" data-profile-section="profile-settings">MF</button><div class="dashboard-month-picker" id="dashboardMonthPicker"><button type="button" class="btn dash-month-btn" id="dashPrevMonth" aria-label="Mês anterior" title="Mês anterior">‹</button><select id="dashboardMonthSelect" aria-label="Mês de visualização da página inicial"></select><button type="button" class="btn dash-month-btn" id="dashNextMonth" aria-label="Próximo mês" title="Próximo mês">›</button></div><button class="notification-button" id="notificationButton" type="button" aria-label="Abrir central de notificações"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span class="notification-badge" id="notificationBadge" hidden>0</span></button><button class="btn" id="syncTop">☁ Sincronizar</button><button class="desktop-top-launch income" id="desktopIncome"><span>↗</span> Entrada</button><button class="desktop-top-launch expense" id="desktopExpense"><span>↘</span> Saída</button></div>
     </div>
 
     <section class="view active" id="dashboard">
@@ -4141,6 +4209,7 @@ function go(view){
  if(view==='admin')$('#mobileNav [data-view="settings"]').classList.add('active');
  const m=meta[view]||meta.dashboard;
  $('#viewTitle').textContent=m[0];$('#viewSubtitle').textContent=m[1];
+ if($('#dashboardMonthPicker'))$('#dashboardMonthPicker').hidden=(view!=='dashboard');
  if(view==='projection')selectProjectionPane(requestedInvestment?'investments':projectionPane);
  if(view==='transactions'){
   populateMonthFilter();
@@ -4297,11 +4366,82 @@ function recentTransactionPurchases(transactions,asOf){
  }
  return [...groups.values()].sort((a,b)=>b.purchaseDate.localeCompare(a.purchaseDate)||String(b.transaction.id||'').localeCompare(String(a.transaction.id||''))).slice(0,15).map(({transaction,purchaseDate,total})=>({...transaction,date:purchaseDate,installmentLabel:total>1?`Compra parcelada · ${total}x`:transaction.installmentLabel}));
 }
-function currentMonthInstallmentSummary(){const rows=state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===currentMonth()&&((+x.installmentTotal||1)>1||!!x.installmentGroup||/(?:Parcela\s*)?\d+\s*\/\s*\d+/i.test(x.installmentLabel||'')));return{amount:rows.reduce((sum,x)=>sum+(+x.amount||0),0),count:rows.length}}
-function renderDashboard(){const t=totals(),projection=projectionData(6),month=projection[0],closingBalance=month.balance,installments=currentMonthInstallmentSummary();if($('#mobileBalanceBig'))$('#mobileBalanceBig').textContent=fmt(month.net);if($('#mobileBalanceNote'))$('#mobileBalanceNote').textContent='Previsão do mês · entradas menos saídas';$('#kpiIncome').textContent=fmt(month.income);$('#kpiExpense').textContent=fmt(month.expense);$('#kpiNet').textContent=fmt(month.net);$('#kpiNet').className='value '+(month.net>=0?'good':'bad');$('#kpiIncomeSub').textContent='Total do mês · realizadas + previstas';$('#kpiExpenseSub').textContent='Total do mês · inclui parcelas e recorrências';$('#kpiInstallments').textContent=fmt(installments.amount);$('#kpiInstallmentsSub').textContent=installments.count+' parcela'+(installments.count===1?'':'s')+' neste mês · já incluídas nas saídas';
- const recent=recentTransactionPurchases(state.transactions,today());$('#recentTx').innerHTML=recent.length?renderRecentTransactions(recent)+'<button type="button" class="btn recent-older" id="recentOlder">Ver transações mais antigas →</button>':empty('Nenhuma transação ainda.');const older=$('#recentOlder');if(older)older.onclick=()=>{go('transactions');$('#searchTx').value='';$('#filterType').value='all';$('#filterMonth').value='all';exactNotificationTransactionIds=[];renderTransactions()};
- const cm=currentMonth(),cats={};state.transactions.filter(x=>x.type==='expense'&&effectiveAccountingMonth(x)===cm).forEach(x=>cats[x.category||'Outros']=(cats[x.category||'Outros']||0)+(+x.amount||0));const arr=Object.entries(cats).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);$('#categoryBars').innerHTML=arr.length?categoryPie(arr):empty('Sem despesas neste mês.');bindCategoryPie();
- $('#quickProjection').innerHTML=projection.map(monthCard).join('');renderPayOnPaydayDashboard();renderCopilotDashboard(projection,month);mfAnimateNumbers();}
+let selectedDashboardMonth='';
+function getDashboardMonth(){
+ const cm=currentMonth();
+ if(!selectedDashboardMonth||!/^\d{4}-\d{2}$/.test(selectedDashboardMonth))selectedDashboardMonth=cm;
+ return selectedDashboardMonth;
+}
+function populateDashboardMonthPicker(){
+ const sel=$('#dashboardMonthSelect');
+ if(!sel)return;
+ const cm=currentMonth();
+ const selected=getDashboardMonth();
+ const monthSet=new Set([cm,selected]);
+ const [cy,cmon]=cm.split('-').map(Number);
+ for(let offset=-6;offset<=12;offset++){
+  const d=new Date(cy,cmon-1+offset,1);
+  monthSet.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+ }
+ (state.transactions||[]).forEach(t=>{
+  if(t.date)monthSet.add(monthKey(t.date));
+  const eff=effectiveAccountingMonth(t);
+  if(eff)monthSet.add(eff);
+ });
+ const months=[...monthSet].filter(m=>/^\d{4}-\d{2}$/.test(m)).sort();
+ sel.innerHTML=months.map(m=>{
+  const label=new Date(m+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  return `<option value="${m}" ${m===selected?'selected':''}>${label}</option>`;
+ }).join('');
+ sel.value=selected;
+}
+function projectionDataFromMonth(startMonth,n=6){
+ const [sy,sm]=startMonth.split('-').map(Number);
+ const startDate=new Date(sy,sm-1,1);
+ let running=0;
+ state.transactions.forEach(t=>{
+  const eff=effectiveAccountingMonth(t);
+  if(eff<startMonth){
+   const a=+t.amount||0;
+   if(t.type==='income')running+=a;else running-=a;
+  }
+ });
+ const out=[],duplicates=[];
+ for(let i=0;i<n;i++){
+  const d=new Date(startDate.getFullYear(),startDate.getMonth()+i,1),key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  let inc=0,exp=0;
+  state.transactions.filter(t=>effectiveAccountingMonth(t)===key).forEach(t=>t.type==='income'?inc+=+t.amount:exp+=+t.amount);
+  state.recurring.forEach(r=>{
+   const match=state.transactions.find(t=>recurringTransactionMatch(r,t,key));
+   if(match)duplicates.push({key,recurring:r,transaction:match});
+   else{const amt=recurringAmountForMonth(r,d);r.type==='income'?inc+=amt:exp+=amt}
+  });
+  const net=inc-exp;running+=net;
+  out.push({key,label:d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}),income:inc,expense:exp,net,balance:running});
+ }
+ out.duplicates=duplicates;
+ return out;
+}
+function currentMonthInstallmentSummary(targetMonth=getDashboardMonth()){const rows=state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===targetMonth&&((+x.installmentTotal||1)>1||!!x.installmentGroup||/(?:Parcela\s*)?\d+\s*\/\s*\d+/i.test(x.installmentLabel||'')));return{amount:rows.reduce((sum,x)=>sum+(+x.amount||0),0),count:rows.length}}
+function renderDashboard(){
+ populateDashboardMonthPicker();
+ const dm=getDashboardMonth(),cm=currentMonth(),isCurrent=(dm===cm);
+ const monthLabel=new Date(dm+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+ if($('#viewSubtitle')&&$('#dashboard')?.classList.contains('active')){
+  $('#viewSubtitle').textContent=isCurrent?'Visão geral das suas finanças.':`Visualizando competência de ${monthLabel}.`;
+ }
+ const projection=projectionDataFromMonth(dm,6),month=projection[0],installments=currentMonthInstallmentSummary(dm);
+ if($('#mobileBalanceBig'))$('#mobileBalanceBig').textContent=fmt(month.net);
+ if($('#mobileBalanceNote'))$('#mobileBalanceNote').textContent=isCurrent?'Previsão do mês · entradas menos saídas':`Previsão de ${monthLabel} · entradas menos saídas`;
+ $('#kpiIncome').textContent=fmt(month.income);$('#kpiExpense').textContent=fmt(month.expense);$('#kpiNet').textContent=fmt(month.net);$('#kpiNet').className='value '+(month.net>=0?'good':'bad');
+ $('#kpiIncomeSub').textContent=isCurrent?'Total do mês · realizadas + previstas':`Entradas em ${monthLabel}`;
+ $('#kpiExpenseSub').textContent='Total do mês · inclui parcelas e recorrências';
+ $('#kpiInstallments').textContent=fmt(installments.amount);$('#kpiInstallmentsSub').textContent=installments.count+' parcela'+(installments.count===1?'':'s')+' neste mês · já incluídas nas saídas';
+ const asOfDate=isCurrent?today():`${dm}-31`;
+ const recent=recentTransactionPurchases(state.transactions,asOfDate);$('#recentTx').innerHTML=recent.length?renderRecentTransactions(recent)+'<button type="button" class="btn recent-older" id="recentOlder">Ver transações mais antigas →</button>':empty('Nenhuma transação até este período.');const older=$('#recentOlder');if(older)older.onclick=()=>{go('transactions');$('#searchTx').value='';$('#filterType').value='all';$('#filterMonth').value=dm;exactNotificationTransactionIds=[];renderTransactions()};
+ const cats={};state.transactions.filter(x=>x.type==='expense'&&effectiveAccountingMonth(x)===dm).forEach(x=>cats[x.category||'Outros']=(cats[x.category||'Outros']||0)+(+x.amount||0));const arr=Object.entries(cats).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);$('#categoryBars').innerHTML=arr.length?categoryPie(arr):empty('Sem despesas neste mês.');bindCategoryPie();
+ $('#quickProjection').innerHTML=projection.map(monthCard).join('');renderPayOnPaydayDashboard(dm);renderCopilotDashboard(projection,month,dm);mfAnimateNumbers();
+}
 
 function mfAnimateNumbers(){
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
@@ -4314,10 +4454,10 @@ function mfAnimateNumbers(){
 
 
 
-function renderPayOnPaydayDashboard(){
+function renderPayOnPaydayDashboard(targetMonth){
  const card=$('#payOnPaydayDashboardCard');
  if(!card)return;
- const cm=currentMonth();
+ const cm=targetMonth||getDashboardMonth();
  const items=state.transactions.filter(t=>{
   if(t.type!=='expense')return false;
   const isPayday=!!t.payOnPayday;
@@ -4397,12 +4537,15 @@ function renderPayOnPaydayDashboard(){
  `;
 }
 
-function renderCopilotDashboard(projection, month){
- const cm=currentMonth(),td=today(),nowDate=new Date(td+'T12:00:00');
- const year=nowDate.getFullYear(),monIdx=nowDate.getMonth(),dayOfMonth=nowDate.getDate();
+function renderCopilotDashboard(projection, month, targetMonth){
+ const cm=targetMonth||getDashboardMonth(),realCm=currentMonth(),td=today(),nowDate=new Date(td+'T12:00:00');
+ const [year,mon1]=cm.split('-').map(Number);
+ const monIdx=mon1-1;
  const daysInMonth=new Date(year,monIdx+1,0).getDate();
- const daysRemaining=Math.max(1,daysInMonth-dayOfMonth+1);
- const monthElapsedPct=Math.min(100,Math.round((dayOfMonth/daysInMonth)*100));
+ const isPast=cm<realCm,isFuture=cm>realCm;
+ const dayOfMonth=isPast?daysInMonth:isFuture?1:nowDate.getDate();
+ const daysRemaining=isPast?0:isFuture?daysInMonth:Math.max(1,daysInMonth-dayOfMonth+1);
+ const monthElapsedPct=isPast?100:isFuture?0:Math.min(100,Math.round((dayOfMonth/daysInMonth)*100));
 
  const monthTxs=state.transactions.filter(x=>x.type==='expense'&&effectiveAccountingMonth(x)===cm);
  let fixedAmt=0,instAmt=0,varAmt=0;
@@ -6469,7 +6612,7 @@ $('#exportUberCsv').onclick=()=>{const head=['Data','Viagens','Minutos online','
 
 function dl(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
 function exportBackup(){dl(`meu-financeiro-backup-${today()}.json`,JSON.stringify(state,null,2),'application/json')}
-$('#exportJson').onclick=exportBackup;$('#backupTop').onclick=exportBackup;
+$('#exportJson').onclick=exportBackup;if($('#backupTop'))$('#backupTop').onclick=exportBackup;
 $('#importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!data.transactions||!data.cards||!data.budgets||!data.recurring)throw new Error();data.uber=data.uber||[];if(confirm('Importar este backup e substituir os dados atuais?')){Object.assign(state,data);save();alert('Backup importado com sucesso.')}}catch{alert('Arquivo de backup inválido.')}e.target.value=''};
 $('#exportCsv').onclick=()=>{const head=['Data','Tipo','Descricao','Categoria','Conta','Forma','Valor'];const rows=state.transactions.map(t=>[t.date,t.type,t.description,t.category,t.account||'',t.payment||'',String(t.amount).replace('.',',')]);const csv='\ufeff'+[head,...rows].map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n');dl(`transacoes-${today()}.csv`,csv,'text/csv;charset=utf-8')};
 $('#clearData').onclick=()=>{if(confirm('Isso apagará todos os dados deste navegador e, se conectado, atualizará a nuvem. Continuar?')){state.transactions=[];state.cards=[];state.budgets=[];state.recurring=[];state.uber=[];save()}};
@@ -7093,6 +7236,30 @@ renderAll();initCloud();
   }
   document.addEventListener('DOMContentLoaded', syncExcelCardDropdown);
   setTimeout(syncExcelCardDropdown, 300);
+})();
+</script>
+
+
+<script>
+(function(){
+  const sel = $('#dashboardMonthSelect');
+  const prev = $('#dashPrevMonth');
+  const next = $('#dashNextMonth');
+  if(sel){
+    sel.addEventListener('change', () => {
+      selectedDashboardMonth = sel.value;
+      renderDashboard();
+    });
+  }
+  function stepDashboardMonth(delta){
+    const cur = getDashboardMonth();
+    const [y, m] = cur.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    selectedDashboardMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    renderDashboard();
+  }
+  if(prev) prev.addEventListener('click', () => stepDashboardMonth(-1));
+  if(next) next.addEventListener('click', () => stepDashboardMonth(1));
 })();
 </script>
 
