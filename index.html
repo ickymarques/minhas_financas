@@ -4312,10 +4312,38 @@ function mfNextMonthPaydayFromPurchase(purchaseIso){
  const nextY=m===12?y+1:y,nextM=m===12?1:m+1;
  return mfFifthBusinessDay(nextY,nextM);
 }
-// Mês de competência contábil: somente itens marcados com `payOnPayday` descontam no mês da compra (`purchaseDate`)
+// Mês de competência contábil: compras realizadas no mês M entram na competência M (pagas com o salário/rendimentos de M),
+// mesmo quando o vencimento da fatura ou do 5º dia útil cai no mês seguinte.
 function effectiveAccountingMonth(t){
- if(t&&t.type==='expense'&&t.payOnPayday&&/^\d{4}-\d{2}-\d{2}$/.test(t.purchaseDate||'')){
-  return t.purchaseDate.slice(0,7);
+ if(!t)return currentMonth();
+ if(t.type==='expense'){
+  if(t.payOnPayday&&/^\d{4}-\d{2}-\d{2}$/.test(t.purchaseDate||'')){
+   return t.purchaseDate.slice(0,7);
+  }
+  // Se possui data da compra (purchaseDate) e não é um "Pagar depois" com data específica fora da competência:
+  if(!t.payLater&&/^\d{4}-\d{2}-\d{2}$/.test(t.purchaseDate||'')){
+   const pMonth=t.purchaseDate.slice(0,7);
+   const dMonth=monthKey(t.date);
+   // Se é parcela 1/N ou compra à vista cuja data de vencimento caiu no mês seguinte (virada de fatura), mantém no mês da compra
+   const m=String(t.installmentLabel||'').match(/(?:Parcela\s*)?(\d+)\s*\/\s*(\d+)/i);
+   const instNum=m?+m[1]:1;
+   if(instNum===1&&dMonth>=pMonth){
+    // Verifica se a diferença entre vencimento e compra é apenas virada de fatura (até 1 mês depois)
+    const [py,pm]=pMonth.split('-').map(Number);
+    const [dy,dm]=dMonth.split('-').map(Number);
+    const diffMonths=(dy-py)*12+(dm-pm);
+    if(diffMonths===0||diffMonths===1)return pMonth;
+   }
+   if(instNum>1){
+    // Para parcelas subsequentes (2/N, 3/N...), verifica se a 1ª parcela foi lançada no mês da fatura seguinte
+    const [py,pm]=pMonth.split('-').map(Number);
+    const expectedFromPurchase=new Date(py,pm-1+(instNum-1),1);
+    const expKey=`${expectedFromPurchase.getFullYear()}-${String(expectedFromPurchase.getMonth()+1).padStart(2,'0')}`;
+    const [dy,dm]=dMonth.split('-').map(Number);
+    const diffFromExp=(dy-expectedFromPurchase.getFullYear())*12+(dm-(expectedFromPurchase.getMonth()+1));
+    if(diffFromExp===1)return expKey;
+   }
+  }
  }
  return monthKey(t.date);
 }
@@ -4422,7 +4450,7 @@ function projectionDataFromMonth(startMonth,n=6){
  out.duplicates=duplicates;
  return out;
 }
-function currentMonthInstallmentSummary(targetMonth=getDashboardMonth()){const rows=state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===targetMonth&&((+x.installmentTotal||1)>1||!!x.installmentGroup||/(?:Parcela\s*)?\d+\s*\/\s*\d+/i.test(x.installmentLabel||'')));return{amount:rows.reduce((sum,x)=>sum+(+x.amount||0),0),count:rows.length}}
+function currentMonthInstallmentSummary(targetMonth=getDashboardMonth()){const rows=state.transactions.filter(x=>x.type==='expense'&&effectiveAccountingMonth(x)===targetMonth&&((+x.installmentTotal||1)>1||!!x.installmentGroup||/(?:Parcela\s*)?\d+\s*\/\s*\d+/i.test(x.installmentLabel||'')));return{amount:rows.reduce((sum,x)=>sum+(+x.amount||0),0),count:rows.length}}
 function renderDashboard(){
  populateDashboardMonthPicker();
  const dm=getDashboardMonth(),cm=currentMonth(),isCurrent=(dm===cm);
@@ -4437,8 +4465,19 @@ function renderDashboard(){
  $('#kpiIncomeSub').textContent=isCurrent?'Total do mês · realizadas + previstas':`Entradas em ${monthLabel}`;
  $('#kpiExpenseSub').textContent='Total do mês · inclui parcelas e recorrências';
  $('#kpiInstallments').textContent=fmt(installments.amount);$('#kpiInstallmentsSub').textContent=installments.count+' parcela'+(installments.count===1?'':'s')+' neste mês · já incluídas nas saídas';
- const asOfDate=isCurrent?today():`${dm}-31`;
- const recent=recentTransactionPurchases(state.transactions,asOfDate);$('#recentTx').innerHTML=recent.length?renderRecentTransactions(recent)+'<button type="button" class="btn recent-older" id="recentOlder">Ver transações mais antigas →</button>':empty('Nenhuma transação até este período.');const older=$('#recentOlder');if(older)older.onclick=()=>{go('transactions');$('#searchTx').value='';$('#filterType').value='all';$('#filterMonth').value=dm;exactNotificationTransactionIds=[];renderTransactions()};
+ const monthRows=state.transactions
+  .filter(t=>effectiveAccountingMonth(t)===dm)
+  .sort((a,b)=>{
+   const da=transactionPurchaseDate(a)||a.date||'';
+   const db=transactionPurchaseDate(b)||b.date||'';
+   return db.localeCompare(da)||String(b.id||'').localeCompare(String(a.id||''));
+  });
+ const recentHeadTitle=$('#recentTx')?.closest('.recent-card')?.querySelector('h2');
+ if(recentHeadTitle){
+  recentHeadTitle.textContent=isCurrent?'Transações do mês':'Transações de '+monthLabel;
+ }
+ $('#recentTx').innerHTML=monthRows.length?renderRecentTransactions(monthRows)+'<button type="button" class="btn recent-older" id="recentOlder">Abrir em Movimentos →</button>':empty('Nenhuma transação registrada nesta competência.');
+ const older=$('#recentOlder');if(older)older.onclick=()=>{go('transactions');$('#searchTx').value='';$('#filterType').value='all';$('#filterMonth').value=dm;exactNotificationTransactionIds=[];renderTransactions()};
  const cats={};state.transactions.filter(x=>x.type==='expense'&&effectiveAccountingMonth(x)===dm).forEach(x=>cats[x.category||'Outros']=(cats[x.category||'Outros']||0)+(+x.amount||0));const arr=Object.entries(cats).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);$('#categoryBars').innerHTML=arr.length?categoryPie(arr):empty('Sem despesas neste mês.');bindCategoryPie();
  $('#quickProjection').innerHTML=projection.map(monthCard).join('');renderPayOnPaydayDashboard(dm);renderCopilotDashboard(projection,month,dm);mfAnimateNumbers();
 }
@@ -4646,7 +4685,7 @@ function renderCopilotDashboard(projection, month, targetMonth){
  const insightsEl=$('#copilotInsights');
  if(insightsEl){
   const nextMonth=projection[1];
-  const nextInstAmt=nextMonth?state.transactions.filter(x=>x.type==='expense'&&monthKey(x.date)===nextMonth.key&&isInstallmentTx(x)).reduce((s,x)=>s+(+x.amount||0),0):0;
+  const nextInstAmt=nextMonth?state.transactions.filter(x=>x.type==='expense'&&effectiveAccountingMonth(x)===nextMonth.key&&isInstallmentTx(x)).reduce((s,x)=>s+(+x.amount||0),0):0;
   const instDelta=instAmt-nextInstAmt;
   const insight1=instDelta>5
    ?{tone:'good',icon:'📉',title:'Alívio de parcelas à vista',text:`Suas parcelas caem ${fmt(instDelta)} no próximo mês (de ${fmt(instAmt)} para ${fmt(nextInstAmt)}).`}
@@ -6838,22 +6877,8 @@ renderAll();initCloud();
       const dueDay = Math.min(28, Math.max(1, Number(card?.dueDay) || 7));
       return `${overrideMonth}-${String(dueDay).padStart(2, '0')}`;
     }
-    if(!card || !purchaseDate) return purchaseDate;
-    const [y, m, d] = purchaseDate.split('-').map(Number);
-    const closing = Number(card.closingDay) || 25;
-    const due = Number(card.dueDay) || 5;
-    let targetMonth = m;
-    let targetYear = y;
-    if(d >= closing){
-      targetMonth += 1;
-      if(targetMonth > 12){ targetMonth = 1; targetYear += 1; }
-    }
-    if(due < closing){
-      targetMonth += 1;
-      if(targetMonth > 12){ targetMonth = 1; targetYear += 1; }
-    }
-    const maxDay = new Date(targetYear, targetMonth, 0).getDate();
-    return `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(Math.min(due, maxDay)).padStart(2, '0')}`;
+    // Mantém a data da compra para que a 1ª parcela / compra à vista entre na competência do próprio mês da compra
+    return purchaseDate || today();
   }
 
   function isDuplicateTransaction(candidate){
