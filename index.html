@@ -23,6 +23,7 @@
   <title>Meu Financeiro V5.8</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <style>
     :root{
       --bg:#f4f6f8;--surface:#fff;--surface2:#f8fafc;--text:#111827;--muted:#64748b;--line:#e5e7eb;
@@ -3212,6 +3213,37 @@ html[data-theme="dark"] .payday-row-right span.settled {
         <div id="invoicePreview" class="invoice-preview"></div>
         <div id="invoiceSummary" class="invoice-summary"></div>
         <div class="actions" id="invoiceActions" style="margin-top:14px;display:none"><button class="btn" id="clearInvoice">Cancelar</button><button class="btn primary" id="importInvoice">Importar selecionados</button></div>
+      </div>
+      <div class="card section invoice-import" id="excelBatchImportCard">
+        <div class="section-head">
+          <div>
+            <h2>📊 Importar planilha em lote (.xlsx / .xls / .csv)</h2>
+            <p class="note" style="margin:5px 0 0">Importe compras em lote seguindo o padrão da planilha (aba <strong>Importacao_Sistema</strong> ou tabela estruturada com Data, Descrição, Estabelecimento, Categoria, Subcategoria, Conta, Forma, Parcela e Valor).</p>
+          </div>
+          <button type="button" class="btn" id="downloadExcelTemplate" title="Baixar modelo de planilha padrão">⬇ Modelo .xlsx</button>
+        </div>
+        <div class="invoice-toolbar" style="grid-template-columns:1fr 1.2fr 1.5fr auto">
+          <div class="field">
+            <label for="excelBatchCard">Cartão destino</label>
+            <select id="excelBatchCard"></select>
+          </div>
+          <div class="field">
+            <label for="excelBatchInvoiceMonth">Mês da fatura (vencimento)</label>
+            <input id="excelBatchInvoiceMonth" type="month">
+          </div>
+          <div class="field">
+            <label for="excelBatchFile">Arquivo da planilha</label>
+            <input id="excelBatchFile" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv">
+          </div>
+          <button type="button" class="btn primary" id="analyzeExcelBatch">Ler planilha</button>
+        </div>
+        <div id="excelBatchStatus" class="note" style="margin-top:10px"></div>
+        <div id="excelBatchPreview" class="invoice-preview"></div>
+        <div id="excelBatchSummary" class="invoice-summary"></div>
+        <div class="actions" id="excelBatchActions" style="margin-top:14px;display:none">
+          <button type="button" class="btn" id="clearExcelBatch">Cancelar</button>
+          <button type="button" class="btn primary" id="importExcelBatch">Importar selecionados em lote</button>
+        </div>
       </div>
     </section>
 
@@ -6532,5 +6564,498 @@ renderAll();initCloud();
 <script>navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='open-payment-reminders')openNotificationCenter()});if(new URLSearchParams(location.search).get('reminders')==='1')document.addEventListener('DOMContentLoaded',()=>{if(typeof openNotificationCenter==='function')openNotificationCenter()});</script>
 
 <div class="excel-filter-popover" id="excelFilterPopover" hidden role="dialog" aria-label="Filtrar coluna"></div>
+
+<script>
+// ==========================================================================
+// INTEGRAÇÃO EM LOTE VIA PLANILHA (.XLSX / .XLS / .CSV) NA ABA CARTÕES
+// ==========================================================================
+(function(){
+  let excelBatchRows = [];
+
+  function normStr(v){
+    return String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  }
+
+  function stripEmojis(v){
+    return String(v ?? '').replace(/(?:\p{Regional_Indicator}{2}|[0-9#*]️?⃣|\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier})?(?:‍\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier})?)*)/gu, '').replace(/\s+/g, ' ').trim();
+  }
+
+  function matchCategoryKey(rawCat){
+    const target = normStr(stripEmojis(rawCat));
+    if(!target) return 'Outros';
+    const keys = Object.keys(CATS);
+    return keys.find(k => normStr(stripEmojis(k)) === target)
+        || keys.find(k => normStr(stripEmojis(k)).includes(target) || target.includes(normStr(stripEmojis(k))))
+        || 'Outros';
+  }
+
+  function matchSubcategoryKey(catKey, rawSub){
+    const subs = Object.keys(CATS[catKey] || {});
+    if(!subs.length) return '';
+    const target = normStr(stripEmojis(rawSub));
+    if(!target) return subs[0];
+    return subs.find(s => normStr(stripEmojis(s)) === target)
+        || subs.find(s => normStr(stripEmojis(s)).includes(target) || target.includes(normStr(stripEmojis(s))))
+        || subs[0];
+  }
+
+  function parseSpreadsheetDate(val){
+    if(val instanceof Date && !isNaN(val)){
+      const y = val.getFullYear();
+      const m = String(val.getMonth() + 1).padStart(2, '0');
+      const d = String(val.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    if(typeof val === 'number' && val > 20000 && val < 90000){
+      const utcDays = Math.floor(val - 25569);
+      const dt = new Date(utcDays * 86400 * 1000);
+      if(!isNaN(dt)){
+        return dt.toISOString().slice(0, 10);
+      }
+    }
+    const s = String(val ?? '').trim();
+    if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    const br = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+    if(br){
+      const dd = br[1].padStart(2, '0');
+      const mm = br[2].padStart(2, '0');
+      const yyyy = br[3].length === 2 ? '20' + br[3] : br[3];
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    return '';
+  }
+
+  function parseAmount(val){
+    if(typeof val === 'number') return Math.round(val * 100) / 100;
+    const cleaned = String(val ?? '')
+      .replace(/[R$\s]/g, '')
+      .replace(/\.(?=\d{3}(?:,|$))/g, '')
+      .replace(',', '.');
+    const num = parseFloat(cleaned);
+    return isFinite(num) ? Math.round(num * 100) / 100 : 0;
+  }
+
+  function parseInstallmentInfo(rawParcela){
+    const s = String(rawParcela ?? '').trim();
+    const m = s.match(/(\d+)\s*(?:\/|de)\s*(\d+)/i);
+    if(m){
+      const cur = Math.max(1, parseInt(m[1], 10));
+      const tot = Math.max(cur, parseInt(m[2], 10));
+      return { isInstallment: tot > 1, current: cur, total: tot, label: tot > 1 ? `Parcela ${cur}/${tot}` : 'À vista' };
+    }
+    const xMatch = s.match(/^(\d+)\s*x$/i);
+    if(xMatch && parseInt(xMatch[1], 10) > 1){
+      const tot = parseInt(xMatch[1], 10);
+      return { isInstallment: true, current: 1, total: tot, label: `Parcela 1/${tot}` };
+    }
+    return { isInstallment: false, current: 1, total: 1, label: 'À vista' };
+  }
+
+  function computeInvoicePostingDate(purchaseDate, card, overrideMonth){
+    if(overrideMonth && /^\d{4}-\d{2}$/.test(overrideMonth)){
+      const dueDay = Math.min(28, Math.max(1, Number(card?.dueDay) || 7));
+      return `${overrideMonth}-${String(dueDay).padStart(2, '0')}`;
+    }
+    if(!card || !purchaseDate) return purchaseDate;
+    const [y, m, d] = purchaseDate.split('-').map(Number);
+    const closing = Number(card.closingDay) || 25;
+    const due = Number(card.dueDay) || 5;
+    let targetMonth = m;
+    let targetYear = y;
+    if(d >= closing){
+      targetMonth += 1;
+      if(targetMonth > 12){ targetMonth = 1; targetYear += 1; }
+    }
+    if(due < closing){
+      targetMonth += 1;
+      if(targetMonth > 12){ targetMonth = 1; targetYear += 1; }
+    }
+    const maxDay = new Date(targetYear, targetMonth, 0).getDate();
+    return `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(Math.min(due, maxDay)).padStart(2, '0')}`;
+  }
+
+  function isDuplicateTransaction(candidate){
+    const cAmt = Number(candidate.amount || 0).toFixed(2);
+    const cDesc = normStr(candidate.description);
+    const cEst = normStr(candidate.establishment);
+    const cPurch = candidate.purchaseDate || candidate.date;
+    return (state.transactions || []).some(tx => {
+      if(tx.type !== candidate.type) return false;
+      const tAmt = Number(tx.amount || 0).toFixed(2);
+      if(tAmt !== cAmt) return false;
+      const tPurch = transactionPurchaseDate(tx) || tx.date;
+      if(tPurch !== cPurch && tx.date !== candidate.date) return false;
+      const tDesc = normStr(tx.description);
+      const tEst = normStr(tx.establishment);
+      return tDesc === cDesc || (cEst && tEst && tEst === cEst) || (cDesc.length >= 5 && tDesc.includes(cDesc)) || (tDesc.length >= 5 && cDesc.includes(tDesc));
+    });
+  }
+
+  function syncExcelCardDropdown(){
+    const sel = $('#excelBatchCard');
+    if(!sel) return;
+    const prev = sel.value;
+    if(!state.cards || !state.cards.length){
+      sel.innerHTML = '<option value="">Nenhum cartão cadastrado</option>';
+      return;
+    }
+    sel.innerHTML = state.cards.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+    if(prev && state.cards.some(c => c.id === prev)) sel.value = prev;
+  }
+
+  function findHeaderRowIndex(matrix){
+    for(let i = 0; i < Math.min(matrix.length, 15); i++){
+      const row = (matrix[i] || []).map(cell => normStr(cell));
+      const hasDate = row.some(c => c === 'data' || c === 'date');
+      const hasVal = row.some(c => c.includes('valor') || c === 'amount');
+      const hasDesc = row.some(c => c.includes('descric') || c === 'item' || c === 'estabelecimento');
+      if(hasDate && hasVal && hasDesc) return i;
+    }
+    return 0;
+  }
+
+  function extractRowsFromWorkbook(wb){
+    const preferredOrder = ['Importacao_Sistema', 'Importação_Sistema', 'Faltantes', 'Lançamentos', 'Lancamentos'];
+    let chosenSheet = wb.SheetNames[0];
+    for(const pref of preferredOrder){
+      const found = wb.SheetNames.find(name => normStr(name).includes(normStr(pref)));
+      if(found){ chosenSheet = found; break; }
+    }
+
+    const ws = wb.Sheets[chosenSheet];
+    const matrix = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+    if(!matrix.length) return { sheetName: chosenSheet, items: [] };
+
+    const headerIdx = findHeaderRowIndex(matrix);
+    const headers = (matrix[headerIdx] || []).map(h => normStr(h));
+
+    const colIdx = {
+      data: headers.findIndex(h => h === 'data' || h === 'date'),
+      tipo: headers.findIndex(h => h === 'tipo' || h === 'type'),
+      descricao: headers.findIndex(h => h.includes('descric') || h === 'description'),
+      estabelecimento: headers.findIndex(h => h.includes('estabelecimento') || h === 'merchant'),
+      categoria: headers.findIndex(h => h === 'categoria' || h === 'category'),
+      subcategoria: headers.findIndex(h => h === 'subcategoria' || h === 'subcategory'),
+      conta: headers.findIndex(h => h === 'conta' || h === 'account' || h === 'banco'),
+      forma: headers.findIndex(h => h.includes('forma') || h.includes('pagamento') || h === 'payment'),
+      parcela: headers.findIndex(h => h.includes('parcela') || h === 'installment'),
+      valor: headers.findIndex(h => h.includes('valor') || h === 'amount'),
+      status: headers.findIndex(h => h === 'status' || h === 'situacao')
+    };
+
+    const items = [];
+    for(let r = headerIdx + 1; r < matrix.length; r++){
+      const row = matrix[r] || [];
+      const rawDate = colIdx.data >= 0 ? row[colIdx.data] : '';
+      const purchaseDate = parseSpreadsheetDate(rawDate);
+      const amount = colIdx.valor >= 0 ? parseAmount(row[colIdx.valor]) : 0;
+      if(!purchaseDate || !amount || amount <= 0) continue;
+
+      const rawStatus = colIdx.status >= 0 ? normStr(row[colIdx.status]) : '';
+      if(rawStatus.includes('ja estava lancado') || rawStatus.includes('ignorar')) continue;
+
+      const rawTipo = colIdx.tipo >= 0 ? normStr(row[colIdx.tipo]) : 'expense';
+      const type = (rawTipo === 'income' || rawTipo === 'receita' || rawTipo === 'entrada') ? 'income' : 'expense';
+
+      const establishment = colIdx.estabelecimento >= 0 ? String(row[colIdx.estabelecimento] ?? '').trim() : '';
+      let description = colIdx.descricao >= 0 ? String(row[colIdx.descricao] ?? '').trim() : '';
+      if(!description) description = establishment || 'Compra importada';
+
+      const category = matchCategoryKey(colIdx.categoria >= 0 ? row[colIdx.categoria] : '');
+      const subcategory = matchSubcategoryKey(category, colIdx.subcategoria >= 0 ? row[colIdx.subcategoria] : '');
+      const account = colIdx.conta >= 0 ? String(row[colIdx.conta] ?? '').trim() : '';
+      const payment = colIdx.forma >= 0 ? String(row[colIdx.forma] ?? '').trim() : '';
+      const inst = parseInstallmentInfo(colIdx.parcela >= 0 ? row[colIdx.parcela] : 'À vista');
+
+      items.push({
+        id: uid(),
+        selected: true,
+        type,
+        purchaseDate,
+        description,
+        establishment,
+        category,
+        subcategory,
+        account,
+        payment,
+        installment: inst,
+        amount,
+        duplicate: false
+      });
+    }
+
+    return { sheetName: chosenSheet, items };
+  }
+
+  function renderExcelBatchPreview(){
+    const preview = $('#excelBatchPreview');
+    const summary = $('#excelBatchSummary');
+    const actions = $('#excelBatchActions');
+    if(!preview || !summary || !actions) return;
+
+    if(!excelBatchRows.length){
+      preview.innerHTML = '';
+      summary.innerHTML = '';
+      actions.style.display = 'none';
+      return;
+    }
+
+    const cardId = $('#excelBatchCard')?.value || '';
+    const card = (state.cards || []).find(c => c.id === cardId);
+    const overrideMonth = $('#excelBatchInvoiceMonth')?.value || '';
+
+    excelBatchRows.forEach(item => {
+      const postDate = computeInvoicePostingDate(item.purchaseDate, card, overrideMonth);
+      item.postingDate = postDate;
+      item.duplicate = isDuplicateTransaction({
+        type: item.type,
+        amount: item.amount,
+        description: item.description,
+        establishment: item.establishment,
+        purchaseDate: item.purchaseDate,
+        date: postDate
+      });
+    });
+
+    const headerHtml = `
+      <div class="invoice-columns">
+        <span>Usar</span>
+        <span>Data Compra</span>
+        <span>Descrição / Estabelecimento</span>
+        <span>Parcela</span>
+        <span>Categoria</span>
+        <span>Subcategoria</span>
+        <span style="text-align:right">Valor</span>
+        <span style="text-align:center">Conciliação</span>
+      </div>`;
+
+    const rowsHtml = excelBatchRows.map((item, idx) => {
+      const catOptions = Object.keys(CATS).map(c => `<option value="${esc(c)}" ${c === item.category ? 'selected' : ''}>${esc(c)}</option>`).join('');
+      const subOptions = Object.keys(CATS[item.category] || {}).map(s => `<option value="${esc(s)}" ${s === item.subcategory ? 'selected' : ''}>${esc(subcategoryLabel(s))}</option>`).join('');
+      return `
+        <div class="invoice-row ${item.duplicate ? 'duplicate' : ''}" data-batch-idx="${idx}">
+          <input type="checkbox" class="inv-use" data-field="selected" ${item.selected ? 'checked' : ''}>
+          <input type="date" class="inv-date" data-field="purchaseDate" value="${esc(item.purchaseDate)}">
+          <div style="display:grid;gap:4px">
+            <input type="text" class="inv-desc" data-field="description" value="${esc(item.description)}" placeholder="Descrição">
+            <input type="text" class="inv-est" data-field="establishment" value="${esc(item.establishment)}" placeholder="Estabelecimento" style="font-size:11px;padding:6px 9px;opacity:.85">
+          </div>
+          <input type="text" class="inv-inst" data-field="parcela" value="${esc(item.installment.label)}">
+          <select class="inv-cat" data-field="category">${catOptions}</select>
+          <select class="inv-sub" data-field="subcategory">${subOptions}</select>
+          <input type="number" step="0.01" class="inv-amount" data-field="amount" value="${item.amount.toFixed(2)}">
+          <div class="inv-dup">${item.duplicate ? '⚠️ Possível duplicado' : '✅ Novo lançamento'}</div>
+        </div>`;
+    }).join('');
+
+    preview.innerHTML = headerHtml + rowsHtml;
+
+    const selectedItems = excelBatchRows.filter(x => x.selected);
+    const totalSelected = selectedItems.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+    const dupCount = excelBatchRows.filter(x => x.duplicate).length;
+
+    summary.innerHTML = `
+      <span>Selecionados: <strong>${selectedItems.length}</strong> de ${excelBatchRows.length} itens ${dupCount ? `· <span style="color:var(--warn)">${dupCount} possível(is) duplicado(s)</span>` : ''}</span>
+      <span>Total a importar: <strong class="bad">${fmt(totalSelected)}</strong></span>
+    `;
+    actions.style.display = 'flex';
+  }
+
+  document.addEventListener('change', e => {
+    const rowEl = e.target.closest('#excelBatchPreview .invoice-row');
+    if(rowEl){
+      const idx = Number(rowEl.dataset.batchIdx);
+      const item = excelBatchRows[idx];
+      if(!item) return;
+      const field = e.target.dataset.field;
+      if(field === 'selected'){
+        item.selected = e.target.checked;
+      } else if(field === 'purchaseDate'){
+        item.purchaseDate = e.target.value;
+      } else if(field === 'description'){
+        item.description = e.target.value;
+      } else if(field === 'establishment'){
+        item.establishment = e.target.value;
+      } else if(field === 'parcela'){
+        item.installment = parseInstallmentInfo(e.target.value);
+      } else if(field === 'category'){
+        item.category = e.target.value;
+        item.subcategory = Object.keys(CATS[item.category] || {})[0] || '';
+      } else if(field === 'subcategory'){
+        item.subcategory = e.target.value;
+      } else if(field === 'amount'){
+        item.amount = parseAmount(e.target.value);
+      }
+      renderExcelBatchPreview();
+    }
+    if(e.target && (e.target.id === 'excelBatchCard' || e.target.id === 'excelBatchInvoiceMonth')){
+      if(excelBatchRows.length) renderExcelBatchPreview();
+    }
+  });
+
+  $('#analyzeExcelBatch')?.addEventListener('click', async () => {
+    const fileInput = $('#excelBatchFile');
+    const status = $('#excelBatchStatus');
+    const file = fileInput?.files?.[0];
+    if(!file){
+      if(status) status.textContent = 'Selecione um arquivo .xlsx, .xls ou .csv primeiro.';
+      return;
+    }
+    if(typeof XLSX === 'undefined'){
+      if(status) status.textContent = 'Biblioteca de leitura de planilhas ainda carregando. Tente novamente em 2 segundos.';
+      return;
+    }
+    try{
+      if(status) status.textContent = 'Lendo planilha...';
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+      const { sheetName, items } = extractRowsFromWorkbook(wb);
+      excelBatchRows = items;
+      if(!items.length){
+        if(status) status.textContent = `Nenhum lançamento válido encontrado na aba "${sheetName}". Verifique se há colunas de Data, Descrição e Valor.`;
+        renderExcelBatchPreview();
+        return;
+      }
+      // Auto-select matching card if sheet specifies Conta
+      const firstAcc = normStr(items[0].account);
+      if(firstAcc && $('#excelBatchCard')){
+        const matchedCard = (state.cards || []).find(c => normStr(c.name).includes(firstAcc) || firstAcc.includes(normStr(c.name)));
+        if(matchedCard) $('#excelBatchCard').value = matchedCard.id;
+      }
+      if(status) status.textContent = `Aba "${sheetName}" lida com sucesso: ${items.length} lançamento(s) identificado(s). Revise antes de importar.`;
+      renderExcelBatchPreview();
+    }catch(err){
+      console.error(err);
+      if(status) status.textContent = 'Erro ao ler a planilha. Certifique-se de que o arquivo não está corrompido ou protegido por senha.';
+    }
+  });
+
+  $('#clearExcelBatch')?.addEventListener('click', () => {
+    excelBatchRows = [];
+    if($('#excelBatchFile')) $('#excelBatchFile').value = '';
+    if($('#excelBatchStatus')) $('#excelBatchStatus').textContent = '';
+    renderExcelBatchPreview();
+  });
+
+  $('#importExcelBatch')?.addEventListener('click', () => {
+    const selected = excelBatchRows.filter(x => x.selected && x.amount > 0);
+    if(!selected.length){
+      alert('Marque pelo menos um lançamento para importar.');
+      return;
+    }
+    const cardId = $('#excelBatchCard')?.value || '';
+    const card = (state.cards || []).find(c => c.id === cardId);
+    const overrideMonth = $('#excelBatchInvoiceMonth')?.value || '';
+
+    let importedCount = 0;
+    selected.forEach(item => {
+      const catOpts = CATS[item.category] || {};
+      const expenseKind = item.type === 'income' ? '' : (catOpts[item.subcategory] || 'Variável');
+      const accountName = card ? (inferAccountFromPayment(`${card.name} - Crédito`) || card.name) : (item.account || 'Itaú');
+      const paymentLabel = item.payment || (card ? `${card.name} - Crédito` : `${accountName} - Crédito`);
+      const resolvedCardId = card ? card.id : inferCardId({ type: item.type, payment: paymentLabel, account: accountName });
+      const basePostDate = computeInvoicePostingDate(item.purchaseDate, card, overrideMonth);
+
+      if(item.installment.isInstallment && item.installment.total > 1){
+        const group = uid();
+        const cur = item.installment.current;
+        const tot = item.installment.total;
+        for(let k = cur; k <= tot; k++){
+          const d = new Date(basePostDate + 'T12:00:00');
+          d.setMonth(d.getMonth() + (k - cur));
+          state.transactions.push({
+            id: uid(),
+            type: item.type,
+            amount: item.amount,
+            description: item.description,
+            establishment: item.establishment || '',
+            category: item.category,
+            subcategory: item.type === 'income' ? '' : item.subcategory,
+            expenseKind,
+            date: d.toISOString().slice(0, 10),
+            purchaseDate: item.purchaseDate,
+            payLater: false,
+            payOnPayday: false,
+            settlementStatus: 'settled',
+            paid: true,
+            received: true,
+            paymentDate: '',
+            account: accountName,
+            payment: paymentLabel,
+            cardId: resolvedCardId,
+            installments: tot,
+            installmentGroup: group,
+            installmentTotal: tot,
+            installmentPaid: cur - 1,
+            installmentLabel: `Parcela ${k}/${tot}`,
+            tags: ['Importado Planilha']
+          });
+          importedCount++;
+        }
+      } else {
+        state.transactions.push({
+          id: uid(),
+          type: item.type,
+          amount: item.amount,
+          description: item.description,
+          establishment: item.establishment || '',
+          category: item.category,
+          subcategory: item.type === 'income' ? '' : item.subcategory,
+          expenseKind,
+          date: basePostDate,
+          purchaseDate: item.purchaseDate,
+          payLater: false,
+          payOnPayday: false,
+          settlementStatus: 'settled',
+          paid: true,
+          received: true,
+          paymentDate: '',
+          account: accountName,
+          payment: paymentLabel,
+          cardId: resolvedCardId,
+          installments: 1,
+          installmentTotal: 1,
+          installmentPaid: 0,
+          tags: ['Importado Planilha']
+        });
+        importedCount++;
+      }
+    });
+
+    excelBatchRows = [];
+    if($('#excelBatchFile')) $('#excelBatchFile').value = '';
+    if($('#excelBatchStatus')) $('#excelBatchStatus').textContent = `✅ ${importedCount} lançamento(s) integrado(s) com sucesso ao financeiro!`;
+    renderExcelBatchPreview();
+    save();
+  });
+
+  $('#downloadExcelTemplate')?.addEventListener('click', () => {
+    if(typeof XLSX === 'undefined'){
+      alert('Aguarde o carregamento do módulo de planilhas.');
+      return;
+    }
+    const sampleRows = [
+      { Data: today(), Tipo: 'expense', Descricao: 'Exemplo Supermercado', Estabelecimento: 'Savegnago', Categoria: 'Alimentação', Subcategoria: 'Supermercado 🛒', Conta: 'Itaú', Forma: 'Itaú - Crédito', Parcela: 'À vista', Valor: 125.90, Status: 'ok' },
+      { Data: today(), Tipo: 'expense', Descricao: 'Exemplo Compra Parcelada', Estabelecimento: 'Amazon', Categoria: 'Eletrônicos', Subcategoria: 'Informática 💻', Conta: 'Itaú', Forma: 'Itaú - Crédito', Parcela: '1/3', Valor: 89.90, Status: 'ok' }
+    ];
+    const ws = XLSX.utils.json_to_sheet(sampleRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Importacao_Sistema');
+    XLSX.writeFile(wb, 'Modelo_Importacao_Cartao.xlsx');
+  });
+
+  // Hook into renderCards to keep #excelBatchCard synchronized
+  const origRenderCards = window.renderCards;
+  if(typeof origRenderCards === 'function'){
+    window.renderCards = function(){
+      origRenderCards.apply(this, arguments);
+      syncExcelCardDropdown();
+    };
+  }
+  document.addEventListener('DOMContentLoaded', syncExcelCardDropdown);
+  setTimeout(syncExcelCardDropdown, 300);
+})();
+</script>
+
 </body>
 </html>
