@@ -4693,7 +4693,46 @@ function txIcon(t){
 function isInstallmentTx(t){return !!t.installmentGroup||(+t.installmentTotal||+t.installments||1)>1||/(?:parcela\s*)?\d+\s*\/\s*\d+/i.test(String(t.installmentLabel||''))}
 function isPlannedTx(t){return MFReminders.pending(t)||(t.date>today()&&!isInstallmentTx(t))}
 function tableTx(rows,actions=true){return `<div class="table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Estabelecimento</th><th>Categoria</th><th>Conta</th><th>Status</th><th>Parcelas</th><th>Valor</th>${actions?'<th></th>':''}</tr></thead><tbody>${rows.map(t=>{const future=isPlannedTx(t),status=future?'Previsto':'Lançado',parcelas=t.installmentLabel||((+t.installmentTotal||+t.installments||1)>1?String(+t.installmentTotal||+t.installments)+'x':'À vista');return `<tr data-tx-id="${esc(t.id)}"><td data-icon="${esc(txIcon(t))}">${new Date(transactionHistoryDate(t)+'T12:00:00').toLocaleDateString('pt-BR')}</td><td>${esc(t.description)}${t.installmentDetail||''}</td><td>${esc(t.establishment||'-')}</td><td><span class="pill">${esc(t.category)}</span></td><td>${esc(t.account||'-')}</td><td><span class="tx-status ${future?'planned-status':'posted-status'}">${status}</span></td><td><span class="tx-installments">${esc(parcelas)}</span></td><td class="amount ${t.type}">${t.type==='income'?'+':'-'} ${fmt(t.amount)}</td>${actions?`<td><div class="row-actions"><button class="btn" onclick="editTx('${t.id}')">Editar</button><button class="btn danger" onclick="removeTx('${t.id}')">Excluir</button></div></td>`:''}</tr>`}).join('')}</tbody></table></div>`}
-window.removeTx=id=>{if(confirm('Excluir esta transação?')){state.transactions=state.transactions.filter(x=>x.id!==id);save()}}
+window.removeTx=id=>{
+ const target=state.transactions.find(x=>x.id===id);
+ if(!target)return;
+ const siblings=typeof findInstallmentSiblings==='function'?findInstallmentSiblings(target):[];
+ const isParcelada=(typeof isInstallmentTx==='function'&&isInstallmentTx(target))&&siblings.length>1;
+ if(isParcelada){
+  const dlg=document.createElement('dialog');
+  dlg.style.maxWidth='440px';
+  dlg.innerHTML=`<div class="modal">
+   <h3 style="margin-bottom:8px">Excluir compra parcelada</h3>
+   <p class="note" style="margin:0 0 16px;line-height:1.5"><strong>${esc(target.description)}</strong> possui <strong>${siblings.length} parcelas</strong> vinculadas no sistema. Como deseja excluir?</p>
+   <div style="display:grid;gap:9px">
+    <button type="button" class="btn danger" id="delAllInstallmentsBtn" style="justify-content:center;width:100%">🗑️ Excluir todas as ${siblings.length} parcelas</button>
+    <button type="button" class="btn" id="delSingleInstallmentBtn" style="justify-content:center;width:100%">📄 Excluir somente esta parcela (${esc(target.installmentLabel||'atual')})</button>
+    <button type="button" class="btn" id="cancelDelInstallmentBtn" style="justify-content:center;width:100%;opacity:.8">Cancelar</button>
+   </div>
+  </div>`;
+  document.body.appendChild(dlg);
+  const cleanup=()=>{dlg.close();dlg.remove()};
+  dlg.querySelector('#delAllInstallmentsBtn').onclick=()=>{
+   const idsToRemove=new Set(siblings.map(s=>s.id));
+   state.transactions=state.transactions.filter(x=>!idsToRemove.has(x.id));
+   cleanup();
+   save();
+  };
+  dlg.querySelector('#delSingleInstallmentBtn').onclick=()=>{
+   state.transactions=state.transactions.filter(x=>x.id!==id);
+   cleanup();
+   save();
+  };
+  dlg.querySelector('#cancelDelInstallmentBtn').onclick=cleanup;
+  dlg.addEventListener('cancel',e=>{e.preventDefault();cleanup()});
+  dlg.showModal();
+  return;
+ }
+ if(confirm('Excluir esta transação?')){
+  state.transactions=state.transactions.filter(x=>x.id!==id);
+  save();
+ }
+}
 
 function populateMonthFilter(){const el=$('#filterMonth'),prev=el.value||'all',months=[...new Set([...state.transactions.map(t=>monthKey(t.type==='expense'&&isInstallmentTx(t)?t.date:transactionHistoryDate(t))),currentMonth(),...(prev!=='all'?[prev]:[])])].sort().reverse();el.innerHTML='<option value="all">Todos os meses</option>'+months.map(m=>`<option value="${m}">${new Date(m+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</option>`).join('');el.value=(prev==='all'||months.includes(prev))?prev:'all'}
 function mobileTx(rows){return '<div class="mobile-tx-list">'+rows.map(t=>{const future=isPlannedTx(t),sub=[t.establishment,t.installmentLabel].filter(Boolean).map(esc).join(' · ');return `<article class="mobile-tx-card" data-tx-id="${esc(t.id)}"><div class="mobile-tx-main"><div class="mobile-tx-icon">${esc(txIcon(t))}</div><div class="mobile-tx-copy"><div class="mobile-tx-title">${esc(t.description)}</div>${t.installmentDetail?'<span class="tx-installment-badge">'+esc(t.installmentLabel||'Compra parcelada')+'</span>':''}${sub?`<div class="mobile-tx-sub">${sub}</div>`:''}</div><div class="mobile-tx-amount ${t.type}">${t.type==='income'?'+':'-'} ${fmt(t.amount)}</div></div><div class="mobile-tx-meta"><span class="mobile-tx-date">${new Date(transactionHistoryDate(t)+'T12:00:00').toLocaleDateString('pt-BR')}</span>${future?'<span class="mobile-tx-planned">PREVISTO</span>':'<span class="tx-status posted-status">LANÇADO</span>'}<span class="mobile-tx-category">${esc(t.category)}</span>${t.subcategory?`<span class="mobile-tx-category">${esc(subcategoryLabel(t.subcategory))}</span>`:''}${t.account?`<span class="mobile-tx-date">• ${esc(t.account)}</span>`:''}</div><div class="tx-more-info" hidden><span>Compra: ${new Date(transactionHistoryDate(t)+'T12:00:00').toLocaleDateString('pt-BR')}</span><span>Meio de pagamento: ${esc(t.payment||'Não informado')}</span><span>${esc(t.establishment||'')}</span>${t.installmentDetail||''}<span>${esc((t.tags||[]).join(', '))}</span></div><div class="mobile-tx-actions"><button class="btn" onclick="editTx('${t.id}')">Editar</button><button class="btn danger" onclick="removeTx('${t.id}')">Excluir</button></div></article>`}).join('')+'</div>'}
